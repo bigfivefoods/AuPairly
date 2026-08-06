@@ -20,6 +20,11 @@ function resolveDatabaseUrl(): string | undefined {
   return process.env.DATABASE_URL || process.env.DIRECT_URL;
 }
 
+/** True when a Supabase connection string is present (does not open a connection). */
+export function isDatabaseConfigured(): boolean {
+  return Boolean(resolveDatabaseUrl());
+}
+
 function createPrismaClient(): PrismaClient {
   const connectionString = resolveDatabaseUrl();
   if (!connectionString) {

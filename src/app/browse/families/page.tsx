@@ -37,64 +37,78 @@ export default async function BrowseFamiliesPage({
   const service = serviceFromParam(sp.service);
   const verifiedOnly = sp.verified === "1";
 
-  const taggedIds = service
-    ? await profileIdsForService("FAMILY", service)
-    : null;
+  let families: Awaited<
+    ReturnType<
+      typeof prisma.familyProfile.findMany<{
+        include: { user: { select: { name: true; image: true } } };
+      }>
+    >
+  > = [];
+  let dbOk = true;
 
-  const families = await prisma.familyProfile.findMany({
-    where: {
-      status: "ACTIVE",
-      ...(verifiedOnly ? { isVerified: true } : {}),
-      ...(service
-        ? taggedIds && taggedIds.length > 0
+  try {
+    const taggedIds = service
+      ? await profileIdsForService("FAMILY", service)
+      : null;
+
+    families = await prisma.familyProfile.findMany({
+      where: {
+        status: "ACTIVE",
+        ...(verifiedOnly ? { isVerified: true } : {}),
+        ...(service
+          ? taggedIds && taggedIds.length > 0
+            ? {
+                OR: [
+                  { id: { in: taggedIds } },
+                  { services: { contains: service } },
+                ],
+              }
+            : { services: { contains: service } }
+          : {}),
+        ...(continent ? { continent } : {}),
+        ...(country
           ? {
               OR: [
-                { id: { in: taggedIds } },
-                { services: { contains: service } },
+                { country: { equals: country } },
+                { country: { contains: country } },
               ],
             }
-          : { services: { contains: service } }
-        : {}),
-      ...(continent ? { continent } : {}),
-      ...(country
-        ? {
-            OR: [
-              { country: { equals: country } },
-              { country: { contains: country } },
-            ],
-          }
-        : {}),
-      ...(region
-        ? {
-            OR: [
-              { region: { equals: region } },
-              { region: { contains: region } },
-            ],
-          }
-        : {}),
-      ...(city
-        ? {
-            OR: [{ city: { contains: city } }, { city: { equals: city } }],
-          }
-        : {}),
-      ...(q
-        ? {
-            OR: [
-              { headline: { contains: q } },
-              { bio: { contains: q } },
-              { familyName: { contains: q } },
-              { city: { contains: q } },
-              { region: { contains: q } },
-              { country: { contains: q } },
-              { preferences: { contains: q } },
-              { user: { name: { contains: q } } },
-            ],
-          }
-        : {}),
-    },
-    include: { user: { select: { name: true, image: true } } },
-    orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
-  });
+          : {}),
+        ...(region
+          ? {
+              OR: [
+                { region: { equals: region } },
+                { region: { contains: region } },
+              ],
+            }
+          : {}),
+        ...(city
+          ? {
+              OR: [{ city: { contains: city } }, { city: { equals: city } }],
+            }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { headline: { contains: q } },
+                { bio: { contains: q } },
+                { familyName: { contains: q } },
+                { city: { contains: q } },
+                { region: { contains: q } },
+                { country: { contains: q } },
+                { preferences: { contains: q } },
+                { user: { name: { contains: q } } },
+              ],
+            }
+          : {}),
+      },
+      include: { user: { select: { name: true, image: true } } },
+      orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
+    });
+  } catch (e) {
+    console.error("[browse/families] load failed", e);
+    dbOk = false;
+  }
 
   const filterBits = [
     continent ? continentName(continent) : null,
@@ -172,11 +186,21 @@ export default async function BrowseFamiliesPage({
         <p className="mb-4 text-sm text-stone-500">Filters: {filterBits.join(" · ")}</p>
       )}
 
+      {!dbOk && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Listings are temporarily unavailable. Please try again shortly.
+        </div>
+      )}
+
       {families.length === 0 ? (
         <EmptyState
           icon={<Home className="h-7 w-7" />}
           title="No hosts found"
-          description="Try a wider continent or country, or clear service / location filters."
+          description={
+            dbOk
+              ? "Try a wider continent or country, or clear service / location filters."
+              : "Database is temporarily unavailable — page still works, listings will appear once configured."
+          }
           action={
             <Link href="/browse/families" className="btn-secondary">
               Clear filters

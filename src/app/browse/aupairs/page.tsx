@@ -43,77 +43,100 @@ export default async function BrowseAupairsPage({
   const liveInOnly = sp.liveIn === "1";
   const firstAidOnly = sp.firstAid === "1";
 
-  const taggedIds = service
-    ? await profileIdsForService("AUPAIR", service)
-    : null;
+  let aupairs: Awaited<
+    ReturnType<
+      typeof prisma.auPairProfile.findMany<{
+        include: {
+          user: {
+            select: {
+              name: true;
+              image: true;
+              avgResponseMinutes: true;
+              safetyScore: true;
+            };
+          };
+        };
+      }>
+    >
+  > = [];
+  let dbOk = true;
 
-  const aupairs = await prisma.auPairProfile.findMany({
-    where: {
-      status: "ACTIVE",
-      ...(verifiedOnly ? { isVerified: true } : {}),
-      ...(drivingOnly ? { drivingLicense: true } : {}),
-      ...(liveInOnly ? { liveIn: true } : {}),
-      ...(firstAidOnly ? { firstAid: true } : {}),
-      ...(service
-        ? taggedIds && taggedIds.length > 0
+  try {
+    const taggedIds = service
+      ? await profileIdsForService("AUPAIR", service)
+      : null;
+
+    aupairs = await prisma.auPairProfile.findMany({
+      where: {
+        status: "ACTIVE",
+        ...(verifiedOnly ? { isVerified: true } : {}),
+        ...(drivingOnly ? { drivingLicense: true } : {}),
+        ...(liveInOnly ? { liveIn: true } : {}),
+        ...(firstAidOnly ? { firstAid: true } : {}),
+        ...(service
+          ? taggedIds && taggedIds.length > 0
+            ? {
+                OR: [
+                  { id: { in: taggedIds } },
+                  { services: { contains: service } },
+                ],
+              }
+            : { services: { contains: service } }
+          : {}),
+        ...(continent ? { continent } : {}),
+        ...(country
           ? {
               OR: [
-                { id: { in: taggedIds } },
-                { services: { contains: service } },
+                { country: { equals: country } },
+                { country: { contains: country } },
+                { preferredCountries: { contains: country } },
               ],
             }
-          : { services: { contains: service } }
-        : {}),
-      ...(continent ? { continent } : {}),
-      ...(country
-        ? {
-            OR: [
-              { country: { equals: country } },
-              { country: { contains: country } },
-              { preferredCountries: { contains: country } },
-            ],
-          }
-        : {}),
-      ...(region
-        ? {
-            OR: [
-              { region: { equals: region } },
-              { region: { contains: region } },
-            ],
-          }
-        : {}),
-      ...(city
-        ? {
-            OR: [{ city: { contains: city } }, { city: { equals: city } }],
-          }
-        : {}),
-      ...(q
-        ? {
-            OR: [
-              { headline: { contains: q } },
-              { bio: { contains: q } },
-              { nationality: { contains: q } },
-              { languages: { contains: q } },
-              { city: { contains: q } },
-              { region: { contains: q } },
-              { country: { contains: q } },
-              { user: { name: { contains: q } } },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      user: {
-        select: {
-          name: true,
-          image: true,
-          avgResponseMinutes: true,
-          safetyScore: true,
+          : {}),
+        ...(region
+          ? {
+              OR: [
+                { region: { equals: region } },
+                { region: { contains: region } },
+              ],
+            }
+          : {}),
+        ...(city
+          ? {
+              OR: [{ city: { contains: city } }, { city: { equals: city } }],
+            }
+          : {}),
+        ...(q
+          ? {
+              OR: [
+                { headline: { contains: q } },
+                { bio: { contains: q } },
+                { nationality: { contains: q } },
+                { languages: { contains: q } },
+                { city: { contains: q } },
+                { region: { contains: q } },
+                { country: { contains: q } },
+                { user: { name: { contains: q } } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+            avgResponseMinutes: true,
+            safetyScore: true,
+          },
         },
       },
-    },
-    orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
-  });
+      orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
+    });
+  } catch (e) {
+    console.error("[browse/aupairs] load failed", e);
+    dbOk = false;
+  }
 
   const filterBits = [
     continent ? continentName(continent) : null,
@@ -234,11 +257,21 @@ export default async function BrowseAupairsPage({
         )}
       </div>
 
+      {!dbOk && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Listings are temporarily unavailable. Please try again shortly.
+        </div>
+      )}
+
       {aupairs.length === 0 ? (
         <EmptyState
           icon={<Users className="h-7 w-7" />}
           title="No sitters found"
-          description="Try a wider continent or country, or clear service / location filters."
+          description={
+            dbOk
+              ? "Try a wider continent or country, or clear service / location filters."
+              : "Database is temporarily unavailable — page still works, listings will appear once configured."
+          }
           action={
             <Link href="/browse/aupairs" className="btn-secondary">
               Clear filters

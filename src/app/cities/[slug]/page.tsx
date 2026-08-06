@@ -34,32 +34,51 @@ export default async function CityLandingPage({
   const city = cityFromSlug(slug);
   if (!city) notFound();
 
-  const [aupairs, families] = await Promise.all([
-    prisma.auPairProfile.findMany({
-      where: {
-        status: "ACTIVE",
-        OR: [
-          { city: { contains: city.name, mode: "insensitive" } },
-          { country: { contains: "South Africa", mode: "insensitive" } },
-        ],
-      },
-      include: { user: { select: { name: true, image: true } } },
-      take: 12,
-      orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
-    }),
-    prisma.familyProfile.findMany({
-      where: {
-        status: "ACTIVE",
-        OR: [
-          { city: { contains: city.name, mode: "insensitive" } },
-          { country: { contains: "South Africa", mode: "insensitive" } },
-        ],
-      },
-      include: { user: { select: { name: true, image: true } } },
-      take: 12,
-      orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
-    }),
-  ]);
+  let aupairs: Awaited<
+    ReturnType<
+      typeof prisma.auPairProfile.findMany<{
+        include: { user: { select: { name: true; image: true } } };
+      }>
+    >
+  > = [];
+  let families: Awaited<
+    ReturnType<
+      typeof prisma.familyProfile.findMany<{
+        include: { user: { select: { name: true; image: true } } };
+      }>
+    >
+  > = [];
+
+  try {
+    [aupairs, families] = await Promise.all([
+      prisma.auPairProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          OR: [
+            { city: { contains: city.name, mode: "insensitive" } },
+            { country: { contains: "South Africa", mode: "insensitive" } },
+          ],
+        },
+        include: { user: { select: { name: true, image: true } } },
+        take: 12,
+        orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
+      }),
+      prisma.familyProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          OR: [
+            { city: { contains: city.name, mode: "insensitive" } },
+            { country: { contains: "South Africa", mode: "insensitive" } },
+          ],
+        },
+        include: { user: { select: { name: true, image: true } } },
+        take: 12,
+        orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
+      }),
+    ]);
+  } catch (e) {
+    console.error("[cities] load failed", city.slug, e);
+  }
 
   // Prefer exact city match first in display
   const aupairsLocal = aupairs.filter(

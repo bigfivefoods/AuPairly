@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@/lib/prisma";
+import { isDatabaseConfigured, prisma } from "@/lib/prisma";
 import { parseServices, type ServiceId } from "@/lib/services";
 
 type TagDelegate = {
@@ -16,12 +16,17 @@ type TagDelegate = {
   }) => Promise<{ profileId: string }[]>;
 };
 
-/** Safe access — never throw if client is mid-regenerate or model missing. */
+/** Safe access — never throw if DB env missing, client mid-regenerate, or model missing. */
 function tagDelegate(): TagDelegate | null {
-  const d = (prisma as unknown as { profileServiceTag?: TagDelegate })
-    .profileServiceTag;
-  if (!d || typeof d.findMany !== "function") return null;
-  return d;
+  if (!isDatabaseConfigured()) return null;
+  try {
+    const d = (prisma as unknown as { profileServiceTag?: TagDelegate })
+      .profileServiceTag;
+    if (!d || typeof d.findMany !== "function") return null;
+    return d;
+  } catch {
+    return null;
+  }
 }
 
 /**

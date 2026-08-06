@@ -14,45 +14,57 @@ export default async function MapPage({
   const sp = await searchParams;
   const type = sp.type === "families" ? "families" : "aupairs";
 
-  if (type === "families") {
-    const families = await prisma.familyProfile.findMany({
-      where: { status: "ACTIVE" },
-      include: { user: { select: { name: true } } },
-      take: 200,
-    });
-    const listings = families.map((f) => ({
-      id: f.id,
-      city: f.city,
-      country: f.country,
-      name: f.familyName || f.user.name,
-      href: `/browse/families/${f.id}`,
-      subtitle: f.headline || undefined,
-    }));
+  type Listing = {
+    id: string;
+    city: string | null;
+    country: string | null;
+    name: string;
+    href: string;
+    subtitle?: string;
+  };
 
-    return (
-      <Shell type={type}>
-        <MapBrowse listings={listings} typeLabel="family" />
-      </Shell>
-    );
+  let listings: Listing[] = [];
+
+  try {
+    if (type === "families") {
+      const families = await prisma.familyProfile.findMany({
+        where: { status: "ACTIVE" },
+        include: { user: { select: { name: true } } },
+        take: 200,
+      });
+      listings = families.map((f) => ({
+        id: f.id,
+        city: f.city,
+        country: f.country,
+        name: f.familyName || f.user.name || "Family",
+        href: `/browse/families/${f.id}`,
+        subtitle: f.headline || undefined,
+      }));
+    } else {
+      const aupairs = await prisma.auPairProfile.findMany({
+        where: { status: "ACTIVE" },
+        include: { user: { select: { name: true } } },
+        take: 200,
+      });
+      listings = aupairs.map((a) => ({
+        id: a.id,
+        city: a.city,
+        country: a.country,
+        name: a.user.name || "Sitter",
+        href: `/browse/aupairs/${a.id}`,
+        subtitle: a.headline || undefined,
+      }));
+    }
+  } catch (e) {
+    console.error("[map] load failed", e);
   }
-
-  const aupairs = await prisma.auPairProfile.findMany({
-    where: { status: "ACTIVE" },
-    include: { user: { select: { name: true } } },
-    take: 200,
-  });
-  const listings = aupairs.map((a) => ({
-    id: a.id,
-    city: a.city,
-    country: a.country,
-    name: a.user.name,
-    href: `/browse/aupairs/${a.id}`,
-    subtitle: a.headline || undefined,
-  }));
 
   return (
     <Shell type={type}>
-      <MapBrowse listings={listings} typeLabel="au pair" />
+      <MapBrowse
+        listings={listings}
+        typeLabel={type === "families" ? "family" : "au pair"}
+      />
     </Shell>
   );
 }

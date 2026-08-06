@@ -37,45 +37,96 @@ export default async function ServiceCityPage({ params }: Props) {
   const cityLabel = titleCaseCity(citySlug);
   const cityFilter = cityLabel; // profiles store display city names
 
-  const [sitterTags, hostTags] = await Promise.all([
-    profileIdsForService("AUPAIR", serviceId),
-    profileIdsForService("FAMILY", serviceId),
-  ]);
+  let sitters: Awaited<
+    ReturnType<
+      typeof prisma.auPairProfile.findMany<{
+        include: {
+          user: {
+            select: {
+              name: true;
+              image: true;
+              safetyScore: true;
+              placementVerified: true;
+            };
+          };
+        };
+      }>
+    >
+  > = [];
+  let hosts: Awaited<
+    ReturnType<
+      typeof prisma.familyProfile.findMany<{
+        include: {
+          user: {
+            select: {
+              name: true;
+              image: true;
+              safetyScore: true;
+              placementVerified: true;
+            };
+          };
+        };
+      }>
+    >
+  > = [];
 
-  const cityContains = { contains: cityFilter, mode: "insensitive" as const };
+  try {
+    const [sitterTags, hostTags] = await Promise.all([
+      profileIdsForService("AUPAIR", serviceId),
+      profileIdsForService("FAMILY", serviceId),
+    ]);
 
-  const [sitters, hosts] = await Promise.all([
-    prisma.auPairProfile.findMany({
-      where: {
-        status: "ACTIVE",
-        city: cityContains,
-        OR:
-          sitterTags.length > 0
-            ? [{ id: { in: sitterTags } }, { services: { contains: serviceId } }]
-            : [{ services: { contains: serviceId } }],
-      },
-      include: {
-        user: { select: { name: true, image: true, safetyScore: true, placementVerified: true } },
-      },
-      orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
-      take: 12,
-    }),
-    prisma.familyProfile.findMany({
-      where: {
-        status: "ACTIVE",
-        city: cityContains,
-        OR:
-          hostTags.length > 0
-            ? [{ id: { in: hostTags } }, { services: { contains: serviceId } }]
-            : [{ services: { contains: serviceId } }],
-      },
-      include: {
-        user: { select: { name: true, image: true, safetyScore: true, placementVerified: true } },
-      },
-      orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
-      take: 12,
-    }),
-  ]);
+    const cityContains = { contains: cityFilter, mode: "insensitive" as const };
+
+    [sitters, hosts] = await Promise.all([
+      prisma.auPairProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          city: cityContains,
+          OR:
+            sitterTags.length > 0
+              ? [{ id: { in: sitterTags } }, { services: { contains: serviceId } }]
+              : [{ services: { contains: serviceId } }],
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+              safetyScore: true,
+              placementVerified: true,
+            },
+          },
+        },
+        orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
+        take: 12,
+      }),
+      prisma.familyProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          city: cityContains,
+          OR:
+            hostTags.length > 0
+              ? [{ id: { in: hostTags } }, { services: { contains: serviceId } }]
+              : [{ services: { contains: serviceId } }],
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              image: true,
+              safetyScore: true,
+              placementVerified: true,
+            },
+          },
+        },
+        orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
+        take: 12,
+      }),
+    ]);
+  } catch (e) {
+    console.error("[service/city] load failed", serviceSlug, citySlug, e);
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
