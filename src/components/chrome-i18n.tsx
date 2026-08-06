@@ -72,7 +72,7 @@ export function FooterI18n() {
             <ul className="mt-3 space-y-2 text-sm text-stone-500">
               <li>
                 <Link href="/trust" className="hover:text-teal-700">
-                  Trust centre
+                  {t("footer_trust_centre")}
                 </Link>
               </li>
               <li>

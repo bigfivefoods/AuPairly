@@ -1,9 +1,6 @@
-import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { type PlanId } from "@/lib/plans";
-import { PageHeader } from "@/components/ui";
-import { PricingCards } from "@/components/pricing-cards";
-import { Check, Sparkles, Zap } from "lucide-react";
+import { PricingPageClient } from "@/components/pricing-page-client";
 
 export const metadata = { title: "Pricing" };
 
@@ -11,7 +8,6 @@ export default async function PricingPage() {
   const session = await auth();
   const role = session?.user?.role === "AUPAIR" ? "AUPAIR" : "PARENT";
 
-  // Get plan from DB if logged in
   let planId: PlanId = "FREE";
   if (session?.user?.id) {
     const { getUserPlan } = await import("@/lib/entitlements");
@@ -20,66 +16,10 @@ export default async function PricingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-1.5 text-sm font-semibold text-teal-800">
-          <Sparkles className="h-4 w-4" />
-          Trusted care for your family, loved ones, home &amp; pets
-        </div>
-        <PageHeader
-          title="Free, Plus & Premium"
-          description="Pick a tier, then choose 1 week, 3 months (R99/mo on Plus), or annual. Same periods for Plus and Premium."
-        />
-      </div>
-
-      <PricingCards
-        role={role}
-        currentPlan={planId as PlanId}
-        isLoggedIn={Boolean(session?.user)}
-      />
-
-      <div className="mt-16 grid gap-6 sm:grid-cols-3">
-        {[
-          {
-            icon: <Zap className="h-5 w-5" />,
-            title: "Discover & match",
-            body: "Swipe through curated cards. Mutual likes = instant match + chat.",
-          },
-          {
-            icon: <Check className="h-5 w-5" />,
-            title: "Built on trust",
-            body: "Verified profiles, reviews, and structured interests before you commit.",
-          },
-          {
-            icon: <Sparkles className="h-5 w-5" />,
-            title: "Tier + period",
-            body: "Free forever, or Plus / Premium for a week, 3 months, or a discounted year.",
-          },
-        ].map((f) => (
-          <div
-            key={f.title}
-            className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
-              {f.icon}
-            </div>
-            <h3 className="mt-4 font-display text-lg font-semibold">{f.title}</h3>
-            <p className="mt-2 text-sm text-stone-500 leading-relaxed">{f.body}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-12 rounded-2xl border border-teal-100 bg-teal-50/50 px-6 py-5 text-center text-sm text-stone-600">
-        <p className="font-semibold text-teal-900">Payments: Paystack (primary)</p>
-        <p className="mt-1 text-stone-500">
-          Cards &amp; Apple Pay in South Africa. Free to browse; paid plans unlock unlimited
-          messages, Discover, and featured visibility for the period you choose.
-          Demo mode only when Paystack keys are missing.
-        </p>
-        <Link href="/billing" className="mt-3 inline-block font-semibold text-teal-700 hover:underline">
-          Manage billing →
-        </Link>
-      </div>
-    </div>
+    <PricingPageClient
+      role={role}
+      currentPlan={planId}
+      isLoggedIn={Boolean(session?.user)}
+    />
   );
 }

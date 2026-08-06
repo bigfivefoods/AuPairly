@@ -10,7 +10,6 @@ import {
   useTransition,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
@@ -61,7 +60,6 @@ export function I18nProvider({
   initialLocale?: Locale;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const [isChanging, startTransition] = useTransition();
   const [locale, setLocaleState] = useState<Locale>(resolveLocale(initialLocale));
 
@@ -84,19 +82,30 @@ export function I18nProvider({
   const setLocale = useCallback(
     (next: Locale) => {
       const loc = resolveLocale(next);
+      if (loc === locale) return;
+
       setLocaleState(loc);
       writeLocaleCookie(loc);
-      void fetch("/api/locale", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: loc }),
-      }).catch(() => null);
-      // Re-render server components that read the locale cookie
+
       startTransition(() => {
-        router.refresh();
+        void (async () => {
+          try {
+            await fetch("/api/locale", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ locale: loc }),
+              credentials: "same-origin",
+            });
+          } catch {
+            // Client cookie already written; continue
+          }
+          // Hard reload so the entire app (server + client) re-renders
+          // with the new locale — not only chrome that uses useI18n().
+          window.location.reload();
+        })();
       });
     },
-    [router]
+    [locale]
   );
 
   const dict = useMemo(() => getDictionary(locale), [locale]);

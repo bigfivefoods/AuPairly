@@ -14,6 +14,7 @@ import {
 } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
+import { useI18n } from "@/components/i18n-provider";
 
 export function PricingCards({
   role,
@@ -25,6 +26,7 @@ export function PricingCards({
   isLoggedIn: boolean;
 }) {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const [period, setPeriod] = useState<BillingPeriod>("QUARTER");
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -71,20 +73,20 @@ export function PricingCards({
   }
 
   return (
-    <div>
+    <div data-locale={locale}>
       <p className="mb-4 text-center text-sm text-stone-500">
-        Showing prices for{" "}
+        {t("pricing_showing")}{" "}
         <span className="font-semibold text-stone-800">
-          {role === "AUPAIR" ? "sitters / caregivers" : "hosts / families"}
+          {role === "AUPAIR" ? t("pricing_for_sitters") : t("pricing_for_hosts")}
         </span>
         {" · "}
-        <span className="text-stone-400">Paystack · ZAR</span>
+        <span className="text-stone-400">{t("pricing_paystack")}</span>
       </p>
 
       {/* Period selector — applies to Plus & Premium */}
       <div className="mb-8 flex flex-col items-center gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-          Billing period
+          {t("pricing_period")}
         </p>
         <div
           className="inline-flex flex-wrap justify-center rounded-2xl border border-stone-200 bg-stone-50 p-1 shadow-sm"
@@ -123,10 +125,9 @@ export function PricingCards({
           })}
         </div>
         <p className="max-w-md text-center text-xs text-stone-500">
-          {period === "WEEK" && "Once-off week access — great for a hiring sprint."}
-          {period === "QUARTER" &&
-            "Monthly rate · you must buy 3 months (billed once for the period)."}
-          {period === "ANNUAL" && "Full year discounted — best value per month."}
+          {period === "WEEK" && t("pricing_period_week_hint")}
+          {period === "QUARTER" && t("pricing_period_quarter_hint")}
+          {period === "ANNUAL" && t("pricing_period_annual_hint")}
         </p>
       </div>
 
@@ -195,7 +196,7 @@ export function PricingCards({
                     )}
                     {period === "QUARTER" && charge !== display && (
                       <p className="mt-1 text-xs text-teal-800">
-                        You pay R{charge} today for 3 months
+                        {t("pricing_pay_today", { amount: String(charge) })}
                       </p>
                     )}
                     <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-stone-400">
@@ -230,10 +231,13 @@ export function PricingCards({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
                 {current
-                  ? "Current plan"
+                  ? t("pricing_current")
                   : id === "FREE"
-                    ? "Get started free"
-                    : `Get ${plan.name} · ${PERIOD_LABELS[period].shortLabel}`}
+                    ? t("pricing_get_free")
+                    : t("pricing_get_plan", {
+                        name: plan.name,
+                        period: PERIOD_LABELS[period].shortLabel,
+                      })}
               </Button>
             </div>
           );
@@ -245,8 +249,8 @@ export function PricingCards({
         <table className="w-full min-w-[36rem] text-left text-sm">
           <thead>
             <tr className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
-              <th className="px-4 py-3 font-semibold">Period</th>
-              <th className="px-4 py-3 font-semibold">Free</th>
+              <th className="px-4 py-3 font-semibold">{t("pricing_matrix_period")}</th>
+              <th className="px-4 py-3 font-semibold">{t("pricing_matrix_free")}</th>
               <th className="px-4 py-3 font-semibold text-teal-800">Plus</th>
               <th className="px-4 py-3 font-semibold text-amber-800">Premium</th>
             </tr>
@@ -270,10 +274,10 @@ export function PricingCards({
                       onClick={() => setPeriod(p)}
                       className="ml-2 text-xs font-semibold text-teal-700 hover:underline"
                     >
-                      Select
+                      {t("pricing_select")}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-stone-500">Free forever</td>
+                  <td className="px-4 py-3 text-stone-500">{t("pricing_free_forever")}</td>
                   <td className="px-4 py-3">
                     <span className="font-semibold text-stone-900">
                       R{plus.displayPrice}

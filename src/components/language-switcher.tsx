@@ -13,7 +13,7 @@ export function LanguageSwitcher({
   className?: string;
   compact?: boolean;
 }) {
-  const { locale, setLocale, locales, meta, t } = useI18n();
+  const { locale, setLocale, locales, meta, t, isChanging } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -30,8 +30,9 @@ export function LanguageSwitcher({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        disabled={isChanging}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 shadow-sm transition hover:border-teal-300 hover:text-teal-800",
+          "inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-stone-700 shadow-sm transition hover:border-teal-300 hover:text-teal-800 disabled:opacity-60",
           compact && "px-2"
         )}
         aria-label={t("nav_language")}
@@ -64,6 +65,7 @@ export function LanguageSwitcher({
                       ? "bg-teal-50 font-semibold text-teal-900"
                       : "text-stone-700 hover:bg-stone-50"
                   )}
+                  disabled={isChanging}
                   onClick={() => {
                     setLocale(code as Locale);
                     setOpen(false);

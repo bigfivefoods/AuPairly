@@ -55,6 +55,68 @@ export type Dictionary = {
   home_four_sub: string;
   home_how_title: string;
   home_how_sub: string;
+  home_simple_safe: string;
+  home_step1_title: string;
+  home_step1_desc: string;
+  home_step2_title: string;
+  home_step2_desc: string;
+  home_step3_title: string;
+  home_step3_desc: string;
+  home_step4_title: string;
+  home_step4_desc: string;
+  home_for_hosts_title: string;
+  home_for_hosts_body: string;
+  home_for_hosts_b1: string;
+  home_for_hosts_b2: string;
+  home_for_hosts_b3: string;
+  home_for_hosts_cta: string;
+  home_for_sitters_title: string;
+  home_for_sitters_body: string;
+  home_for_sitters_b1: string;
+  home_for_sitters_b2: string;
+  home_for_sitters_b3: string;
+  home_for_sitters_cta: string;
+  home_featured: string;
+  home_featured_sitters: string;
+  home_featured_hosts: string;
+  home_view_all: string;
+  home_or: string;
+  home_search_all: string;
+  home_across: string;
+  home_open_service: string;
+  home_trust_body: string;
+  home_learn_safety: string;
+  home_open_discover: string;
+  home_start_free: string;
+  pricing_badge: string;
+  pricing_title: string;
+  pricing_desc: string;
+  pricing_period: string;
+  pricing_showing: string;
+  pricing_for_hosts: string;
+  pricing_for_sitters: string;
+  pricing_paystack: string;
+  pricing_get_free: string;
+  pricing_get_plan: string;
+  pricing_current: string;
+  pricing_period_week_hint: string;
+  pricing_period_quarter_hint: string;
+  pricing_period_annual_hint: string;
+  pricing_pay_today: string;
+  pricing_matrix_period: string;
+  pricing_matrix_free: string;
+  pricing_select: string;
+  pricing_free_forever: string;
+  pricing_discover_title: string;
+  pricing_discover_body: string;
+  pricing_trust_title: string;
+  pricing_trust_body: string;
+  pricing_tier_period_title: string;
+  pricing_tier_period_body: string;
+  pricing_payments: string;
+  pricing_payments_body: string;
+  pricing_manage: string;
+  footer_trust_centre: string;
   common_loading: string;
   common_save: string;
   common_cancel: string;
@@ -152,6 +214,79 @@ const en: Dictionary = {
     "Book or offer childcare, caregiving, house sitting, and pet sitting — on the same trusted marketplace.",
   home_how_title: "How AuPairly works",
   home_how_sub: "From registration to your first booking conversation — designed for trust.",
+  home_simple_safe: "Simple & safe",
+  home_step1_title: "Create your profile",
+  home_step1_desc:
+    "Sign up as a host or sitter. Pick childcare, caregiving, house sitting, pet sitting — or mix.",
+  home_step2_title: "Verify yourself",
+  home_step2_desc:
+    "Complete ID, selfie, and reference checks so everyone can trust the match.",
+  home_step3_title: "Discover & swipe",
+  home_step3_desc: "Filter by service and location. Mutual likes open a chat instantly.",
+  home_step4_title: "Message or upgrade",
+  home_step4_desc:
+    "Free tier to try. Plus unlocks unlimited messages, interests, and boosts.",
+  home_for_hosts_title: "For hosts",
+  home_for_hosts_body:
+    "Need childcare, a caregiver, a house sitter, or pet care? Post once, choose your categories, and message verified sitters.",
+  home_for_hosts_b1: "Host verification badge",
+  home_for_hosts_b2: "Filter by service, location & skills",
+  home_for_hosts_b3: "Private messaging & placements",
+  home_for_hosts_cta: "Post what I need",
+  home_for_sitters_title: "For sitters",
+  home_for_sitters_body:
+    "Offer childcare, caregiving, house sitting, pet sitting — or stack several on one profile. Get verified and connect with hosts worldwide.",
+  home_for_sitters_b1: "Identity & reference checks",
+  home_for_sitters_b2: "Multi-service profile",
+  home_for_sitters_b3: "Global hosts & local gigs",
+  home_for_sitters_cta: "Create sitter profile",
+  home_featured: "Featured",
+  home_featured_sitters: "Sitters ready to connect",
+  home_featured_hosts: "Hosts looking for help",
+  home_view_all: "View all",
+  home_or: "Or",
+  home_search_all: "search all sitters",
+  home_across: "across every category.",
+  home_open_service: "Open {name}",
+  home_trust_body:
+    "Built on trust, not just profiles. Every member can complete multi-step verification — ID, selfie match, background check, and references — so you always know who you're talking to.",
+  home_learn_safety: "Learn about safety",
+  home_open_discover: "Open Discover",
+  home_start_free: "Start free · upgrade anytime",
+  pricing_badge: "Trusted care for your family, loved ones, home & pets",
+  pricing_title: "Free, Plus & Premium",
+  pricing_desc:
+    "Pick a tier, then choose 1 week, 3 months (R99/mo on Plus), or annual. Same periods for Plus and Premium.",
+  pricing_period: "Billing period",
+  pricing_showing: "Showing prices for",
+  pricing_for_hosts: "hosts / families",
+  pricing_for_sitters: "sitters / caregivers",
+  pricing_paystack: "Paystack · ZAR",
+  pricing_get_free: "Get started free",
+  pricing_get_plan: "Get {name} · {period}",
+  pricing_current: "Current plan",
+  pricing_period_week_hint: "Once-off week access — great for a hiring sprint.",
+  pricing_period_quarter_hint:
+    "Monthly rate · you must buy 3 months (billed once for the period).",
+  pricing_period_annual_hint: "Full year discounted — best value per month.",
+  pricing_pay_today: "You pay R{amount} today for 3 months",
+  pricing_matrix_period: "Period",
+  pricing_matrix_free: "Free",
+  pricing_select: "Select",
+  pricing_free_forever: "Free forever",
+  pricing_discover_title: "Discover & match",
+  pricing_discover_body: "Swipe through curated cards. Mutual likes = instant match + chat.",
+  pricing_trust_title: "Built on trust",
+  pricing_trust_body:
+    "Verified profiles, reviews, and structured interests before you commit.",
+  pricing_tier_period_title: "Tier + period",
+  pricing_tier_period_body:
+    "Free forever, or Plus / Premium for a week, 3 months, or a discounted year.",
+  pricing_payments: "Payments: Paystack (primary)",
+  pricing_payments_body:
+    "Cards & Apple Pay in South Africa. Free to browse; paid plans unlock unlimited messages, Discover, and featured visibility for the period you choose.",
+  pricing_manage: "Manage billing →",
+  footer_trust_centre: "Trust centre",
   common_loading: "Loading…",
   common_save: "Save",
   common_cancel: "Cancel",
@@ -248,6 +383,69 @@ const zh: Dictionary = {
   home_four_sub: "在同一可信市场预订或提供儿童、成人、看家与宠物照护。",
   home_how_title: "AuPairly 如何运作",
   home_how_sub: "从注册到第一次沟通——以信任为核心。",
+  home_simple_safe: "简单又安全",
+  home_step1_title: "创建个人资料",
+  home_step1_desc: "以雇主或照护者身份注册，选择儿童、成人、看家、宠物照护——可多选。",
+  home_step2_title: "完成认证",
+  home_step2_desc: "完成身份、自拍与推荐人核验，让双方更放心。",
+  home_step3_title: "发现与滑动",
+  home_step3_desc: "按服务与地区筛选。互相喜欢即可立刻聊天。",
+  home_step4_title: "发消息或升级",
+  home_step4_desc: "免费试用。Plus 解锁无限消息、兴趣与曝光。",
+  home_for_hosts_title: "给雇主/家庭",
+  home_for_hosts_body: "需要儿童、成人、看家或宠物照护？发布一次需求，选择类别，联系已认证照护者。",
+  home_for_hosts_b1: "雇主认证徽章",
+  home_for_hosts_b2: "按服务、地区与技能筛选",
+  home_for_hosts_b3: "私信与安置流程",
+  home_for_hosts_cta: "发布我的需求",
+  home_for_sitters_title: "给照护者",
+  home_for_sitters_body: "提供儿童、成人、看家、宠物照护——可在同一资料上叠加多项。完成认证，连接全球雇主。",
+  home_for_sitters_b1: "身份与推荐人核验",
+  home_for_sitters_b2: "多服务资料",
+  home_for_sitters_b3: "全球雇主与本地工作",
+  home_for_sitters_cta: "创建照护者资料",
+  home_featured: "精选",
+  home_featured_sitters: "准备好连接的照护者",
+  home_featured_hosts: "正在寻找帮助的雇主",
+  home_view_all: "查看全部",
+  home_or: "或",
+  home_search_all: "搜索全部照护者",
+  home_across: "覆盖所有类别。",
+  home_open_service: "打开{name}",
+  home_trust_body:
+    "以信任为本，不只是资料页。每位成员可完成多步认证——证件、自拍核验、背景与推荐人——让您清楚对方是谁。",
+  home_learn_safety: "了解安全",
+  home_open_discover: "打开发现",
+  home_start_free: "免费开始 · 随时升级",
+  pricing_badge: "为家人、挚爱、房屋与宠物提供可信赖的照护",
+  pricing_title: "免费、Plus 与 Premium",
+  pricing_desc: "选择套餐，再选 1 周、3 个月（Plus 为每月 R99）或年付。Plus 与 Premium 周期相同。",
+  pricing_period: "计费周期",
+  pricing_showing: "价格适用于",
+  pricing_for_hosts: "雇主 / 家庭",
+  pricing_for_sitters: "照护者",
+  pricing_paystack: "Paystack · 兰特",
+  pricing_get_free: "免费开始",
+  pricing_get_plan: "获取 {name} · {period}",
+  pricing_current: "当前套餐",
+  pricing_period_week_hint: "一周一次付清——适合短期招聘。",
+  pricing_period_quarter_hint: "按月计价 · 最少购买 3 个月（一次付清）。",
+  pricing_period_annual_hint: "年付优惠——每月成本最低。",
+  pricing_pay_today: "今日支付 R{amount}（3 个月）",
+  pricing_matrix_period: "周期",
+  pricing_matrix_free: "免费",
+  pricing_select: "选择",
+  pricing_free_forever: "永久免费",
+  pricing_discover_title: "发现与匹配",
+  pricing_discover_body: "滑动精选卡片。互相喜欢即可匹配并聊天。",
+  pricing_trust_title: "以信任为本",
+  pricing_trust_body: "认证资料、评价与结构化兴趣，再做决定。",
+  pricing_tier_period_title: "套餐 + 周期",
+  pricing_tier_period_body: "永久免费，或 Plus / Premium 可选一周、三月或优惠年付。",
+  pricing_payments: "支付：Paystack（主推）",
+  pricing_payments_body: "南非支持银行卡与 Apple Pay。免费浏览；付费套餐解锁无限消息、发现与优先展示。",
+  pricing_manage: "管理账单 →",
+  footer_trust_centre: "信任中心",
   common_loading: "加载中…",
   common_save: "保存",
   common_cancel: "取消",
@@ -481,6 +679,68 @@ const es: Dictionary = {
   reviews_awaiting_them: "Esperando su reseña para publicar la tuya",
   reviews_both_public: "Ambas reseñas son públicas",
   reviews_inbox: "Mis reseñas",
+  home_simple_safe: "Simple y seguro",
+  home_step1_title: "Crea tu perfil",
+  home_step1_desc: "Regístrate como anfitrión o cuidador. Elige cuidado infantil, de adultos, de casa, de mascotas — o combínalos.",
+  home_step2_title: "Verifícate",
+  home_step2_desc: "Completa ID, selfie y referencias para que todos confíen en el match.",
+  home_step3_title: "Descubre y desliza",
+  home_step3_desc: "Filtra por servicio y ubicación. Los likes mutuos abren un chat al instante.",
+  home_step4_title: "Mensaje o mejora",
+  home_step4_desc: "Plan gratis para probar. Plus desbloquea mensajes, intereses y boosts ilimitados.",
+  home_for_hosts_title: "Para anfitriones",
+  home_for_hosts_body: "¿Necesitas cuidado infantil, de un adulto, de la casa o de mascotas? Publica una vez, elige categorías y escribe a cuidadores verificados.",
+  home_for_hosts_b1: "Insignia de verificación de anfitrión",
+  home_for_hosts_b2: "Filtra por servicio, ubicación y habilidades",
+  home_for_hosts_b3: "Mensajería privada y colocaciones",
+  home_for_hosts_cta: "Publicar lo que necesito",
+  home_for_sitters_title: "Para cuidadores",
+  home_for_sitters_body: "Ofrece cuidado infantil, de adultos, de casa o mascotas — o varios en un perfil. Verifícate y conecta con anfitriones en todo el mundo.",
+  home_for_sitters_b1: "Identidad y referencias",
+  home_for_sitters_b2: "Perfil multi-servicio",
+  home_for_sitters_b3: "Anfitriones globales y trabajos locales",
+  home_for_sitters_cta: "Crear perfil de cuidador",
+  home_featured: "Destacados",
+  home_featured_sitters: "Cuidadores listos para conectar",
+  home_featured_hosts: "Anfitriones que buscan ayuda",
+  home_view_all: "Ver todo",
+  home_or: "O",
+  home_search_all: "buscar todos los cuidadores",
+  home_across: "en todas las categorías.",
+  home_open_service: "Abrir {name}",
+  home_trust_body: "Construido sobre confianza, no solo perfiles. Cada miembro puede completar verificación en varios pasos — ID, selfie, antecedentes y referencias.",
+  home_learn_safety: "Conocer la seguridad",
+  home_open_discover: "Abrir Descubrir",
+  home_start_free: "Empieza gratis · mejora cuando quieras",
+  pricing_badge: "Cuidado de confianza para tu familia, seres queridos, hogar y mascotas",
+  pricing_title: "Gratis, Plus y Premium",
+  pricing_desc: "Elige un nivel y luego 1 semana, 3 meses (R99/mes en Plus) o anual. Mismos periodos para Plus y Premium.",
+  pricing_period: "Periodo de facturación",
+  pricing_showing: "Mostrando precios para",
+  pricing_for_hosts: "anfitriones / familias",
+  pricing_for_sitters: "cuidadores",
+  pricing_paystack: "Paystack · ZAR",
+  pricing_get_free: "Empezar gratis",
+  pricing_get_plan: "Obtener {name} · {period}",
+  pricing_current: "Plan actual",
+  pricing_period_week_hint: "Acceso de una semana de una sola vez — ideal para una contratación rápida.",
+  pricing_period_quarter_hint: "Tarifa mensual · debes comprar 3 meses (cobro único del periodo).",
+  pricing_period_annual_hint: "Año completo con descuento — mejor valor al mes.",
+  pricing_pay_today: "Pagas R{amount} hoy por 3 meses",
+  pricing_matrix_period: "Periodo",
+  pricing_matrix_free: "Gratis",
+  pricing_select: "Elegir",
+  pricing_free_forever: "Gratis para siempre",
+  pricing_discover_title: "Descubrir y conectar",
+  pricing_discover_body: "Desliza tarjetas. Likes mutuos = match y chat al instante.",
+  pricing_trust_title: "Basado en confianza",
+  pricing_trust_body: "Perfiles verificados, reseñas e intereses estructurados antes de comprometerte.",
+  pricing_tier_period_title: "Nivel + periodo",
+  pricing_tier_period_body: "Gratis siempre, o Plus / Premium por una semana, 3 meses o un año con descuento.",
+  pricing_payments: "Pagos: Paystack (principal)",
+  pricing_payments_body: "Tarjetas y Apple Pay en Sudáfrica. Navega gratis; los planes de pago desbloquean mensajes ilimitados, Discover y visibilidad destacada.",
+  pricing_manage: "Gestionar facturación →",
+  footer_trust_centre: "Centro de confianza",
   language_saved: "Idioma actualizado",
 };
 
@@ -579,6 +839,68 @@ const fr: Dictionary = {
   reviews_awaiting_them: "En attente de leur avis pour publier le vôtre",
   reviews_both_public: "Les deux avis sont publics",
   reviews_inbox: "Mes avis",
+  home_simple_safe: "Simple et sûr",
+  home_step1_title: "Créez votre profil",
+  home_step1_desc: "Inscrivez-vous comme hôte ou intervenant. Choisissez garde d'enfants, d'adultes, de maison, d'animaux — ou combinez.",
+  home_step2_title: "Vérifiez-vous",
+  home_step2_desc: "Pièce d'identité, selfie et références pour que chacun puisse faire confiance.",
+  home_step3_title: "Découvrir et swiper",
+  home_step3_desc: "Filtrez par service et lieu. Les likes mutuels ouvrent un chat immédiatement.",
+  home_step4_title: "Message ou mise à niveau",
+  home_step4_desc: "Offre gratuite pour essayer. Plus débloque messages, intérêts et boosts illimités.",
+  home_for_hosts_title: "Pour les hôtes",
+  home_for_hosts_body: "Besoin de garde d'enfants, d'un aidant, d'un house-sitter ou de petsitting ? Publiez une fois, choisissez les catégories et contactez des profils vérifiés.",
+  home_for_hosts_b1: "Badge de vérification hôte",
+  home_for_hosts_b2: "Filtrer par service, lieu et compétences",
+  home_for_hosts_b3: "Messagerie privée et placements",
+  home_for_hosts_cta: "Publier mon besoin",
+  home_for_sitters_title: "Pour les intervenants",
+  home_for_sitters_body: "Proposez garde d'enfants, d'adultes, de maison ou d'animaux — ou plusieurs sur un même profil. Vérifiez-vous et connectez-vous à des hôtes dans le monde.",
+  home_for_sitters_b1: "Identité et références",
+  home_for_sitters_b2: "Profil multi-services",
+  home_for_sitters_b3: "Hôtes mondiaux et missions locales",
+  home_for_sitters_cta: "Créer mon profil",
+  home_featured: "À la une",
+  home_featured_sitters: "Intervenants prêts à échanger",
+  home_featured_hosts: "Hôtes qui cherchent de l'aide",
+  home_view_all: "Tout voir",
+  home_or: "Ou",
+  home_search_all: "rechercher tous les intervenants",
+  home_across: "dans toutes les catégories.",
+  home_open_service: "Ouvrir {name}",
+  home_trust_body: "La confiance d'abord, pas seulement des profils. Chaque membre peut compléter une vérification multi-étapes — pièce d'identité, selfie, antécédents et références.",
+  home_learn_safety: "En savoir plus sur la sécurité",
+  home_open_discover: "Ouvrir Découvrir",
+  home_start_free: "Commencer gratuitement · évoluer à tout moment",
+  pricing_badge: "Soins de confiance pour votre famille, vos proches, votre maison et vos animaux",
+  pricing_title: "Gratuit, Plus et Premium",
+  pricing_desc: "Choisissez un niveau, puis 1 semaine, 3 mois (R99/mois en Plus) ou annuel. Mêmes périodes pour Plus et Premium.",
+  pricing_period: "Période de facturation",
+  pricing_showing: "Tarifs pour",
+  pricing_for_hosts: "hôtes / familles",
+  pricing_for_sitters: "intervenants",
+  pricing_paystack: "Paystack · ZAR",
+  pricing_get_free: "Commencer gratuitement",
+  pricing_get_plan: "Prendre {name} · {period}",
+  pricing_current: "Offre actuelle",
+  pricing_period_week_hint: "Accès d'une semaine en une fois — idéal pour un recrutement court.",
+  pricing_period_quarter_hint: "Tarif mensuel · achat minimum de 3 mois (facturé en une fois).",
+  pricing_period_annual_hint: "Année complète à prix réduit — meilleur rapport qualité-prix.",
+  pricing_pay_today: "Vous payez R{amount} aujourd'hui pour 3 mois",
+  pricing_matrix_period: "Période",
+  pricing_matrix_free: "Gratuit",
+  pricing_select: "Choisir",
+  pricing_free_forever: "Gratuit pour toujours",
+  pricing_discover_title: "Découvrir et matcher",
+  pricing_discover_body: "Swipez des cartes. Likes mutuels = match et chat instantanés.",
+  pricing_trust_title: "Construit sur la confiance",
+  pricing_trust_body: "Profils vérifiés, avis et intérêts structurés avant de vous engager.",
+  pricing_tier_period_title: "Niveau + période",
+  pricing_tier_period_body: "Gratuit pour toujours, ou Plus / Premium pour une semaine, 3 mois ou une année réduite.",
+  pricing_payments: "Paiements : Paystack (principal)",
+  pricing_payments_body: "Cartes et Apple Pay en Afrique du Sud. Navigation gratuite ; les offres payantes débloquent messages illimités, Discover et mise en avant.",
+  pricing_manage: "Gérer la facturation →",
+  footer_trust_centre: "Centre de confiance",
   language_saved: "Langue mise à jour",
 };
 
@@ -973,6 +1295,68 @@ const de: Dictionary = {
   reviews_awaiting_them: "Warten auf deren Bewertung zur Veröffentlichung",
   reviews_both_public: "Beide Bewertungen sind öffentlich",
   reviews_inbox: "Meine Bewertungen",
+  home_simple_safe: "Einfach & sicher",
+  home_step1_title: "Profil erstellen",
+  home_step1_desc: "Als Gastgeber oder Betreuer registrieren. Kinder-, Senioren-, Haus- und Tierbetreuung — oder kombinieren.",
+  home_step2_title: "Verifizieren",
+  home_step2_desc: "Ausweis, Selfie und Referenzen abschließen, damit alle dem Match vertrauen können.",
+  home_step3_title: "Entdecken & swipen",
+  home_step3_desc: "Nach Service und Ort filtern. Gegenseitige Likes öffnen sofort einen Chat.",
+  home_step4_title: "Nachricht oder Upgrade",
+  home_step4_desc: "Kostenlos testen. Plus schaltet unbegrenzte Nachrichten, Interessen und Boosts frei.",
+  home_for_hosts_title: "Für Gastgeber",
+  home_for_hosts_body: "Brauchen Sie Kinder-, Pflege-, Haus- oder Tierbetreuung? Einmal posten, Kategorien wählen und verifizierte Betreuer anschreiben.",
+  home_for_hosts_b1: "Gastgeber-Verifizierungsbadge",
+  home_for_hosts_b2: "Nach Service, Ort & Fähigkeiten filtern",
+  home_for_hosts_b3: "Private Nachrichten & Placement",
+  home_for_hosts_cta: "Bedarf veröffentlichen",
+  home_for_sitters_title: "Für Betreuer",
+  home_for_sitters_body: "Bieten Sie Kinder-, Pflege-, Haus- oder Tierbetreuung an — oder mehrere auf einem Profil. Verifizieren und weltweit mit Gastgebern verbinden.",
+  home_for_sitters_b1: "Identität & Referenzen",
+  home_for_sitters_b2: "Multi-Service-Profil",
+  home_for_sitters_b3: "Globale Gastgeber & lokale Jobs",
+  home_for_sitters_cta: "Betreuerprofil erstellen",
+  home_featured: "Empfohlen",
+  home_featured_sitters: "Betreuer bereit zum Vernetzen",
+  home_featured_hosts: "Gastgeber, die Hilfe suchen",
+  home_view_all: "Alle ansehen",
+  home_or: "Oder",
+  home_search_all: "alle Betreuer suchen",
+  home_across: "in allen Kategorien.",
+  home_open_service: "{name} öffnen",
+  home_trust_body: "Vertrauen statt nur Profile. Jedes Mitglied kann mehrstufige Verifizierung abschließen — Ausweis, Selfie, Hintergrund und Referenzen.",
+  home_learn_safety: "Mehr zur Sicherheit",
+  home_open_discover: "Discover öffnen",
+  home_start_free: "Kostenlos starten · jederzeit upgraden",
+  pricing_badge: "Vertrauensvolle Betreuung für Familie, Angehörige, Zuhause & Haustiere",
+  pricing_title: "Free, Plus & Premium",
+  pricing_desc: "Wählen Sie eine Stufe, dann 1 Woche, 3 Monate (R99/Monat bei Plus) oder jährlich. Gleiche Perioden für Plus und Premium.",
+  pricing_period: "Abrechnungszeitraum",
+  pricing_showing: "Preise für",
+  pricing_for_hosts: "Gastgeber / Familien",
+  pricing_for_sitters: "Betreuer",
+  pricing_paystack: "Paystack · ZAR",
+  pricing_get_free: "Kostenlos starten",
+  pricing_get_plan: "{name} · {period} holen",
+  pricing_current: "Aktueller Plan",
+  pricing_period_week_hint: "Einmalige Wochenzugang — ideal für einen kurzen Hiring-Sprint.",
+  pricing_period_quarter_hint: "Monatspreis · mindestens 3 Monate kaufen (einmalig abgerechnet).",
+  pricing_period_annual_hint: "Ganzes Jahr rabattiert — bester Monatspreis.",
+  pricing_pay_today: "Sie zahlen heute R{amount} für 3 Monate",
+  pricing_matrix_period: "Zeitraum",
+  pricing_matrix_free: "Gratis",
+  pricing_select: "Wählen",
+  pricing_free_forever: "Für immer gratis",
+  pricing_discover_title: "Entdecken & matchen",
+  pricing_discover_body: "Durch Karten swipen. Gegenseitige Likes = Match + Chat.",
+  pricing_trust_title: "Auf Vertrauen gebaut",
+  pricing_trust_body: "Verifizierte Profile, Bewertungen und strukturierte Interessen vor der Zusage.",
+  pricing_tier_period_title: "Stufe + Zeitraum",
+  pricing_tier_period_body: "Für immer gratis, oder Plus / Premium für eine Woche, 3 Monate oder ein rabattiertes Jahr.",
+  pricing_payments: "Zahlungen: Paystack (primär)",
+  pricing_payments_body: "Karten & Apple Pay in Südafrika. Kostenlos browsen; bezahlte Pläne freischalten unbegrenzte Nachrichten, Discover und Featured-Sichtbarkeit.",
+  pricing_manage: "Abrechnung verwalten →",
+  footer_trust_centre: "Vertrauenszentrum",
   language_saved: "Sprache aktualisiert",
 };
 
