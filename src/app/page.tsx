@@ -201,6 +201,7 @@ export default async function HomePage() {
                 pocketMoneyMin={a.pocketMoneyMin}
                 availableFrom={a.availableFrom}
                 weeklyHours={a.weeklyHours}
+                scheduleJson={a.scheduleJson}
               />
             ))}
           </div>

@@ -12,11 +12,16 @@ import { Input, Label, Select } from "@/components/ui";
 export function ScheduleEditor({
   value,
   onChange,
+  mode = "family",
 }: {
   value: RecurringSchedule;
   onChange: (next: RecurringSchedule) => void;
+  /** family = need coverage; aupair = free to work */
+  mode?: "family" | "aupair";
 }) {
   const hours = computeWeeklyHours(value);
+  const onLabel = mode === "aupair" ? "Available" : "Working";
+  const offLabel = mode === "aupair" ? "Unavailable" : "Off";
 
   function setPattern(pattern: SchedulePattern) {
     onChange({ ...value, pattern });
@@ -153,7 +158,7 @@ export function ScheduleEditor({
                     onChange={() => toggleDay(d.day)}
                     className="h-4 w-4 rounded border-stone-300 text-teal-600"
                   />
-                  {d.enabled ? "Working" : "Off"}
+                  {d.enabled ? onLabel : offLabel}
                 </label>
                 <Input
                   type="time"

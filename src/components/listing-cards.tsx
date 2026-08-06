@@ -22,10 +22,16 @@ type AuPairCardProps = {
   pocketMoneyMin?: number | null;
   availableFrom?: Date | string | null;
   weeklyHours?: number | null;
+  scheduleJson?: string | null;
 };
 
 export function AuPairCard(p: AuPairCardProps) {
   const langs = parseJsonArray(p.languages).slice(0, 3);
+  const schedule = parseSchedule(p.scheduleJson);
+  const activeDays = schedule.days
+    .filter((d) => d.enabled)
+    .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
+    .filter(Boolean);
   return (
     <Link
       href={`/browse/aupairs/${p.id}`}
@@ -65,6 +71,17 @@ export function AuPairCard(p: AuPairCardProps) {
             {langs.join(" · ")}
           </div>
         )}
+        <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
+          {p.weeklyHours != null && p.weeklyHours > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              {p.weeklyHours}h / week
+            </span>
+          )}
+          {activeDays.length > 0 && (
+            <span className="text-teal-700">{activeDays.join(" · ")}</span>
+          )}
+        </div>
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
           <span className="text-stone-500">{p.experienceYears}+ yrs experience</span>
           {p.pocketMoneyMin ? (

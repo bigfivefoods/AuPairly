@@ -123,6 +123,7 @@ export default async function CityLandingPage({
                 pocketMoneyMin={a.pocketMoneyMin}
                 availableFrom={a.availableFrom}
                 weeklyHours={a.weeklyHours}
+                scheduleJson={a.scheduleJson}
               />
             ))}
           </div>

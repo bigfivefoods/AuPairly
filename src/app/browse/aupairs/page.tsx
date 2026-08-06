@@ -188,6 +188,7 @@ export default async function BrowseAupairsPage({
                 pocketMoneyMin={a.pocketMoneyMin}
                 availableFrom={a.availableFrom}
                 weeklyHours={a.weeklyHours}
+                scheduleJson={a.scheduleJson}
               />
             ))}
           </div>

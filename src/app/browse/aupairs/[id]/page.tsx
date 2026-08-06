@@ -23,6 +23,7 @@ import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { responseTimeLabel } from "@/lib/completeness";
+import { ScheduleDisplay } from "@/components/schedule-display";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -109,6 +110,16 @@ export default async function AuPairDetailPage({
       conversation &&
       conversation.messages.length > 0
   );
+
+  const freeSlots = await prisma.availabilitySlot.findMany({
+    where: {
+      userId: profile.userId,
+      kind: "FREE",
+      endDate: { gte: new Date() },
+    },
+    orderBy: { startDate: "asc" },
+    take: 12,
+  });
 
   // Boost analytics: count views while featured
   if (
@@ -221,6 +232,41 @@ export default async function AuPairDetailPage({
             </Card>
           )}
 
+          <Card>
+            <h2 className="font-display text-xl font-semibold">Weekly availability</h2>
+            <p className="mt-1 text-sm text-stone-500">
+              Typical days and times this au pair is free to work.
+            </p>
+            <div className="mt-4">
+              <ScheduleDisplay
+                scheduleJson={profile.scheduleJson}
+                weeklyHoursFallback={profile.weeklyHours}
+              />
+            </div>
+            {freeSlots.length > 0 && (
+              <div className="mt-6 border-t border-stone-100 pt-4">
+                <h3 className="text-sm font-semibold text-stone-800">Upcoming free windows</h3>
+                <ul className="mt-2 space-y-1.5 text-sm text-stone-600">
+                  {freeSlots.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-teal-50/80 px-3 py-2"
+                    >
+                      <span>
+                        {format(new Date(s.startDate), "MMM d, yyyy · HH:mm")}
+                        {" → "}
+                        {format(new Date(s.endDate), "MMM d · HH:mm")}
+                      </span>
+                      {s.note && (
+                        <span className="text-xs text-stone-500">{s.note}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
+
           <ReviewSection
             targetId={profile.userId}
             targetName={profile.user.name}
@@ -262,11 +308,18 @@ export default async function AuPairDetailPage({
                   value={format(new Date(profile.availableFrom), "MMM d, yyyy")}
                 />
               )}
+              {profile.availableTo && (
+                <Row
+                  icon={<Calendar className="h-4 w-4" />}
+                  label="Available until"
+                  value={format(new Date(profile.availableTo), "MMM d, yyyy")}
+                />
+              )}
               {profile.weeklyHours && (
                 <Row icon={<Clock className="h-4 w-4" />} label="Hours / week" value={`${profile.weeklyHours}h`} />
               )}
               {profile.pocketMoneyMin && (
-                <Row label="Pocket money from" value={`$${profile.pocketMoneyMin}/wk`} />
+                <Row label="Pocket money from" value={`R${profile.pocketMoneyMin}/wk`} />
               )}
               <Row label="Live-in" value={profile.liveIn ? "Preferred" : "Live-out OK"} />
               {preferred.length > 0 && (

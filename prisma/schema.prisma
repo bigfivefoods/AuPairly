@@ -134,6 +134,8 @@ model AuPairProfile {
   weeklyHours     Int?
   pocketMoneyMin  Int?
   liveIn          Boolean       @default(true)
+  /// Recurring weekly availability: days + start/end times (JSON)
+  scheduleJson    String?
 
   city            String?
   country         String?

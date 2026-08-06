@@ -18,6 +18,13 @@ import {
 } from "@/lib/utils";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
+import { ScheduleEditor } from "@/components/schedule-editor";
+import {
+  computeWeeklyHours,
+  parseSchedule,
+  serializeSchedule,
+  type RecurringSchedule,
+} from "@/lib/schedule";
 
 type Initial = {
   name: string;
@@ -38,6 +45,7 @@ type Initial = {
   nonSmoker: boolean;
   preferredCountries: string[];
   availableFrom: string;
+  availableTo: string;
   durationMonths: string;
   weeklyHours: string;
   pocketMoneyMin: string;
@@ -48,6 +56,7 @@ type Initial = {
   willingRelocate: boolean;
   relocateCities: string[];
   certificates: string[];
+  scheduleJson?: string | null;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -55,6 +64,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
   const [image, setImage] = useState(initial.image || "");
+  const [schedule, setSchedule] = useState<RecurringSchedule>(() =>
+    parseSchedule(initial.scheduleJson)
+  );
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -81,10 +93,22 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
     setError("");
     setMessage("");
     try {
+      const computedHours = computeWeeklyHours(schedule);
+      const hasScheduleDays = schedule.days.some((d) => d.enabled);
+      const weeklyHours =
+        hasScheduleDays && computedHours > 0
+          ? String(Math.round(computedHours))
+          : form.weeklyHours;
+
       const res = await fetch("/api/profiles/aupair", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, status: status ?? form.status }),
+        body: JSON.stringify({
+          ...form,
+          weeklyHours,
+          scheduleJson: serializeSchedule(schedule),
+          status: status ?? form.status,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -93,6 +117,7 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
       }
       setMessage(status === "ACTIVE" ? "Profile published!" : "Saved successfully.");
       if (status) setForm((f) => ({ ...f, status }));
+      if (hasScheduleDays) setForm((f) => ({ ...f, weeklyHours }));
       router.refresh();
     } catch {
       setError("Something went wrong");
@@ -252,12 +277,24 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
             <Input type="date" value={form.availableFrom} onChange={(e) => set("availableFrom", e.target.value)} />
           </div>
           <div>
+            <Label>Available until (optional)</Label>
+            <Input type="date" value={form.availableTo} onChange={(e) => set("availableTo", e.target.value)} />
+          </div>
+          <div>
             <Label>Duration (months)</Label>
             <Input type="number" value={form.durationMonths} onChange={(e) => set("durationMonths", e.target.value)} />
           </div>
           <div>
-            <Label>Hours per week</Label>
-            <Input type="number" value={form.weeklyHours} onChange={(e) => set("weeklyHours", e.target.value)} />
+            <Label>Hours per week (override)</Label>
+            <Input
+              type="number"
+              value={form.weeklyHours}
+              onChange={(e) => set("weeklyHours", e.target.value)}
+              placeholder="Auto from weekly availability"
+            />
+            <p className="mt-1 text-[11px] text-stone-400">
+              Auto-filled from your weekly availability when days are set.
+            </p>
           </div>
           <div>
             <Label>Min pocket money (R/wk)</Label>
@@ -309,6 +346,21 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
             ))}
           </div>
         </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <h2 className="font-display text-lg font-semibold">Weekly availability</h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Select the days and times you are typically free to work. Families see this on your
+            profile. For one-off dates (holidays, travel), also use{" "}
+            <a href="/availability" className="font-semibold text-teal-700 hover:underline">
+              Availability calendar
+            </a>
+            .
+          </p>
+        </div>
+        <ScheduleEditor value={schedule} onChange={setSchedule} mode="aupair" />
       </Card>
 
       {message && (

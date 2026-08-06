@@ -43,6 +43,7 @@ export async function PUT(req: Request) {
       nonSmoker: body.nonSmoker !== false,
       preferredCountries: toJsonArray(body.preferredCountries ?? []),
       availableFrom: body.availableFrom ? new Date(body.availableFrom) : null,
+      availableTo: body.availableTo ? new Date(body.availableTo) : null,
       durationMonths: body.durationMonths ? Number(body.durationMonths) : null,
       weeklyHours: body.weeklyHours ? Number(body.weeklyHours) : null,
       pocketMoneyMin: body.pocketMoneyMin ? Number(body.pocketMoneyMin) : null,
@@ -53,6 +54,12 @@ export async function PUT(req: Request) {
       willingRelocate: Boolean(body.willingRelocate),
       relocateCities: toJsonArray(body.relocateCities ?? []),
       certificates: toJsonArray(body.certificates ?? []),
+      scheduleJson:
+        body.scheduleJson != null
+          ? typeof body.scheduleJson === "string"
+            ? body.scheduleJson
+            : JSON.stringify(body.scheduleJson)
+          : null,
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -71,6 +78,12 @@ export async function PUT(req: Request) {
       nonSmoker: body.nonSmoker !== undefined ? Boolean(body.nonSmoker) : undefined,
       preferredCountries: body.preferredCountries ? toJsonArray(body.preferredCountries) : undefined,
       availableFrom: body.availableFrom !== undefined ? (body.availableFrom ? new Date(body.availableFrom) : null) : undefined,
+      availableTo:
+        body.availableTo !== undefined
+          ? body.availableTo
+            ? new Date(body.availableTo)
+            : null
+          : undefined,
       durationMonths: body.durationMonths !== undefined ? (body.durationMonths ? Number(body.durationMonths) : null) : undefined,
       weeklyHours: body.weeklyHours !== undefined ? (body.weeklyHours ? Number(body.weeklyHours) : null) : undefined,
       pocketMoneyMin: body.pocketMoneyMin !== undefined ? (body.pocketMoneyMin ? Number(body.pocketMoneyMin) : null) : undefined,
@@ -82,6 +95,14 @@ export async function PUT(req: Request) {
         body.willingRelocate !== undefined ? Boolean(body.willingRelocate) : undefined,
       relocateCities: body.relocateCities ? toJsonArray(body.relocateCities) : undefined,
       certificates: body.certificates ? toJsonArray(body.certificates) : undefined,
+      scheduleJson:
+        body.scheduleJson !== undefined
+          ? body.scheduleJson == null
+            ? null
+            : typeof body.scheduleJson === "string"
+              ? body.scheduleJson
+              : JSON.stringify(body.scheduleJson)
+          : undefined,
       status: body.status,
     },
   });

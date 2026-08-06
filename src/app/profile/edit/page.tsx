@@ -43,6 +43,9 @@ export default async function EditProfilePage() {
       availableFrom: profile?.availableFrom
         ? new Date(profile.availableFrom).toISOString().slice(0, 10)
         : "",
+      availableTo: profile?.availableTo
+        ? new Date(profile.availableTo).toISOString().slice(0, 10)
+        : "",
       durationMonths: profile?.durationMonths?.toString() ?? "",
       weeklyHours: profile?.weeklyHours?.toString() ?? "",
       pocketMoneyMin: profile?.pocketMoneyMin?.toString() ?? "",
@@ -53,6 +56,7 @@ export default async function EditProfilePage() {
       willingRelocate: profile?.willingRelocate ?? false,
       relocateCities: parseJsonArray(profile?.relocateCities),
       certificates: parseJsonArray(profile?.certificates),
+      scheduleJson: profile?.scheduleJson ?? null,
       status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
     };
 

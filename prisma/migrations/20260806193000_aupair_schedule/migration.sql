@@ -1,0 +1,1 @@
+ALTER TABLE "AuPairProfile" ADD COLUMN IF NOT EXISTS "scheduleJson" TEXT;
