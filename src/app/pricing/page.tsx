@@ -24,7 +24,7 @@ export default async function PricingPage() {
       <div className="text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-1.5 text-sm font-semibold text-teal-800">
           <Sparkles className="h-4 w-4" />
-          Trusted care for your family, home &amp; pets
+          Trusted care for your family, loved ones, home &amp; pets
         </div>
         <PageHeader
           title="Plans that grow with your match"

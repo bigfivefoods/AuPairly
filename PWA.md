@@ -1,6 +1,6 @@
 # AuPairly PWA & push
 
-**Positioning:** Trusted care for your family, home & pets.
+**Positioning:** Trusted care for your family, loved ones, home & pets.
 
 ## What you get
 

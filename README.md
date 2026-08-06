@@ -1,6 +1,6 @@
 # AuPairly
 
-**Trusted care for your family, home & pets.** — [www.aupairly.me](https://www.aupairly.me)
+**Trusted care for your family, loved ones, home & pets.** — [www.aupairly.me](https://www.aupairly.me)
 
 Same brand name, broader positioning: one marketplace for **childcare / au pairing**, **house sitting**, and **pet sitting**.
 

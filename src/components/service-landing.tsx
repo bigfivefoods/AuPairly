@@ -57,7 +57,7 @@ export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
               </div>
               <div className="mt-4">
                 <PageHeader
-                  eyebrow="Trusted care for your family, home & pets"
+                  eyebrow="Trusted care for your family, loved ones, home & pets"
                   title={s.seoTitle}
                   description={s.description}
                 />

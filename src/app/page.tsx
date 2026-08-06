@@ -57,7 +57,9 @@ export default async function HomePage() {
               </div>
               <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
                 Trusted care for your
-                <span className="block text-teal-200">family, home &amp; pets.</span>
+                <span className="block text-teal-200">
+                  family, loved ones, home &amp; pets.
+                </span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-teal-100/90">
                 <strong className="font-semibold text-white">{BRAND.domain}</strong> — childcare,

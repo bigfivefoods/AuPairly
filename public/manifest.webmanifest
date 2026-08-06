@@ -1,7 +1,7 @@
 {
   "name": "AuPairly",
   "short_name": "AuPairly",
-  "description": "Trusted care for your family, home & pets. Childcare, caregiving, house sitting & pet sitting on AuPairly.",
+  "description": "Trusted care for your family, loved ones, home & pets. Childcare, caregiving, house sitting & pet sitting on AuPairly.",
   "start_url": "/dashboard?source=pwa",
   "scope": "/",
   "display": "standalone",
