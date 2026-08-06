@@ -19,6 +19,7 @@ export const authConfig = {
         "/verification",
         "/messages",
         "/admin",
+        "/interests",
       ];
       const isProtected = protectedPaths.some((p) => path.startsWith(p));
       if (isProtected) return !!auth?.user;

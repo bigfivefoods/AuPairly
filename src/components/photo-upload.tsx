@@ -13,7 +13,7 @@ export function PhotoUpload({
   name: string;
   currentImage?: string | null;
   onUploaded?: (url: string) => void;
-  kind?: "avatar" | "cover";
+  kind?: "avatar" | "cover" | "gallery" | "document";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(currentImage || "");
@@ -63,7 +63,11 @@ export function PhotoUpload({
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept={
+            kind === "document"
+              ? "image/jpeg,image/png,image/webp,image/gif,application/pdf"
+              : "image/jpeg,image/png,image/webp,image/gif"
+          }
           className="hidden"
           onChange={(e) => onFile(e.target.files?.[0] ?? null)}
         />
@@ -74,9 +78,18 @@ export function PhotoUpload({
           onClick={() => inputRef.current?.click()}
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-          {kind === "avatar" ? "Upload photo" : "Upload cover"}
+          {kind === "avatar"
+            ? "Upload photo"
+            : kind === "cover"
+              ? "Upload cover"
+              : kind === "gallery"
+                ? "Add gallery photo"
+                : "Upload document"}
         </Button>
-        <p className="mt-1.5 text-xs text-stone-400">JPEG, PNG, WebP · max 2.5 MB</p>
+        <p className="mt-1.5 text-xs text-stone-400">
+          {kind === "document" ? "Image or PDF · max 5 MB" : "JPEG, PNG, WebP · max 5 MB"}
+          {process.env.NEXT_PUBLIC_SUPABASE_URL ? " · Supabase Storage" : ""}
+        </p>
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>
     </div>

@@ -109,6 +109,18 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
       </Card>
 
       <Card className="space-y-4">
+        <h2 className="font-display text-lg font-semibold">Gallery photos</h2>
+        <p className="text-sm text-stone-500">
+          Add more photos of yourself (with kids, activities, travel). Stored on Supabase when configured.
+        </p>
+        <PhotoUpload
+          name={form.name || "Au pair"}
+          kind="gallery"
+          onUploaded={() => router.refresh()}
+        />
+      </Card>
+
+      <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Basics</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

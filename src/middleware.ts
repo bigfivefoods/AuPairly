@@ -10,5 +10,6 @@ export const config = {
     "/verification/:path*",
     "/messages/:path*",
     "/admin/:path*",
+    "/interests/:path*",
   ],
 };

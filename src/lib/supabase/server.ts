@@ -1,10 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Server-side Supabase client with the publishable key.
- * For admin operations later, use SUPABASE_SERVICE_ROLE_KEY (never expose to browser).
+ * Server-side Supabase client.
+ * Prefer SUPABASE_SERVICE_ROLE_KEY for Storage uploads (never expose to browser).
  */
-export function createServerSupabaseClient() {
+export function createServerSupabaseClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||

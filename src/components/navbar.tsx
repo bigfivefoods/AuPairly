@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { Avatar } from "@/components/ui";
+import { NotificationBell } from "@/components/notification-bell";
 import { Heart, MessageCircle, Menu } from "lucide-react";
 
 export async function Navbar() {
@@ -30,6 +31,14 @@ export async function Navbar() {
         <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <>
+              <NotificationBell />
+              <Link
+                href="/interests"
+                className="rounded-full p-2 text-stone-600 transition hover:bg-stone-100 hover:text-teal-700"
+                title="Interests"
+              >
+                <Heart className="h-5 w-5" />
+              </Link>
               <Link
                 href="/messages"
                 className="rounded-full p-2 text-stone-600 transition hover:bg-stone-100 hover:text-teal-700"

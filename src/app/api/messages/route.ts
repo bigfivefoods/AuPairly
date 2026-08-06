@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/lib/notifications";
+import { sendNewMessageEmail } from "@/lib/email";
 
 export async function GET() {
   const session = await auth();
@@ -84,6 +86,22 @@ export async function POST(req: Request) {
     where: { id: conversation.id },
     data: { lastMessageAt: new Date() },
   });
+
+  await createNotification({
+    userId: recipient.id,
+    type: "MESSAGE",
+    title: `Message from ${session.user.name}`,
+    body: messageBody.slice(0, 160),
+    href: `/messages/${conversation.id}`,
+  });
+
+  void sendNewMessageEmail({
+    toEmail: recipient.email,
+    toName: recipient.name,
+    fromName: session.user.name,
+    preview: messageBody,
+    conversationId: conversation.id,
+  }).catch((e) => console.error("[email] message", e));
 
   return NextResponse.json({ conversationId: conversation.id, message }, { status: 201 });
 }

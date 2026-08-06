@@ -16,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Avatar, Badge, Card, Stars, VerifiedBadge } from "@/components/ui";
 import { ContactButton } from "@/components/contact-button";
+import { InterestButton } from "@/components/interest-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
@@ -43,9 +44,10 @@ export default async function AuPairDetailPage({
   const languages = parseJsonArray(profile.languages);
   const skills = parseJsonArray(profile.childcareSkills);
   const preferred = parseJsonArray(profile.preferredCountries);
+  const photos = parseJsonArray(profile.photos);
   const isOwn = session?.user?.id === profile.userId;
 
-  const [reviews, conversation, myReview] = await Promise.all([
+  const [reviews, conversation, myReview, myInterest] = await Promise.all([
     prisma.review.findMany({
       where: { targetId: profile.userId },
       include: {
@@ -71,6 +73,16 @@ export default async function AuPairDetailPage({
             authorId_targetId: {
               authorId: session.user.id,
               targetId: profile.userId,
+            },
+          },
+        })
+      : null,
+    session?.user
+      ? prisma.interest.findUnique({
+          where: {
+            fromUserId_toUserId: {
+              fromUserId: session.user.id,
+              toUserId: profile.userId,
             },
           },
         })
@@ -141,6 +153,23 @@ export default async function AuPairDetailPage({
             </Card>
           )}
 
+          {photos.length > 0 && (
+            <Card>
+              <h2 className="font-display text-xl font-semibold">Photos</h2>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {photos.map((src) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    className="aspect-square rounded-xl object-cover"
+                  />
+                ))}
+              </div>
+            </Card>
+          )}
+
           <ReviewSection
             targetId={profile.userId}
             targetName={profile.user.name}
@@ -194,16 +223,25 @@ export default async function AuPairDetailPage({
               )}
             </div>
 
-            <div className="mt-6 border-t border-stone-100 pt-5">
+            <div className="mt-6 space-y-3 border-t border-stone-100 pt-5">
               {isOwn ? (
                 <Link href="/profile/edit" className="btn-secondary w-full">
                   Edit your profile
                 </Link>
               ) : session?.user ? (
-                <ContactButton recipientId={profile.userId} recipientName={profile.user.name} />
+                <>
+                  {session.user.role === "PARENT" && (
+                    <InterestButton
+                      toUserId={profile.userId}
+                      toName={profile.user.name}
+                      initialStatus={myInterest?.status}
+                    />
+                  )}
+                  <ContactButton recipientId={profile.userId} recipientName={profile.user.name} />
+                </>
               ) : (
                 <Link href="/login" className="btn-primary w-full">
-                  Log in to message
+                  Log in to connect
                 </Link>
               )}
             </div>

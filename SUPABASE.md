@@ -25,8 +25,8 @@ Click **URI**, paste your database password when prompted, copy both.
 Template with your project ref (region host may differ — use what Supabase shows):
 
 ```env
-DATABASE_URL="postgresql://postgres.bpbxjzgzyfbpkujrfzks:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.bpbxjzgzyfbpkujrfzks:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres"
+DATABASE_URL="postgresql://postgres.bpbxjzgzyfbpkujrfzks:YOUR_PASSWORD@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.bpbxjzgzyfbpkujrfzks:YOUR_PASSWORD@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
 ```
 
 If the password has `@`, `#`, `/`, etc., [URL-encode](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding) it.

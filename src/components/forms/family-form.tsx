@@ -118,6 +118,18 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
       </Card>
 
       <Card className="space-y-4">
+        <h2 className="font-display text-lg font-semibold">Home gallery</h2>
+        <p className="text-sm text-stone-500">
+          Photos of your home and family life (no full address visible). Stored on Supabase when configured.
+        </p>
+        <PhotoUpload
+          name={form.familyName || form.name || "Family"}
+          kind="gallery"
+          onUploaded={() => router.refresh()}
+        />
+      </Card>
+
+      <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Family basics</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

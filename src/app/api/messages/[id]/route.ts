@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/lib/notifications";
+import { sendNewMessageEmail } from "@/lib/email";
 
 export async function GET(
   _req: Request,
@@ -91,6 +93,32 @@ export async function POST(
     where: { id },
     data: { lastMessageAt: new Date() },
   });
+
+  const otherId =
+    conversation.userAId === session.user.id
+      ? conversation.userBId
+      : conversation.userAId;
+  const other = await prisma.user.findUnique({
+    where: { id: otherId },
+    select: { id: true, name: true, email: true },
+  });
+
+  if (other) {
+    await createNotification({
+      userId: other.id,
+      type: "MESSAGE",
+      title: `Message from ${session.user.name}`,
+      body: messageBody.slice(0, 160),
+      href: `/messages/${id}`,
+    });
+    void sendNewMessageEmail({
+      toEmail: other.email,
+      toName: other.name,
+      fromName: session.user.name,
+      preview: messageBody,
+      conversationId: id,
+    }).catch((e) => console.error("[email] message", e));
+  }
 
   return NextResponse.json({ message }, { status: 201 });
 }

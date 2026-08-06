@@ -1,40 +1,76 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const MAX_BYTES = 2.5 * 1024 * 1024; // 2.5 MB
-const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const DOC_TYPES = new Set([
+  ...IMAGE_TYPES,
+  "application/pdf",
+]);
 
-export type UploadResult = { url: string; mime: string; size: number };
+export type UploadResult = { url: string; mime: string; size: number; path?: string };
+
+export type UploadKind = "avatar" | "cover" | "document" | "gallery";
 
 /**
- * Persist an uploaded image.
- * - Local / long-lived disk: public/uploads/{userId}/...
- * - Falls back to data URL if filesystem write fails (e.g. some serverless)
+ * Upload to Supabase Storage when configured; else local public/uploads or data URL.
+ * Bucket: `aupairly` (create in Supabase Dashboard → Storage, public read recommended for avatars).
  */
 export async function saveImageUpload(
   file: File,
   userId: string,
-  kind: "avatar" | "cover" | "document" = "avatar"
+  kind: UploadKind = "avatar"
 ): Promise<UploadResult> {
-  if (!ALLOWED.has(file.type)) {
-    throw new Error("Only JPEG, PNG, WebP, or GIF images are allowed.");
+  const allowDocs = kind === "document";
+  const allowed = allowDocs ? DOC_TYPES : IMAGE_TYPES;
+  if (!allowed.has(file.type)) {
+    throw new Error(
+      allowDocs
+        ? "Only images or PDF documents are allowed."
+        : "Only JPEG, PNG, WebP, or GIF images are allowed."
+    );
   }
   if (file.size > MAX_BYTES) {
-    throw new Error("Image must be under 2.5 MB.");
+    throw new Error("File must be under 5 MB.");
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const ext =
-    file.type === "image/png"
-      ? "png"
-      : file.type === "image/webp"
-        ? "webp"
-        : file.type === "image/gif"
-          ? "gif"
-          : "jpg";
-
+  const ext = extensionFor(file.type);
   const filename = `${kind}-${Date.now()}-${randomBytes(4).toString("hex")}.${ext}`;
+  const objectPath = `${userId}/${filename}`;
+
+  // Prefer Supabase Storage
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const supabase = createServerSupabaseClient();
+      const bucket = process.env.SUPABASE_STORAGE_BUCKET || "aupairly";
+      const { error } = await supabase.storage.from(bucket).upload(objectPath, buffer, {
+        contentType: file.type,
+        upsert: true,
+      });
+      if (error) {
+        // Try create bucket then retry once
+        if (error.message?.includes("not found") || error.message?.includes("Bucket")) {
+          await supabase.storage.createBucket(bucket, { public: true });
+          const retry = await supabase.storage.from(bucket).upload(objectPath, buffer, {
+            contentType: file.type,
+            upsert: true,
+          });
+          if (retry.error) throw retry.error;
+        } else {
+          throw error;
+        }
+      }
+      const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+      return { url: data.publicUrl, mime: file.type, size: file.size, path: objectPath };
+    } catch (e) {
+      console.warn("[upload] Supabase Storage failed, falling back:", e);
+    }
+  }
+
+  // Local disk fallback
   const relDir = path.join("uploads", userId);
   const absDir = path.join(process.cwd(), "public", relDir);
   const absPath = path.join(absDir, filename);
@@ -43,9 +79,8 @@ export async function saveImageUpload(
   try {
     await mkdir(absDir, { recursive: true });
     await writeFile(absPath, buffer);
-    return { url: publicUrl, mime: file.type, size: file.size };
+    return { url: publicUrl, mime: file.type, size: file.size, path: objectPath };
   } catch {
-    // Serverless fallback: store as data URL (fine for small avatars)
     const b64 = buffer.toString("base64");
     return {
       url: `data:${file.type};base64,${b64}`,
@@ -55,18 +90,10 @@ export async function saveImageUpload(
   }
 }
 
-export async function saveDataUrlImage(
-  dataUrl: string,
-  userId: string,
-  kind: "avatar" | "cover" | "document" = "avatar"
-): Promise<UploadResult> {
-  const match = /^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/i.exec(dataUrl);
-  if (!match) throw new Error("Invalid image data URL.");
-
-  const mime = match[1].toLowerCase();
-  const buffer = Buffer.from(match[2], "base64");
-  if (buffer.length > MAX_BYTES) throw new Error("Image must be under 2.5 MB.");
-
-  const blob = new File([buffer], "upload", { type: mime });
-  return saveImageUpload(blob, userId, kind);
+function extensionFor(mime: string) {
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  if (mime === "image/gif") return "gif";
+  if (mime === "application/pdf") return "pdf";
+  return "jpg";
 }

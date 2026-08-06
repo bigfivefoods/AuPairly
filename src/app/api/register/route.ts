@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { sendWelcomeEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 
 const schema = z.object({
   name: z.string().min(2).max(80),
@@ -59,6 +61,20 @@ export async function POST(req: Request) {
       },
       select: { id: true, email: true, name: true, role: true },
     });
+
+    await createNotification({
+      userId: user.id,
+      type: "SYSTEM",
+      title: "Welcome to AuPairly",
+      body: "Complete your profile and verification to start matching.",
+      href: "/dashboard",
+    });
+
+    void sendWelcomeEmail({
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    }).catch((e) => console.error("[email] welcome", e));
 
     return NextResponse.json({ user }, { status: 201 });
   } catch (err) {
