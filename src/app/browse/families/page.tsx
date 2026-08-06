@@ -1,13 +1,16 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { FamilyCard } from "@/components/listing-cards";
 import { EmptyState, PageHeader, Input } from "@/components/ui";
 import { LocationFilterFields } from "@/components/location-fields";
+import { CategoryTabs } from "@/components/category-tabs";
 import { continentName } from "@/lib/locations";
+import { serviceFromParam, SERVICES } from "@/lib/services";
 import { Home } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Browse families" };
+export const metadata = { title: "Find hosts" };
 
 type SearchParams = Promise<{
   q?: string;
@@ -30,7 +33,7 @@ export default async function BrowseFamiliesPage({
   const country = sp.country?.trim() || "";
   const region = sp.region?.trim() || "";
   const city = sp.city?.trim() || "";
-  const service = sp.service?.trim() || "";
+  const service = serviceFromParam(sp.service);
   const verifiedOnly = sp.verified === "1";
 
   const families = await prisma.familyProfile.findMany({
@@ -89,29 +92,39 @@ export default async function BrowseFamiliesPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Marketplace · Worldwide"
-        title="Find hosts"
-        description="Hosts needing childcare, house sitting, or pet sitting — filter by service and place."
+        eyebrow="Marketplace · AuPairly.me"
+        title={
+          service ? `Hosts needing ${SERVICES[service].shortName.toLowerCase()}` : "Find hosts"
+        }
+        description={
+          service
+            ? SERVICES[service].description
+            : "Search hosts across all categories — or focus with a category tab."
+        }
       />
 
-      <div className="mb-4">
-        <Link href="/map?type=families" className="text-sm font-semibold text-teal-700 hover:underline">
+      <div className="mb-6">
+        <Suspense fallback={<div className="h-12 animate-pulse rounded-full bg-stone-100" />}>
+          <CategoryTabs side="hosts" activeService={service} mode="browse" />
+        </Suspense>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-3 text-sm">
+        <Link href="/map?type=families" className="font-semibold text-teal-700 hover:underline">
           Browse on map →
         </Link>
+        {service && (
+          <Link
+            href={`/${SERVICES[service].slug}`}
+            className="text-stone-500 hover:text-teal-700"
+          >
+            {SERVICES[service].shortName} landing page →
+          </Link>
+        )}
       </div>
 
       <form className="mb-8 space-y-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-        <div>
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
-            Service needed
-          </label>
-          <select name="service" defaultValue={service} className="input-field max-w-md">
-            <option value="">All services</option>
-            <option value="CHILDCARE">Childcare / Au pairing</option>
-            <option value="HOUSE_SITTING">House sitting</option>
-            <option value="PET_SITTING">Pet sitting</option>
-          </select>
-        </div>
+        {service ? <input type="hidden" name="service" value={service} /> : null}
         <LocationFilterFields
           continent={continent}
           country={country}

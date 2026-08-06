@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { Avatar } from "@/components/ui";
 import { NotificationBell } from "@/components/notification-bell";
+import { CategoryNavLinks } from "@/components/category-tabs";
 import { Heart, MessageCircle, Menu } from "lucide-react";
 
 export async function Navbar() {
@@ -11,7 +12,7 @@ export async function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-stone-200/70 bg-[#faf8f5]/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6 lg:gap-8">
           <Link href="/" className="group flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-lg font-bold text-white shadow-sm transition group-hover:scale-105">
               A
@@ -20,15 +21,12 @@ export async function Navbar() {
               Au<span className="text-teal-600">Pairly</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-1 md:flex">
+          <CategoryNavLinks className="hidden sm:flex" />
+          <nav className="hidden items-center gap-1 lg:flex">
             <NavLink href="/discover">Discover</NavLink>
-            <NavLink href="/map">Map</NavLink>
-            <NavLink href="/browse/aupairs">Find sitters</NavLink>
-            <NavLink href="/browse/families">Find hosts</NavLink>
-            <NavLink href="/shortlist">Shortlist</NavLink>
-            <NavLink href="/placements">Placements</NavLink>
+            <NavLink href="/browse/aupairs">Sitters</NavLink>
+            <NavLink href="/browse/families">Hosts</NavLink>
             <NavLink href="/pricing">Pricing</NavLink>
-            <NavLink href="/cities/cape-town">Cities</NavLink>
           </nav>
         </div>
 

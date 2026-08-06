@@ -108,28 +108,29 @@ export default async function HomePage() {
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {SERVICE_LIST.map((s) => {
             const Icon = s.icon === "baby" ? Baby : s.icon === "home" ? Home : PawPrint;
-            const href =
-              s.id === "CHILDCARE"
-                ? "/browse/aupairs?service=CHILDCARE"
-                : s.id === "HOUSE_SITTING"
-                  ? "/browse/aupairs?service=HOUSE_SITTING"
-                  : "/browse/aupairs?service=PET_SITTING";
             return (
               <Link
                 key={s.id}
-                href={href}
+                href={`/${s.slug}`}
                 className={`group rounded-3xl border-2 p-6 transition hover:shadow-lg ${s.bg}`}
               >
                 <Icon className={`h-8 w-8 ${s.color}`} />
                 <h3 className={`mt-4 font-display text-xl font-semibold ${s.color}`}>{s.name}</h3>
                 <p className="mt-2 text-sm text-stone-600 leading-relaxed">{s.description}</p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800 group-hover:gap-2 transition-all">
-                  Browse sitters <ArrowRight className="h-4 w-4" />
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition-all group-hover:gap-2">
+                  Open {s.shortName.toLowerCase()} <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>
             );
           })}
         </div>
+        <p className="mt-6 text-center text-sm text-stone-500">
+          Or{" "}
+          <Link href="/browse/aupairs" className="font-semibold text-teal-700 hover:underline">
+            search all sitters
+          </Link>{" "}
+          across every category.
+        </p>
       </section>
 
       {/* How it works */}

@@ -10,15 +10,20 @@ export type ServiceDef = {
   id: ServiceId;
   name: string;
   shortName: string;
+  /** URL path for SEO landing page e.g. /house-sitting */
+  slug: string;
   /** Provider-facing (AUPAIR role) */
   providerLabel: string;
   /** Host/client-facing (PARENT role) */
   hostLabel: string;
   tagline: string;
   description: string;
+  seoTitle: string;
+  seoDescription: string;
   icon: "baby" | "home" | "paw";
   color: string;
   bg: string;
+  activeTab: string;
 };
 
 export const SERVICES: Record<ServiceId, ServiceDef> = {
@@ -26,47 +31,87 @@ export const SERVICES: Record<ServiceId, ServiceDef> = {
     id: "CHILDCARE",
     name: "Childcare / Au pairing",
     shortName: "Childcare",
+    slug: "childcare",
     providerLabel: "I offer childcare / au pairing",
     hostLabel: "I need childcare / an au pair",
     tagline: "Au pairs, nannies & trusted childcare",
     description:
       "Live-in or live-out childcare, school runs, and cultural exchange-style au pairing.",
+    seoTitle: "Childcare & Au Pairs",
+    seoDescription:
+      "Find verified au pairs and childcare on AuPairly.me — match with host families worldwide.",
     icon: "baby",
     color: "text-teal-800",
     bg: "bg-teal-50 border-teal-200",
+    activeTab: "bg-teal-600 text-white border-teal-600",
   },
   HOUSE_SITTING: {
     id: "HOUSE_SITTING",
     name: "House sitting",
     shortName: "House sitting",
+    slug: "house-sitting",
     providerLabel: "I offer house sitting",
     hostLabel: "I need a house sitter",
     tagline: "Trusted sitters while you’re away",
     description:
       "Home care, plant watering, mail, security presence, and property checks.",
+    seoTitle: "House Sitting",
+    seoDescription:
+      "Book trusted house sitters on AuPairly.me — protect your home while you travel.",
     icon: "home",
     color: "text-amber-900",
     bg: "bg-amber-50 border-amber-200",
+    activeTab: "bg-amber-600 text-white border-amber-600",
   },
   PET_SITTING: {
     id: "PET_SITTING",
     name: "Pet sitting",
     shortName: "Pet sitting",
+    slug: "pet-sitting",
     providerLabel: "I offer pet sitting",
     hostLabel: "I need a pet sitter",
     tagline: "Dogs, cats & pets in safe hands",
     description:
       "In-home pet care, walks, feeding, medication, and overnight stays.",
+    seoTitle: "Pet Sitting",
+    seoDescription:
+      "Find verified pet sitters on AuPairly.me — dogs, cats, and more in safe hands.",
     icon: "paw",
     color: "text-orange-900",
     bg: "bg-orange-50 border-orange-200",
+    activeTab: "bg-orange-600 text-white border-orange-600",
   },
 };
 
-export const SERVICE_LIST = SERVICE_IDS.map((id) => SERVICES[id]);
-
 export function isServiceId(v: unknown): v is ServiceId {
   return typeof v === "string" && (SERVICE_IDS as readonly string[]).includes(v);
+}
+
+export const SERVICE_LIST = SERVICE_IDS.map((id) => SERVICES[id]);
+
+export function serviceBySlug(slug: string): ServiceDef | null {
+  return SERVICE_LIST.find((s) => s.slug === slug) || null;
+}
+
+export function serviceFromParam(raw?: string | null): ServiceId | "" {
+  if (!raw) return "";
+  const upper = raw.toUpperCase().replace(/-/g, "_");
+  if (isServiceId(upper)) return upper;
+  const bySlug = serviceBySlug(raw.toLowerCase());
+  return bySlug?.id || "";
+}
+
+/** Build browse URL for sitters or hosts with optional service */
+export function browseHref(
+  side: "sitters" | "hosts",
+  service?: ServiceId | "" | null,
+  extra?: Record<string, string>
+) {
+  const base = side === "sitters" ? "/browse/aupairs" : "/browse/families";
+  const params = new URLSearchParams(extra || {});
+  if (service) params.set("service", service);
+  const q = params.toString();
+  return q ? `${base}?${q}` : base;
 }
 
 export function parseServices(raw?: string | null): ServiceId[] {
