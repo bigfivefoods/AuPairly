@@ -5,6 +5,7 @@ import { AuPairProfileForm } from "@/components/forms/aupair-form";
 import { FamilyProfileForm } from "@/components/forms/family-form";
 import { PageHeader } from "@/components/ui";
 import { parseJsonArray } from "@/lib/utils";
+import { parseServices } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit profile" };
@@ -59,15 +60,18 @@ export default async function EditProfilePage() {
       relocateCities: parseJsonArray(profile?.relocateCities),
       certificates: parseJsonArray(profile?.certificates),
       scheduleJson: profile?.scheduleJson ?? null,
+      services: parseServices(profile?.services),
+      petTypes: parseJsonArray(profile?.petTypes),
+      houseSittingNotes: profile?.houseSittingNotes ?? "",
       status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
     };
 
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <PageHeader
-          eyebrow="Profile"
-          title="Edit au pair profile"
-          description="A complete, honest profile attracts the right families."
+          eyebrow="Sitter profile"
+          title="Edit your services & profile"
+          description="Offer childcare / au pairing, house sitting, pet sitting — or all three. A complete profile attracts the right hosts."
         />
         <AuPairProfileForm initial={initial} />
       </div>
@@ -113,15 +117,18 @@ export default async function EditProfilePage() {
     drivingRequired: profile?.drivingRequired ?? false,
     lifestyleNotes: profile?.lifestyleNotes ?? "",
     scheduleJson: profile?.scheduleJson ?? null,
+    services: parseServices(profile?.services),
+    petTypes: parseJsonArray(profile?.petTypes),
+    houseSittingNotes: profile?.houseSittingNotes ?? "",
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
   };
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Listing"
-        title="Edit family listing"
-        description="Share what makes your home special and what you need from an au pair."
+        eyebrow="Host listing"
+        title="Edit what you need"
+        description="Request childcare / au pair, house sitting, pet sitting — or a combination. Share what makes your home special."
       />
       <FamilyProfileForm initial={initial} />
     </div>

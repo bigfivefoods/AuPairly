@@ -23,8 +23,8 @@ export async function Navbar() {
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink href="/discover">Discover</NavLink>
             <NavLink href="/map">Map</NavLink>
-            <NavLink href="/browse/aupairs">Find au pairs</NavLink>
-            <NavLink href="/browse/families">Find families</NavLink>
+            <NavLink href="/browse/aupairs">Find sitters</NavLink>
+            <NavLink href="/browse/families">Find hosts</NavLink>
             <NavLink href="/shortlist">Shortlist</NavLink>
             <NavLink href="/placements">Placements</NavLink>
             <NavLink href="/pricing">Pricing</NavLink>

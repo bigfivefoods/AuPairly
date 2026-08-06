@@ -15,6 +15,7 @@ type SearchParams = Promise<{
   country?: string;
   region?: string;
   city?: string;
+  service?: string;
   verified?: string;
   driving?: string;
   liveIn?: string;
@@ -32,6 +33,7 @@ export default async function BrowseAupairsPage({
   const country = sp.country?.trim() || "";
   const region = sp.region?.trim() || "";
   const city = sp.city?.trim() || "";
+  const service = sp.service?.trim() || "";
   const verifiedOnly = sp.verified === "1";
   const drivingOnly = sp.driving === "1";
   const liveInOnly = sp.liveIn === "1";
@@ -44,6 +46,7 @@ export default async function BrowseAupairsPage({
       ...(drivingOnly ? { drivingLicense: true } : {}),
       ...(liveInOnly ? { liveIn: true } : {}),
       ...(firstAidOnly ? { firstAid: true } : {}),
+      ...(service ? { services: { contains: service } } : {}),
       ...(continent ? { continent } : {}),
       ...(country
         ? {
@@ -106,8 +109,8 @@ export default async function BrowseAupairsPage({
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Marketplace · Worldwide"
-        title="Find your au pair"
-        description="Search by continent, country, province/state, city, language, and skills."
+        title="Find sitters"
+        description="Childcare / au pairs, house sitters, and pet sitters — filter by service and location."
       />
 
       <div className="mb-4">
@@ -117,6 +120,17 @@ export default async function BrowseAupairsPage({
       </div>
 
       <form className="mb-8 space-y-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+            Service
+          </label>
+          <select name="service" defaultValue={service} className="input-field max-w-md">
+            <option value="">All services</option>
+            <option value="CHILDCARE">Childcare / Au pairing</option>
+            <option value="HOUSE_SITTING">House sitting</option>
+            <option value="PET_SITTING">Pet sitting</option>
+          </select>
+        </div>
         <LocationFilterFields
           continent={continent}
           country={country}
@@ -193,8 +207,8 @@ export default async function BrowseAupairsPage({
       {aupairs.length === 0 ? (
         <EmptyState
           icon={<Users className="h-7 w-7" />}
-          title="No au pairs found"
-          description="Try a wider continent or country, or clear location filters."
+          title="No sitters found"
+          description="Try a wider continent or country, or clear service / location filters."
           action={
             <Link href="/browse/aupairs" className="btn-secondary">
               Clear filters
@@ -204,7 +218,7 @@ export default async function BrowseAupairsPage({
       ) : (
         <>
           <p className="mb-4 text-sm text-stone-500">
-            {aupairs.length} au pair{aupairs.length === 1 ? "" : "s"} available
+            {aupairs.length} sitter{aupairs.length === 1 ? "" : "s"} available
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {aupairs.map((a) => (
@@ -229,6 +243,7 @@ export default async function BrowseAupairsPage({
                 availableFrom={a.availableFrom}
                 weeklyHours={a.weeklyHours}
                 scheduleJson={a.scheduleJson}
+                services={a.services}
               />
             ))}
           </div>

@@ -6,7 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { Home, Globe2, Loader2 } from "lucide-react";
+import { Home, HandHeart, Loader2 } from "lucide-react";
 
 function RegisterForm() {
   const router = useRouter();
@@ -56,7 +56,9 @@ function RegisterForm() {
     <Card className="w-full max-w-lg">
       <div className="mb-8 text-center">
         <h1 className="font-display text-3xl font-semibold text-stone-900">Join AuPairly</h1>
-        <p className="mt-2 text-stone-500">Create your free account in under a minute</p>
+        <p className="mt-2 text-stone-500">
+          One marketplace for childcare, house sitting &amp; pet sitting
+        </p>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3">
@@ -71,7 +73,10 @@ function RegisterForm() {
           )}
         >
           <Home className="h-6 w-6" />
-          <span className="text-sm font-semibold">I&apos;m a parent</span>
+          <span className="text-sm font-semibold">I need help</span>
+          <span className="text-[11px] font-normal opacity-80 text-center">
+            Host / family · hire sitters
+          </span>
         </button>
         <button
           type="button"
@@ -83,10 +88,16 @@ function RegisterForm() {
               : "border-stone-200 bg-white text-stone-600 hover:border-stone-300"
           )}
         >
-          <Globe2 className="h-6 w-6" />
-          <span className="text-sm font-semibold">I&apos;m an au pair</span>
+          <HandHeart className="h-6 w-6" />
+          <span className="text-sm font-semibold">I offer services</span>
+          <span className="text-[11px] font-normal opacity-80 text-center">
+            Sitter · childcare, house &amp; pets
+          </span>
         </button>
       </div>
+      <p className="mb-4 rounded-xl bg-stone-50 px-3 py-2 text-center text-xs text-stone-500">
+        After signup, choose childcare / au pairing, house sitting, pet sitting — or all three.
+      </p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>

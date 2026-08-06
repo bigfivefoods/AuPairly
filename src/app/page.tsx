@@ -10,9 +10,12 @@ import {
   Sparkles,
   Users,
   Home,
+  Baby,
+  PawPrint,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
+import { SERVICE_LIST } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 
@@ -49,27 +52,27 @@ export default async function HomePage() {
             <div className="mx-auto max-w-3xl text-center">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-teal-50 backdrop-blur">
                 <Sparkles className="h-4 w-4 text-amber-300" />
-                Trusted matches for au pairs & families
+                One marketplace · three services · worldwide
               </div>
               <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Find your perfect
-                <span className="block text-teal-200">au pair match</span>
+                Childcare, house sitting
+                <span className="block text-teal-200">&amp; pet sitting</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-teal-100/90">
-                AuPairly is the commercial marketplace where verified au pairs and host
-                families swipe to match, message with confidence, and upgrade when they are
-                ready for unlimited outreach — freemium that scales with commitment.
+                <strong className="font-semibold text-white">AuPairly.me</strong> is the single
+                trusted marketplace for au pairs &amp; childcare, house sitters, and pet sitters —
+                and the hosts who need them. Verify, match, message, and place with confidence.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href="/register?role=PARENT" className="btn-accent text-base !px-8 !py-3.5">
-                  I&apos;m a parent
+                  I need help
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/register?role=AUPAIR"
                   className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-3.5 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20"
                 >
-                  I&apos;m an au pair
+                  I offer services
                 </Link>
                 <Link
                   href="/pricing"
@@ -79,12 +82,53 @@ export default async function HomePage() {
                 </Link>
               </div>
               <div className="mt-14 grid grid-cols-3 gap-4 border-t border-white/10 pt-10 text-center">
-                <Stat value={stats.aupairs || "50+"} label="Au pairs" />
-                <Stat value={stats.families || "40+"} label="Families" />
+                <Stat value={stats.aupairs || "50+"} label="Sitters" />
+                <Stat value={stats.families || "40+"} label="Hosts" />
                 <Stat value={stats.verified || "90%"} label="Verified" suffix={typeof stats.verified === "number" && stats.verified > 0 ? "" : ""} />
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Three services */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">
+            Everything on AuPairly.me
+          </p>
+          <h2 className="mt-2 font-display text-3xl font-semibold text-stone-900 sm:text-4xl">
+            Three services. One account.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-stone-500">
+            Book or offer any combination — childcare / au pairing, house sitting, and pet sitting —
+            without leaving the platform.
+          </p>
+        </div>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {SERVICE_LIST.map((s) => {
+            const Icon = s.icon === "baby" ? Baby : s.icon === "home" ? Home : PawPrint;
+            const href =
+              s.id === "CHILDCARE"
+                ? "/browse/aupairs?service=CHILDCARE"
+                : s.id === "HOUSE_SITTING"
+                  ? "/browse/aupairs?service=HOUSE_SITTING"
+                  : "/browse/aupairs?service=PET_SITTING";
+            return (
+              <Link
+                key={s.id}
+                href={href}
+                className={`group rounded-3xl border-2 p-6 transition hover:shadow-lg ${s.bg}`}
+              >
+                <Icon className={`h-8 w-8 ${s.color}`} />
+                <h3 className={`mt-4 font-display text-xl font-semibold ${s.color}`}>{s.name}</h3>
+                <p className="mt-2 text-sm text-stone-600 leading-relaxed">{s.description}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800 group-hover:gap-2 transition-all">
+                  Browse sitters <ArrowRight className="h-4 w-4" />
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -96,7 +140,7 @@ export default async function HomePage() {
             How AuPairly works
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-stone-500">
-            From registration to your first conversation — everything designed for trust.
+            From registration to your first booking conversation — designed for trust.
           </p>
         </div>
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -104,7 +148,7 @@ export default async function HomePage() {
             icon={<Users className="h-6 w-6" />}
             step="01"
             title="Create your profile"
-            desc="Sign up as an au pair or parent. Share your story, skills, and preferences."
+            desc="Sign up as a host or sitter. Pick childcare, house sitting, pet sitting — or all three."
           />
           <Step
             icon={<BadgeCheck className="h-6 w-6" />}
@@ -116,7 +160,7 @@ export default async function HomePage() {
             icon={<Search className="h-6 w-6" />}
             step="03"
             title="Discover & swipe"
-            desc="Swipe curated cards. Mutual likes open a chat instantly."
+            desc="Filter by service and location. Mutual likes open a chat instantly."
           />
           <Step
             icon={<MessageSquareHeart className="h-6 w-6" />}
@@ -134,48 +178,48 @@ export default async function HomePage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
               <Home className="h-6 w-6" />
             </div>
-            <h3 className="mt-5 font-display text-2xl font-semibold text-stone-900">For parents</h3>
+            <h3 className="mt-5 font-display text-2xl font-semibold text-stone-900">For hosts</h3>
             <p className="mt-3 text-stone-500 leading-relaxed">
-              List your family, set expectations, and discover caring au pairs who match your
-              children&apos;s ages, schedule, and values. Message only verified candidates.
+              Need an au pair, a house sitter while you travel, or someone to care for your pets?
+              Post once, choose your services, and message verified sitters.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-stone-600">
-              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Family verification badge</li>
-              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Filter by experience & languages</li>
-              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Private messaging</li>
+              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Host verification badge</li>
+              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Filter by service, location & skills</li>
+              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Private messaging & placements</li>
             </ul>
             <Link href="/register?role=PARENT" className="btn-primary mt-8">
-              List my family
+              Post what I need
             </Link>
           </div>
           <div className="p-10 sm:p-14">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
               <Globe2 className="h-6 w-6" />
             </div>
-            <h3 className="mt-5 font-display text-2xl font-semibold text-stone-900">For au pairs</h3>
+            <h3 className="mt-5 font-display text-2xl font-semibold text-stone-900">For sitters</h3>
             <p className="mt-3 text-stone-500 leading-relaxed">
-              Showcase your experience, languages, and availability. Get verified, then connect
-              with families looking for someone just like you — anywhere in the world.
+              Offer childcare / au pairing, house sitting, pet sitting — or stack all three to
+              earn more. Get verified and connect with hosts worldwide.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-stone-600">
               <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-orange-500" /> Identity & reference checks</li>
-              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-orange-500" /> Stand out with a rich profile</li>
-              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-orange-500" /> Reach host families globally</li>
+              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-orange-500" /> Multi-service profile</li>
+              <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-orange-500" /> Global hosts & local gigs</li>
             </ul>
             <Link href="/register?role=AUPAIR" className="btn-accent mt-8">
-              Create au pair profile
+              Create sitter profile
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured au pairs */}
+      {/* Featured sitters */}
       {featuredAupairs.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="mb-10 flex items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">Featured</p>
-              <h2 className="mt-1 font-display text-3xl font-semibold text-stone-900">Au pairs ready to connect</h2>
+              <h2 className="mt-1 font-display text-3xl font-semibold text-stone-900">Sitters ready to connect</h2>
             </div>
             <Link href="/browse/aupairs" className="hidden text-sm font-semibold text-teal-700 hover:text-teal-800 sm:inline-flex items-center gap-1">
               View all <ArrowRight className="h-4 w-4" />
@@ -202,20 +246,21 @@ export default async function HomePage() {
                 availableFrom={a.availableFrom}
                 weeklyHours={a.weeklyHours}
                 scheduleJson={a.scheduleJson}
+                services={a.services}
               />
             ))}
           </div>
         </section>
       )}
 
-      {/* Featured families */}
+      {/* Featured hosts */}
       {featuredFamilies.length > 0 && (
         <section className="bg-stone-50/80 border-y border-stone-200/60">
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
             <div className="mb-10 flex items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">Featured</p>
-                <h2 className="mt-1 font-display text-3xl font-semibold text-stone-900">Families seeking au pairs</h2>
+                <h2 className="mt-1 font-display text-3xl font-semibold text-stone-900">Hosts looking for help</h2>
               </div>
               <Link href="/browse/families" className="hidden text-sm font-semibold text-teal-700 hover:text-teal-800 sm:inline-flex items-center gap-1">
                 View all <ArrowRight className="h-4 w-4" />
@@ -242,6 +287,7 @@ export default async function HomePage() {
                   weeklyHours={f.weeklyHours}
                   languages={f.languages}
                   scheduleJson={f.scheduleJson}
+                  services={f.services}
                 />
               ))}
             </div>

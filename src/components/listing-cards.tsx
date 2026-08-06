@@ -3,6 +3,8 @@ import { MapPin, Calendar, Clock, Baby, Languages } from "lucide-react";
 import { Avatar, Badge, Stars, VerifiedBadge } from "@/components/ui";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { parseSchedule, WEEKDAYS } from "@/lib/schedule";
+import { parseServices } from "@/lib/services";
+import { ServiceBadges } from "@/components/service-picker";
 import { format } from "date-fns";
 
 type AuPairCardProps = {
@@ -25,11 +27,13 @@ type AuPairCardProps = {
   availableFrom?: Date | string | null;
   weeklyHours?: number | null;
   scheduleJson?: string | null;
+  services?: string | null;
 };
 
 export function AuPairCard(p: AuPairCardProps) {
   const langs = parseJsonArray(p.languages).slice(0, 3);
   const schedule = parseSchedule(p.scheduleJson);
+  const services = parseServices(p.services);
   const activeDays = schedule.days
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
@@ -59,6 +63,7 @@ export function AuPairCard(p: AuPairCardProps) {
           </div>
           {p.rating > 0 && <Stars rating={p.rating} count={p.reviewCount} />}
         </div>
+        <ServiceBadges services={services} className="mt-2" />
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
@@ -117,11 +122,13 @@ type FamilyCardProps = {
   weeklyHours?: number | null;
   languages: string;
   scheduleJson?: string | null;
+  services?: string | null;
 };
 
 export function FamilyCard(p: FamilyCardProps) {
   const ages = parseJsonArray(p.childrenAges);
   const schedule = parseSchedule(p.scheduleJson);
+  const services = parseServices(p.services);
   const activeDays = schedule.days
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
@@ -151,16 +158,19 @@ export function FamilyCard(p: FamilyCardProps) {
           </div>
           {p.rating > 0 && <Stars rating={p.rating} count={p.reviewCount} />}
         </div>
+        <ServiceBadges services={services} className="mt-2" />
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
             {formatLocation(p.city, p.country, p.region)}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <Baby className="h-3.5 w-3.5" />
-            {p.childrenCount} {p.childrenCount === 1 ? "child" : "children"}
-            {ages.length > 0 && ` · ages ${ages.join(", ")}`}
-          </span>
+          {services.includes("CHILDCARE") && (
+            <span className="inline-flex items-center gap-1">
+              <Baby className="h-3.5 w-3.5" />
+              {p.childrenCount} {p.childrenCount === 1 ? "child" : "children"}
+              {ages.length > 0 && ` · ages ${ages.join(", ")}`}
+            </span>
+          )}
         </div>
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-stone-500">
           {p.startDate && (
@@ -182,11 +192,11 @@ export function FamilyCard(p: FamilyCardProps) {
           )}
         </div>
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
-          <span className="text-stone-500">Seeking au pair</span>
+          <span className="text-stone-500">Seeking help</span>
           {p.pocketMoney ? (
             <span className="font-semibold text-teal-700">R{p.pocketMoney}/wk</span>
           ) : (
-            <span className="text-stone-400">Competitive pay</span>
+            <span className="text-stone-400">Open to discuss</span>
           )}
         </div>
       </div>

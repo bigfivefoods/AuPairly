@@ -137,6 +137,12 @@ model AuPairProfile {
   liveIn          Boolean       @default(true)
   /// Recurring weekly availability: days + start/end times (JSON)
   scheduleJson    String?
+  /// Marketplace services offered: CHILDCARE | HOUSE_SITTING | PET_SITTING (JSON array)
+  services        String        @default("[\"CHILDCARE\"]")
+  /// Pet types comfortable with (JSON) when PET_SITTING
+  petTypes        String        @default("[]")
+  /// House-sitting experience / notes
+  houseSittingNotes String?
 
   city            String?
   /// Province / state / region
@@ -213,6 +219,12 @@ model FamilyProfile {
   lifestyleNotes  String?
   /// Recurring au pair schedule: days, hours, weekly/alternating pattern (JSON)
   scheduleJson    String?
+  /// Services needed: CHILDCARE | HOUSE_SITTING | PET_SITTING (JSON array)
+  services        String        @default("[\"CHILDCARE\"]")
+  /// Pets to care for (JSON) when PET_SITTING
+  petTypes        String        @default("[]")
+  /// House-sitting specific notes (alarms, plants, dates)
+  houseSittingNotes String?
 
   coverImage      String?
   photos          String        @default("[]")

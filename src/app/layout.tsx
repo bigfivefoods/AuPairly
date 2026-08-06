@@ -32,11 +32,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "AuPairly — Trusted au pairs & families, verified",
+    default: "AuPairly — Childcare, house sitting & pet sitting",
     template: "%s · AuPairly",
   },
   description:
-    "AuPairly is the beautiful marketplace where verified au pairs and families find each other. Register, verify, browse, message, and match with confidence.",
+    "AuPairly.me is the single marketplace for verified childcare / au pairing, house sitting, and pet sitting. Match, message, and book with confidence worldwide.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"),
   manifest: "/manifest.webmanifest",
   applicationName: "AuPairly",
@@ -57,8 +57,9 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
   },
   openGraph: {
-    title: "AuPairly — Trusted au pairs & families",
-    description: "Verified matches between au pairs and host families worldwide.",
+    title: "AuPairly — Childcare, house sitting & pet sitting",
+    description:
+      "One marketplace for au pairs, house sitters, and pet sitters — and the hosts who need them.",
     url: "https://www.aupairly.me",
     siteName: "AuPairly",
     type: "website",

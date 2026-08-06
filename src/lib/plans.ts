@@ -1,5 +1,6 @@
 /**
- * AuPairly commercial plans — freemium marketplace.
+ * AuPairly commercial plans — freemium multi-service marketplace
+ * (childcare / au pairing, house sitting, pet sitting).
  * Primary currency for SA: ZAR (Paystack). USD fields kept for display reference.
  */
 

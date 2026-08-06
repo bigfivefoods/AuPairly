@@ -1,7 +1,7 @@
 {
   "name": "AuPairly",
   "short_name": "AuPairly",
-  "description": "Verified au pairs and host families worldwide — match, message, place.",
+  "description": "Childcare, house sitting & pet sitting — one trusted marketplace worldwide.",
   "start_url": "/dashboard?source=pwa",
   "scope": "/",
   "display": "standalone",

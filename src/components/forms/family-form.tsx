@@ -27,6 +27,8 @@ import {
   type RecurringSchedule,
 } from "@/lib/schedule";
 import { continentForCountry } from "@/lib/locations";
+import { parseServices, type ServiceId } from "@/lib/services";
+import { ServicePicker } from "@/components/service-picker";
 
 type Initial = {
   name: string;
@@ -60,6 +62,9 @@ type Initial = {
   drivingRequired: boolean;
   lifestyleNotes: string;
   scheduleJson?: string | null;
+  services?: string | ServiceId[] | null;
+  petTypes?: string[];
+  houseSittingNotes?: string;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -70,6 +75,17 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
   const [ageInput, setAgeInput] = useState("");
   const [schedule, setSchedule] = useState<RecurringSchedule>(() =>
     parseSchedule(initial.scheduleJson)
+  );
+  const [services, setServices] = useState<ServiceId[]>(() =>
+    Array.isArray(initial.services)
+      ? (initial.services as ServiceId[])
+      : parseServices(
+          typeof initial.services === "string" ? initial.services : null
+        )
+  );
+  const [petTypes, setPetTypes] = useState<string[]>(initial.petTypes || []);
+  const [houseSittingNotes, setHouseSittingNotes] = useState(
+    initial.houseSittingNotes || ""
   );
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -114,6 +130,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
           ...form,
           weeklyHours,
           scheduleJson: serializeSchedule(schedule),
+          services,
+          petTypes,
+          houseSittingNotes,
           status: status ?? form.status,
         }),
       });
@@ -135,6 +154,19 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
 
   return (
     <div className="space-y-6">
+      <Card className="space-y-4">
+        <h2 className="font-display text-lg font-semibold">Services you need</h2>
+        <ServicePicker
+          mode="host"
+          value={services}
+          onChange={setServices}
+          petTypes={petTypes}
+          onPetTypesChange={setPetTypes}
+          houseNotes={houseSittingNotes}
+          onHouseNotesChange={setHouseSittingNotes}
+        />
+      </Card>
+
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Profile photo</h2>
         <PhotoUpload

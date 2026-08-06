@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toJsonArray } from "@/lib/utils";
+import { serializeServices, type ServiceId } from "@/lib/services";
 
 export async function GET() {
   const session = await auth();
@@ -61,6 +62,13 @@ export async function PUT(req: Request) {
             ? body.scheduleJson
             : JSON.stringify(body.scheduleJson)
           : null,
+      services: Array.isArray(body.services)
+        ? serializeServices(body.services as ServiceId[])
+        : typeof body.services === "string"
+          ? body.services
+          : '["CHILDCARE"]',
+      petTypes: toJsonArray(body.petTypes ?? []),
+      houseSittingNotes: body.houseSittingNotes || null,
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -101,6 +109,15 @@ export async function PUT(req: Request) {
               ? body.scheduleJson
               : JSON.stringify(body.scheduleJson)
           : undefined,
+      services:
+        body.services !== undefined
+          ? Array.isArray(body.services)
+            ? serializeServices(body.services as ServiceId[])
+            : String(body.services)
+          : undefined,
+      petTypes: body.petTypes ? toJsonArray(body.petTypes) : undefined,
+      houseSittingNotes:
+        body.houseSittingNotes !== undefined ? body.houseSittingNotes || null : undefined,
       status: body.status,
     },
   });

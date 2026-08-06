@@ -15,6 +15,7 @@ type SearchParams = Promise<{
   country?: string;
   region?: string;
   city?: string;
+  service?: string;
   verified?: string;
 }>;
 
@@ -29,12 +30,14 @@ export default async function BrowseFamiliesPage({
   const country = sp.country?.trim() || "";
   const region = sp.region?.trim() || "";
   const city = sp.city?.trim() || "";
+  const service = sp.service?.trim() || "";
   const verifiedOnly = sp.verified === "1";
 
   const families = await prisma.familyProfile.findMany({
     where: {
       status: "ACTIVE",
       ...(verifiedOnly ? { isVerified: true } : {}),
+      ...(service ? { services: { contains: service } } : {}),
       ...(continent ? { continent } : {}),
       ...(country
         ? {
@@ -87,8 +90,8 @@ export default async function BrowseFamiliesPage({
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Marketplace · Worldwide"
-        title="Find a host family"
-        description="Explore families by continent, country, province/state, and city."
+        title="Find hosts"
+        description="Hosts needing childcare, house sitting, or pet sitting — filter by service and place."
       />
 
       <div className="mb-4">
@@ -98,6 +101,17 @@ export default async function BrowseFamiliesPage({
       </div>
 
       <form className="mb-8 space-y-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+            Service needed
+          </label>
+          <select name="service" defaultValue={service} className="input-field max-w-md">
+            <option value="">All services</option>
+            <option value="CHILDCARE">Childcare / Au pairing</option>
+            <option value="HOUSE_SITTING">House sitting</option>
+            <option value="PET_SITTING">Pet sitting</option>
+          </select>
+        </div>
         <LocationFilterFields
           continent={continent}
           country={country}
@@ -134,8 +148,8 @@ export default async function BrowseFamiliesPage({
       {families.length === 0 ? (
         <EmptyState
           icon={<Home className="h-7 w-7" />}
-          title="No families found"
-          description="Try a wider continent or country, or clear location filters."
+          title="No hosts found"
+          description="Try a wider continent or country, or clear service / location filters."
           action={
             <Link href="/browse/families" className="btn-secondary">
               Clear filters
@@ -145,7 +159,7 @@ export default async function BrowseFamiliesPage({
       ) : (
         <>
           <p className="mb-4 text-sm text-stone-500">
-            {families.length} famil{families.length === 1 ? "y" : "ies"} seeking au pairs
+            {families.length} host{families.length === 1 ? "" : "s"} seeking help
           </p>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {families.map((f) => (
@@ -170,6 +184,7 @@ export default async function BrowseFamiliesPage({
                 weeklyHours={f.weeklyHours}
                 languages={f.languages}
                 scheduleJson={f.scheduleJson}
+                services={f.services}
               />
             ))}
           </div>

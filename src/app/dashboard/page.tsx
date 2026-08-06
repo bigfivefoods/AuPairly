@@ -68,8 +68,8 @@ export default async function DashboardPage() {
           user.role === "ADMIN"
             ? "Review verifications and safety reports for AuPairly."
             : user.role === "AUPAIR"
-              ? "Manage your au pair profile, verification, and messages."
-              : "Manage your family listing, verification, and conversations with au pairs."
+              ? "Manage services (childcare, house & pet sitting), verification, and messages."
+              : "Manage what you need (childcare, house & pet sitting), verification, and messages."
         }
       />
 
@@ -95,8 +95,8 @@ export default async function DashboardPage() {
             {user.role === "ADMIN"
               ? "Administrator"
               : user.role === "AUPAIR"
-                ? "Au pair account"
-                : "Parent / family account"}{" "}
+                ? "Sitter / provider account"
+                : "Host / family account"}{" "}
             · {user.email}
             {responseLabel ? ` · ${responseLabel}` : ""}
           </p>
