@@ -3,13 +3,15 @@ import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { AuPairProfileForm } from "@/components/forms/aupair-form";
 import { FamilyProfileForm } from "@/components/forms/family-form";
-import { PageHeader } from "@/components/ui";
 import { parseJsonArray } from "@/lib/utils";
 import { parseServices } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit profile" };
 
+/**
+ * Full-viewport profile editor (same shell pattern as /onboarding).
+ */
 export default async function EditProfilePage() {
   const user = await requireUser();
 
@@ -67,14 +69,7 @@ export default async function EditProfilePage() {
     };
 
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-        <PageHeader
-          eyebrow="Sitter profile"
-          title="Edit your services & profile"
-          description="Offer childcare / au pairing, house sitting, pet sitting — or all three. A complete profile attracts the right hosts."
-        />
-        <AuPairProfileForm initial={initial} />
-      </div>
+      <AuPairProfileForm initial={initial} fullscreen userName={user.name} />
     );
   }
 
@@ -123,14 +118,5 @@ export default async function EditProfilePage() {
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
   };
 
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <PageHeader
-        eyebrow="Host listing"
-        title="Edit what you need"
-        description="Request childcare / au pair, house sitting, pet sitting — or a combination. Share what makes your home special."
-      />
-      <FamilyProfileForm initial={initial} />
-    </div>
-  );
+  return <FamilyProfileForm initial={initial} fullscreen userName={user.name} />;
 }

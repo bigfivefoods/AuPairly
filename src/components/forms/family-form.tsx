@@ -29,6 +29,10 @@ import {
 import { continentForCountry } from "@/lib/locations";
 import { parseServices, type ServiceId } from "@/lib/services";
 import { ServicePicker } from "@/components/service-picker";
+import {
+  ProfileEditShell,
+  ProfileSection,
+} from "@/components/profile/profile-edit-shell";
 
 type Initial = {
   name: string;
@@ -68,7 +72,26 @@ type Initial = {
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
-export function FamilyProfileForm({ initial }: { initial: Initial }) {
+const FAMILY_SECTIONS = [
+  { id: "services", label: "Services" },
+  { id: "photos", label: "Photos" },
+  { id: "basics", label: "Family basics" },
+  { id: "children", label: "Children" },
+  { id: "location", label: "Location" },
+  { id: "languages", label: "Languages" },
+  { id: "role", label: "The role" },
+  { id: "schedule", label: "Schedule" },
+];
+
+export function FamilyProfileForm({
+  initial,
+  fullscreen = false,
+  userName,
+}: {
+  initial: Initial;
+  fullscreen?: boolean;
+  userName?: string;
+}) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
   const [image, setImage] = useState(initial.image || "");
@@ -152,8 +175,36 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
     }
   }
 
-  return (
-    <div className="space-y-6">
+  const actions = (
+    <>
+      <Button onClick={() => save()} disabled={loading} className="!px-3 sm:!px-5">
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        Save draft
+      </Button>
+      <Button
+        variant="accent"
+        onClick={() => save("ACTIVE")}
+        disabled={loading}
+        className="!px-3 sm:!px-5"
+      >
+        Publish
+      </Button>
+      {form.status === "ACTIVE" && (
+        <Button
+          variant="secondary"
+          onClick={() => save("PAUSED")}
+          disabled={loading}
+          className="!px-3 sm:!px-5"
+        >
+          Pause
+        </Button>
+      )}
+    </>
+  );
+
+  const body = (
+    <div className="space-y-5 sm:space-y-6">
+      <ProfileSection id="services">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Services you need</h2>
         <ServicePicker
@@ -166,7 +217,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
           onHouseNotesChange={setHouseSittingNotes}
         />
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="photos">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Profile photo</h2>
         <PhotoUpload
@@ -179,7 +232,7 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         />
       </Card>
 
-      <Card className="space-y-4">
+      <Card className="mt-5 space-y-4 sm:mt-6">
         <h2 className="font-display text-lg font-semibold">Home gallery</h2>
         <p className="text-sm text-stone-500">
           Photos of your home and family life (no full address visible). Stored on Supabase when configured.
@@ -190,7 +243,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
           onUploaded={() => router.refresh()}
         />
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="basics">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Family basics</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -225,6 +280,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         </div>
       </Card>
 
+      </ProfileSection>
+
+      <ProfileSection id="children">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Children</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -263,6 +321,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         </div>
       </Card>
 
+      </ProfileSection>
+
+      <ProfileSection id="location">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Location (worldwide)</h2>
         <p className="text-sm text-stone-500">
@@ -295,6 +356,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         </div>
       </Card>
 
+      </ProfileSection>
+
+      <ProfileSection id="languages">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Languages at home</h2>
         <div className="flex flex-wrap gap-2">
@@ -304,6 +368,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         </div>
       </Card>
 
+      </ProfileSection>
+
+      <ProfileSection id="role">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">The role</h2>
         <div>
@@ -397,6 +464,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         </div>
       </Card>
 
+      </ProfileSection>
+
+      <ProfileSection id="schedule">
       <Card className="space-y-4">
         <div>
           <h2 className="font-display text-lg font-semibold">Recurring schedule</h2>
@@ -407,6 +477,7 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
         </div>
         <ScheduleEditor value={schedule} onChange={setSchedule} />
       </Card>
+      </ProfileSection>
 
       {message && (
         <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -415,20 +486,25 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
       )}
       {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={() => save()} disabled={loading}>
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          Save draft
-        </Button>
-        <Button variant="accent" onClick={() => save("ACTIVE")} disabled={loading}>
-          Publish listing
-        </Button>
-        {form.status === "ACTIVE" && (
-          <Button variant="secondary" onClick={() => save("PAUSED")} disabled={loading}>
-            Pause listing
-          </Button>
-        )}
-      </div>
+      {!fullscreen && <div className="flex flex-wrap gap-3">{actions}</div>}
     </div>
   );
+
+  if (fullscreen) {
+    return (
+      <ProfileEditShell
+        role="PARENT"
+        title="Edit what you need"
+        description="Request childcare / au pair, house sitting, pet sitting — or a combination."
+        status={form.status}
+        userName={userName || form.name}
+        sections={FAMILY_SECTIONS}
+        actions={actions}
+      >
+        {body}
+      </ProfileEditShell>
+    );
+  }
+
+  return body;
 }
