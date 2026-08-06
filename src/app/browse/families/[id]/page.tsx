@@ -249,10 +249,28 @@ export default async function FamilyDetailPage({
               <Row
                 icon={<MapPin className="h-4 w-4" />}
                 label="Location"
-                value={[profile.addressArea, formatLocation(profile.city, profile.country)]
+                value={[
+                  profile.addressArea,
+                  formatLocation(profile.city, profile.country, profile.region),
+                ]
                   .filter(Boolean)
                   .join(" · ")}
               />
+              {profile.continent && (
+                <Row
+                  label="Continent"
+                  value={
+                    ({
+                      AF: "Africa",
+                      AS: "Asia",
+                      EU: "Europe",
+                      NA: "North America",
+                      SA: "South America",
+                      OC: "Oceania",
+                    } as Record<string, string>)[profile.continent] || profile.continent
+                  }
+                />
+              )}
               {languages.length > 0 && <Row label="Languages at home" value={languages.join(", ")} />}
               {profile.startDate && (
                 <Row

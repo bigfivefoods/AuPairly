@@ -12,19 +12,21 @@ import {
   Textarea,
 } from "@/components/ui";
 import {
-  COUNTRY_OPTIONS,
   LANGUAGE_OPTIONS,
   SKILL_OPTIONS,
 } from "@/lib/utils";
+import { COUNTRY_OPTIONS } from "@/lib/locations";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
 import { ScheduleEditor } from "@/components/schedule-editor";
+import { LocationFields } from "@/components/location-fields";
 import {
   computeWeeklyHours,
   parseSchedule,
   serializeSchedule,
   type RecurringSchedule,
 } from "@/lib/schedule";
+import { continentForCountry } from "@/lib/locations";
 
 type Initial = {
   name: string;
@@ -51,7 +53,9 @@ type Initial = {
   pocketMoneyMin: string;
   liveIn: boolean;
   city: string;
+  region: string;
   country: string;
+  continent: string;
   workRights: string;
   willingRelocate: boolean;
   relocateCities: string[];
@@ -257,21 +261,32 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="font-display text-lg font-semibold">Availability & location</h2>
+        <h2 className="font-display text-lg font-semibold">Location (worldwide)</h2>
+        <p className="text-sm text-stone-500">
+          Where you are now — or plan to be. Families filter by continent, country, province, and city.
+        </p>
+        <LocationFields
+          value={{
+            continent: form.continent || continentForCountry(form.country) || "",
+            country: form.country,
+            region: form.region,
+            city: form.city,
+          }}
+          onChange={(loc) =>
+            setForm((f) => ({
+              ...f,
+              continent: loc.continent,
+              country: loc.country,
+              region: loc.region,
+              city: loc.city,
+            }))
+          }
+        />
+      </Card>
+
+      <Card className="space-y-4">
+        <h2 className="font-display text-lg font-semibold">Availability & preferences</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>City</Label>
-            <Input value={form.city} onChange={(e) => set("city", e.target.value)} />
-          </div>
-          <div>
-            <Label>Country</Label>
-            <Select value={form.country} onChange={(e) => set("country", e.target.value)}>
-              <option value="">Select…</option>
-              {COUNTRY_OPTIONS.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </Select>
-          </div>
           <div>
             <Label>Available from</Label>
             <Input type="date" value={form.availableFrom} onChange={(e) => set("availableFrom", e.target.value)} />

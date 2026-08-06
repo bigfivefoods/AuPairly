@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { AuPairCard } from "@/components/listing-cards";
 import { EmptyState, PageHeader, Input } from "@/components/ui";
+import { LocationFilterFields } from "@/components/location-fields";
+import { continentName } from "@/lib/locations";
 import { Users } from "lucide-react";
 import Link from "next/link";
 
@@ -9,7 +11,10 @@ export const metadata = { title: "Browse au pairs" };
 
 type SearchParams = Promise<{
   q?: string;
+  continent?: string;
   country?: string;
+  region?: string;
+  city?: string;
   verified?: string;
   driving?: string;
   liveIn?: string;
@@ -23,7 +28,10 @@ export default async function BrowseAupairsPage({
 }) {
   const sp = await searchParams;
   const q = sp.q?.trim() || "";
+  const continent = sp.continent?.trim() || "";
   const country = sp.country?.trim() || "";
+  const region = sp.region?.trim() || "";
+  const city = sp.city?.trim() || "";
   const verifiedOnly = sp.verified === "1";
   const drivingOnly = sp.driving === "1";
   const liveInOnly = sp.liveIn === "1";
@@ -36,12 +44,27 @@ export default async function BrowseAupairsPage({
       ...(drivingOnly ? { drivingLicense: true } : {}),
       ...(liveInOnly ? { liveIn: true } : {}),
       ...(firstAidOnly ? { firstAid: true } : {}),
+      ...(continent ? { continent } : {}),
       ...(country
         ? {
             OR: [
+              { country: { equals: country } },
               { country: { contains: country } },
               { preferredCountries: { contains: country } },
             ],
+          }
+        : {}),
+      ...(region
+        ? {
+            OR: [
+              { region: { equals: region } },
+              { region: { contains: region } },
+            ],
+          }
+        : {}),
+      ...(city
+        ? {
+            OR: [{ city: { contains: city } }, { city: { equals: city } }],
           }
         : {}),
       ...(q
@@ -52,6 +75,7 @@ export default async function BrowseAupairsPage({
               { nationality: { contains: q } },
               { languages: { contains: q } },
               { city: { contains: q } },
+              { region: { contains: q } },
               { country: { contains: q } },
               { user: { name: { contains: q } } },
             ],
@@ -71,12 +95,19 @@ export default async function BrowseAupairsPage({
     orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
   });
 
+  const filterBits = [
+    continent ? continentName(continent) : null,
+    country || null,
+    region || null,
+    city || null,
+  ].filter(Boolean);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Marketplace"
+        eyebrow="Marketplace · Worldwide"
         title="Find your au pair"
-        description="Browse verified caregivers by location, language, and experience."
+        description="Search by continent, country, province/state, city, language, and skills."
       />
 
       <div className="mb-4">
@@ -85,62 +116,64 @@ export default async function BrowseAupairsPage({
         </Link>
       </div>
 
-      <form className="mb-8 flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+      <form className="mb-8 space-y-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+        <LocationFilterFields
+          continent={continent}
+          country={country}
+          region={region}
+          city={city}
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+              Keywords
+            </label>
+            <Input name="q" defaultValue={q} placeholder="Language, skill, name…" />
+          </div>
+          <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              name="verified"
+              value="1"
+              defaultChecked={verifiedOnly}
+              className="h-4 w-4 rounded border-stone-300 text-teal-600"
+            />
+            Verified
+          </label>
+          <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              name="driving"
+              value="1"
+              defaultChecked={drivingOnly}
+              className="h-4 w-4 rounded border-stone-300 text-teal-600"
+            />
+            Drives
+          </label>
+          <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              name="firstAid"
+              value="1"
+              defaultChecked={firstAidOnly}
+              className="h-4 w-4 rounded border-stone-300 text-teal-600"
+            />
+            First aid
+          </label>
+          <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              name="liveIn"
+              value="1"
+              defaultChecked={liveInOnly}
+              className="h-4 w-4 rounded border-stone-300 text-teal-600"
+            />
+            Live-in
+          </label>
+          <button type="submit" className="btn-primary shrink-0">
             Search
-          </label>
-          <Input name="q" defaultValue={q} placeholder="Language, city, skill…" />
+          </button>
         </div>
-        <div className="sm:w-48">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
-            Country
-          </label>
-          <Input name="country" defaultValue={country} placeholder="e.g. Germany" />
-        </div>
-        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            name="verified"
-            value="1"
-            defaultChecked={verifiedOnly}
-            className="h-4 w-4 rounded border-stone-300 text-teal-600"
-          />
-          Verified
-        </label>
-        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            name="driving"
-            value="1"
-            defaultChecked={drivingOnly}
-            className="h-4 w-4 rounded border-stone-300 text-teal-600"
-          />
-          Drives
-        </label>
-        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            name="firstAid"
-            value="1"
-            defaultChecked={firstAidOnly}
-            className="h-4 w-4 rounded border-stone-300 text-teal-600"
-          />
-          First aid
-        </label>
-        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            name="liveIn"
-            value="1"
-            defaultChecked={liveInOnly}
-            className="h-4 w-4 rounded border-stone-300 text-teal-600"
-          />
-          Live-in
-        </label>
-        <button type="submit" className="btn-primary shrink-0">
-          Search
-        </button>
       </form>
 
       <div className="mb-6 flex flex-wrap items-center gap-3 text-sm">
@@ -150,13 +183,18 @@ export default async function BrowseAupairsPage({
         <Link href="/cities/cape-town" className="text-stone-500 hover:text-teal-700">
           City guides
         </Link>
+        {filterBits.length > 0 && (
+          <span className="text-stone-500">
+            Filters: {filterBits.join(" · ")}
+          </span>
+        )}
       </div>
 
       {aupairs.length === 0 ? (
         <EmptyState
           icon={<Users className="h-7 w-7" />}
           title="No au pairs found"
-          description="Try adjusting filters, or check back soon — new profiles go live every day."
+          description="Try a wider continent or country, or clear location filters."
           action={
             <Link href="/browse/aupairs" className="btn-secondary">
               Clear filters
@@ -177,7 +215,9 @@ export default async function BrowseAupairsPage({
                 image={a.user.image}
                 headline={a.headline}
                 city={a.city}
+                region={a.region}
                 country={a.country}
+                continent={a.continent}
                 nationality={a.nationality}
                 languages={a.languages}
                 experienceYears={a.experienceYears}

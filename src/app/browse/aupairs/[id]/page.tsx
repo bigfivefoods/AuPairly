@@ -297,7 +297,26 @@ export default async function AuPairDetailPage({
         <div className="space-y-4">
           <Card className="sticky top-24">
             <div className="space-y-3 text-sm">
-              <Row icon={<MapPin className="h-4 w-4" />} label="Location" value={formatLocation(profile.city, profile.country)} />
+              <Row
+                icon={<MapPin className="h-4 w-4" />}
+                label="Location"
+                value={formatLocation(profile.city, profile.country, profile.region)}
+              />
+              {profile.continent && (
+                <Row
+                  label="Continent"
+                  value={
+                    ({
+                      AF: "Africa",
+                      AS: "Asia",
+                      EU: "Europe",
+                      NA: "North America",
+                      SA: "South America",
+                      OC: "Oceania",
+                    } as Record<string, string>)[profile.continent] || profile.continent
+                  }
+                />
+              )}
               {profile.nationality && <Row label="Nationality" value={profile.nationality} />}
               {profile.age && <Row label="Age" value={`${profile.age}`} />}
               <Row label="Experience" value={`${profile.experienceYears}+ years`} />

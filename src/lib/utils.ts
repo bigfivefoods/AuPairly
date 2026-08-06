@@ -19,7 +19,15 @@ export function toJsonArray(arr: string[] | number[]): string {
   return JSON.stringify(arr ?? []);
 }
 
-export function formatLocation(city?: string | null, country?: string | null) {
+export function formatLocation(
+  city?: string | null,
+  country?: string | null,
+  region?: string | null
+) {
+  // Prefer full path when region provided
+  if (region) {
+    return [city, region, country].filter(Boolean).join(", ") || "Location TBD";
+  }
   return [city, country].filter(Boolean).join(", ") || "Location TBD";
 }
 
@@ -99,25 +107,5 @@ export const OFFER_OPTIONS = [
   "Vacation days",
 ];
 
-export const COUNTRY_OPTIONS = [
-  "United States",
-  "United Kingdom",
-  "Canada",
-  "Australia",
-  "Germany",
-  "France",
-  "Spain",
-  "Italy",
-  "Netherlands",
-  "Switzerland",
-  "Austria",
-  "Belgium",
-  "Ireland",
-  "Sweden",
-  "Norway",
-  "Denmark",
-  "New Zealand",
-  "Portugal",
-  "Mexico",
-  "United Arab Emirates",
-];
+/** Full world country list — prefer LocationFields / locations.ts for hierarchy */
+export { COUNTRY_OPTIONS } from "@/lib/locations";

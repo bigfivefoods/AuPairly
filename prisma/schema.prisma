@@ -138,7 +138,11 @@ model AuPairProfile {
   scheduleJson    String?
 
   city            String?
+  /// Province / state / region
+  region          String?
   country         String?
+  /// AF | AS | EU | NA | SA | OC | AN
+  continent       String?
   coverImage      String?
   photos          String        @default("[]") // JSON
   /// Work / relocation readiness
@@ -160,6 +164,11 @@ model AuPairProfile {
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([continent])
+  @@index([country])
+  @@index([region])
+  @@index([city])
 }
 
 model FamilyProfile {
@@ -171,7 +180,11 @@ model FamilyProfile {
   bio             String?
   familyName      String?
   city            String?
+  /// Province / state / region
+  region          String?
   country         String?
+  /// AF | AS | EU | NA | SA | OC | AN
+  continent       String?
   addressArea     String?       // neighborhood only for privacy
 
   childrenCount   Int           @default(1)
@@ -214,6 +227,11 @@ model FamilyProfile {
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([continent])
+  @@index([country])
+  @@index([region])
+  @@index([city])
 }
 
 model Verification {

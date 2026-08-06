@@ -12,7 +12,6 @@ import {
   Textarea,
 } from "@/components/ui";
 import {
-  COUNTRY_OPTIONS,
   DUTY_OPTIONS,
   LANGUAGE_OPTIONS,
   OFFER_OPTIONS,
@@ -20,12 +19,14 @@ import {
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
 import { ScheduleEditor } from "@/components/schedule-editor";
+import { LocationFields } from "@/components/location-fields";
 import {
   computeWeeklyHours,
   parseSchedule,
   serializeSchedule,
   type RecurringSchedule,
 } from "@/lib/schedule";
+import { continentForCountry } from "@/lib/locations";
 
 type Initial = {
   name: string;
@@ -35,7 +36,9 @@ type Initial = {
   bio: string;
   familyName: string;
   city: string;
+  region: string;
   country: string;
+  continent: string;
   addressArea: string;
   childrenCount: string;
   childrenAges: string[];
@@ -229,25 +232,34 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="font-display text-lg font-semibold">Location</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>City</Label>
-            <Input value={form.city} onChange={(e) => set("city", e.target.value)} />
-          </div>
-          <div>
-            <Label>Country</Label>
-            <Select value={form.country} onChange={(e) => set("country", e.target.value)}>
-              <option value="">Select…</option>
-              {COUNTRY_OPTIONS.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </Select>
-          </div>
-          <div className="sm:col-span-2">
-            <Label>Neighborhood / area (no full address)</Label>
-            <Input value={form.addressArea} onChange={(e) => set("addressArea", e.target.value)} placeholder="e.g. Park Slope" />
-          </div>
+        <h2 className="font-display text-lg font-semibold">Location (worldwide)</h2>
+        <p className="text-sm text-stone-500">
+          Continent → country → province/state → city. Au pairs search by any of these levels.
+        </p>
+        <LocationFields
+          value={{
+            continent: form.continent || continentForCountry(form.country) || "",
+            country: form.country,
+            region: form.region,
+            city: form.city,
+          }}
+          onChange={(loc) =>
+            setForm((f) => ({
+              ...f,
+              continent: loc.continent,
+              country: loc.country,
+              region: loc.region,
+              city: loc.city,
+            }))
+          }
+        />
+        <div>
+          <Label>Neighborhood / area (no full street address)</Label>
+          <Input
+            value={form.addressArea}
+            onChange={(e) => set("addressArea", e.target.value)}
+            placeholder="e.g. Park Slope, Sandton, Paddington"
+          />
         </div>
       </Card>
 

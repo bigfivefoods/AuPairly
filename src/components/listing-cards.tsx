@@ -11,7 +11,9 @@ type AuPairCardProps = {
   image?: string | null;
   headline?: string | null;
   city?: string | null;
+  region?: string | null;
   country?: string | null;
+  continent?: string | null;
   nationality?: string | null;
   languages: string;
   experienceYears: number;
@@ -60,7 +62,7 @@ export function AuPairCard(p: AuPairCardProps) {
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
-            {formatLocation(p.city, p.country)}
+            {formatLocation(p.city, p.country, p.region)}
           </span>
           {p.nationality && <Badge>{p.nationality}</Badge>}
           {p.age && <Badge>{p.age} yrs</Badge>}
@@ -102,7 +104,9 @@ type FamilyCardProps = {
   image?: string | null;
   headline?: string | null;
   city?: string | null;
+  region?: string | null;
   country?: string | null;
+  continent?: string | null;
   childrenCount: number;
   childrenAges: string;
   isVerified: boolean;
@@ -150,7 +154,7 @@ export function FamilyCard(p: FamilyCardProps) {
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-stone-500">
           <span className="inline-flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
-            {formatLocation(p.city, p.country)}
+            {formatLocation(p.city, p.country, p.region)}
           </span>
           <span className="inline-flex items-center gap-1">
             <Baby className="h-3.5 w-3.5" />

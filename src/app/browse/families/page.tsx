@@ -1,13 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { FamilyCard } from "@/components/listing-cards";
 import { EmptyState, PageHeader, Input } from "@/components/ui";
+import { LocationFilterFields } from "@/components/location-fields";
+import { continentName } from "@/lib/locations";
 import { Home } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Browse families" };
 
-type SearchParams = Promise<{ q?: string; country?: string; verified?: string }>;
+type SearchParams = Promise<{
+  q?: string;
+  continent?: string;
+  country?: string;
+  region?: string;
+  city?: string;
+  verified?: string;
+}>;
 
 export default async function BrowseFamiliesPage({
   searchParams,
@@ -16,14 +25,38 @@ export default async function BrowseFamiliesPage({
 }) {
   const sp = await searchParams;
   const q = sp.q?.trim() || "";
+  const continent = sp.continent?.trim() || "";
   const country = sp.country?.trim() || "";
+  const region = sp.region?.trim() || "";
+  const city = sp.city?.trim() || "";
   const verifiedOnly = sp.verified === "1";
 
   const families = await prisma.familyProfile.findMany({
     where: {
       status: "ACTIVE",
       ...(verifiedOnly ? { isVerified: true } : {}),
-      ...(country ? { country: { contains: country } } : {}),
+      ...(continent ? { continent } : {}),
+      ...(country
+        ? {
+            OR: [
+              { country: { equals: country } },
+              { country: { contains: country } },
+            ],
+          }
+        : {}),
+      ...(region
+        ? {
+            OR: [
+              { region: { equals: region } },
+              { region: { contains: region } },
+            ],
+          }
+        : {}),
+      ...(city
+        ? {
+            OR: [{ city: { contains: city } }, { city: { equals: city } }],
+          }
+        : {}),
       ...(q
         ? {
             OR: [
@@ -31,6 +64,7 @@ export default async function BrowseFamiliesPage({
               { bio: { contains: q } },
               { familyName: { contains: q } },
               { city: { contains: q } },
+              { region: { contains: q } },
               { country: { contains: q } },
               { preferences: { contains: q } },
               { user: { name: { contains: q } } },
@@ -42,12 +76,19 @@ export default async function BrowseFamiliesPage({
     orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
   });
 
+  const filterBits = [
+    continent ? continentName(continent) : null,
+    country || null,
+    region || null,
+    city || null,
+  ].filter(Boolean);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
-        eyebrow="Marketplace"
+        eyebrow="Marketplace · Worldwide"
         title="Find a host family"
-        description="Explore families looking for caring au pairs around the world."
+        description="Explore families by continent, country, province/state, and city."
       />
 
       <div className="mb-4">
@@ -56,39 +97,45 @@ export default async function BrowseFamiliesPage({
         </Link>
       </div>
 
-      <form className="mb-8 flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+      <form className="mb-8 space-y-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+        <LocationFilterFields
+          continent={continent}
+          country={country}
+          region={region}
+          city={city}
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
+              Keywords
+            </label>
+            <Input name="q" defaultValue={q} placeholder="Preferences, languages…" />
+          </div>
+          <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              name="verified"
+              value="1"
+              defaultChecked={verifiedOnly}
+              className="h-4 w-4 rounded border-stone-300 text-teal-600"
+            />
+            Verified only
+          </label>
+          <button type="submit" className="btn-primary shrink-0">
             Search
-          </label>
-          <Input name="q" defaultValue={q} placeholder="City, preferences…" />
+          </button>
         </div>
-        <div className="sm:w-48">
-          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">
-            Country
-          </label>
-          <Input name="country" defaultValue={country} placeholder="e.g. United States" />
-        </div>
-        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            name="verified"
-            value="1"
-            defaultChecked={verifiedOnly}
-            className="h-4 w-4 rounded border-stone-300 text-teal-600"
-          />
-          Verified only
-        </label>
-        <button type="submit" className="btn-primary shrink-0">
-          Search
-        </button>
       </form>
+
+      {filterBits.length > 0 && (
+        <p className="mb-4 text-sm text-stone-500">Filters: {filterBits.join(" · ")}</p>
+      )}
 
       {families.length === 0 ? (
         <EmptyState
           icon={<Home className="h-7 w-7" />}
           title="No families found"
-          description="Try different filters or come back soon for new listings."
+          description="Try a wider continent or country, or clear location filters."
           action={
             <Link href="/browse/families" className="btn-secondary">
               Clear filters
@@ -110,7 +157,9 @@ export default async function BrowseFamiliesPage({
                 image={f.user.image}
                 headline={f.headline}
                 city={f.city}
+                region={f.region}
                 country={f.country}
+                continent={f.continent}
                 childrenCount={f.childrenCount}
                 childrenAges={f.childrenAges}
                 isVerified={f.isVerified}
