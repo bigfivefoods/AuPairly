@@ -5,14 +5,14 @@ import { OnboardingWizard } from "@/components/onboarding-wizard";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Get started" };
 
+/**
+ * Full-viewport onboarding (covers site chrome).
+ * Desktop split rail + form; mobile stacked with sticky actions.
+ */
 export default async function OnboardingPage() {
   const user = await requireUser();
   if (user.role === "ADMIN") redirect("/admin");
   if (user.role !== "AUPAIR" && user.role !== "PARENT") redirect("/dashboard");
 
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <OnboardingWizard role={user.role} name={user.name} />
-    </div>
-  );
+  return <OnboardingWizard role={user.role} name={user.name} />;
 }

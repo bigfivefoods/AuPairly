@@ -29,6 +29,10 @@ import {
 import { continentForCountry } from "@/lib/locations";
 import { parseServices, type ServiceId } from "@/lib/services";
 import { ServicePicker } from "@/components/service-picker";
+import {
+  ProfileEditShell,
+  ProfileSection,
+} from "@/components/profile/profile-edit-shell";
 
 type Initial = {
   name: string;
@@ -69,7 +73,26 @@ type Initial = {
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
-export function AuPairProfileForm({ initial }: { initial: Initial }) {
+const AUPAIR_SECTIONS = [
+  { id: "services", label: "Services" },
+  { id: "photos", label: "Photos" },
+  { id: "basics", label: "Basics" },
+  { id: "languages", label: "Languages" },
+  { id: "skills", label: "Skills" },
+  { id: "location", label: "Location" },
+  { id: "availability", label: "Availability" },
+  { id: "schedule", label: "Schedule" },
+];
+
+export function AuPairProfileForm({
+  initial,
+  fullscreen = false,
+  userName,
+}: {
+  initial: Initial;
+  fullscreen?: boolean;
+  userName?: string;
+}) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
   const [image, setImage] = useState(initial.image || "");
@@ -149,8 +172,36 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
     }
   }
 
-  return (
-    <div className="space-y-6">
+  const actions = (
+    <>
+      <Button onClick={() => save()} disabled={loading} className="!px-3 sm:!px-5">
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        Save draft
+      </Button>
+      <Button
+        variant="accent"
+        onClick={() => save("ACTIVE")}
+        disabled={loading}
+        className="!px-3 sm:!px-5"
+      >
+        Publish
+      </Button>
+      {form.status === "ACTIVE" && (
+        <Button
+          variant="secondary"
+          onClick={() => save("PAUSED")}
+          disabled={loading}
+          className="!px-3 sm:!px-5"
+        >
+          Pause
+        </Button>
+      )}
+    </>
+  );
+
+  const body = (
+    <div className="space-y-5 sm:space-y-6">
+      <ProfileSection id="services">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Services you offer</h2>
         <ServicePicker
@@ -163,7 +214,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           onHouseNotesChange={setHouseSittingNotes}
         />
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="photos">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Profile photo</h2>
         <PhotoUpload
@@ -176,7 +229,7 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
         />
       </Card>
 
-      <Card className="space-y-4">
+      <Card className="mt-5 space-y-4 sm:mt-6">
         <h2 className="font-display text-lg font-semibold">Gallery photos</h2>
         <p className="text-sm text-stone-500">
           Add more photos of yourself (with kids, activities, travel). Stored on Supabase when configured.
@@ -187,7 +240,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           onUploaded={() => router.refresh()}
         />
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="basics">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Basics</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -242,7 +297,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           </div>
         </div>
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="languages">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Languages</h2>
         <div className="flex flex-wrap gap-2">
@@ -256,7 +313,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           ))}
         </div>
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="skills">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Childcare skills</h2>
         <div className="flex flex-wrap gap-2">
@@ -291,7 +350,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           ))}
         </div>
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="location">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Location (worldwide)</h2>
         <p className="text-sm text-stone-500">
@@ -315,7 +376,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           }
         />
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="availability">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Availability & preferences</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -394,7 +457,9 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
           </div>
         </div>
       </Card>
+      </ProfileSection>
 
+      <ProfileSection id="schedule">
       <Card className="space-y-4">
         <div>
           <h2 className="font-display text-lg font-semibold">Weekly availability</h2>
@@ -409,6 +474,7 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
         </div>
         <ScheduleEditor value={schedule} onChange={setSchedule} mode="aupair" />
       </Card>
+      </ProfileSection>
 
       {message && (
         <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -417,20 +483,25 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
       )}
       {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={() => save()} disabled={loading}>
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          Save draft
-        </Button>
-        <Button variant="accent" onClick={() => save("ACTIVE")} disabled={loading}>
-          Publish listing
-        </Button>
-        {form.status === "ACTIVE" && (
-          <Button variant="secondary" onClick={() => save("PAUSED")} disabled={loading}>
-            Pause listing
-          </Button>
-        )}
-      </div>
+      {!fullscreen && <div className="flex flex-wrap gap-3">{actions}</div>}
     </div>
   );
+
+  if (fullscreen) {
+    return (
+      <ProfileEditShell
+        role="AUPAIR"
+        title="Edit your services & profile"
+        description="Offer childcare / au pairing, house sitting, pet sitting — or all three."
+        status={form.status}
+        userName={userName || form.name}
+        sections={AUPAIR_SECTIONS}
+        actions={actions}
+      >
+        {body}
+      </ProfileEditShell>
+    );
+  }
+
+  return body;
 }
