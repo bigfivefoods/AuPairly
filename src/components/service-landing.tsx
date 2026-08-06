@@ -10,10 +10,8 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
-import { CategoryTabs } from "@/components/category-tabs";
 import { PageHeader } from "@/components/ui";
 import { SERVICE_LIST, SERVICES, type ServiceId } from "@/lib/services";
-import { Suspense } from "react";
 
 const ICONS = {
   baby: Baby,
@@ -45,10 +43,7 @@ export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
     <div>
       <section className={`border-b ${s.bg}`}>
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <Suspense fallback={null}>
-            <CategoryTabs mode="landing" side="sitters" activeService={serviceId} />
-          </Suspense>
-          <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <div
                 className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border bg-white ${s.color}`}
