@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        // Static PNG always shows the AuPairly name (dynamic route also available)
+        // Static PNG with AuPairly name (public/og-share.png)
         url: "/og-share.png",
         width: 1200,
         height: 630,
