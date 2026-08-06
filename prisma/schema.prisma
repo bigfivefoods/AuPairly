@@ -1,0 +1,233 @@
+// AuPairly — marketplace for families & au pairs
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  AUPAIR
+  PARENT
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  FILLED
+}
+
+enum MessageStatus {
+  SENT
+  READ
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          Role
+  image         String?
+  phone         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  aupairProfile  AuPairProfile?
+  familyProfile  FamilyProfile?
+  verifications  Verification[]
+  sentMessages   Message[]      @relation("SentMessages")
+  conversationsA Conversation[] @relation("UserA")
+  conversationsB Conversation[] @relation("UserB")
+  favorites      Favorite[]
+  reviewsGiven   Review[]       @relation("ReviewsGiven")
+  reviewsReceived Review[]      @relation("ReviewsReceived")
+}
+
+model AuPairProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  headline        String?
+  bio             String?
+  nationality     String?
+  languages       String        @default("[]") // JSON array
+  age             Int?
+  gender          String?
+  experienceYears Int           @default(0)
+  childcareSkills String        @default("[]") // JSON array
+  education       String?
+  drivingLicense  Boolean       @default(false)
+  firstAid        Boolean       @default(false)
+  swimming        Boolean       @default(false)
+  nonSmoker       Boolean       @default(true)
+
+  preferredCountries String    @default("[]") // JSON
+  availableFrom   DateTime?
+  availableTo     DateTime?
+  durationMonths  Int?
+  weeklyHours     Int?
+  pocketMoneyMin  Int?
+  liveIn          Boolean       @default(true)
+
+  city            String?
+  country         String?
+  coverImage      String?
+  photos          String        @default("[]") // JSON
+
+  status          ListingStatus @default(DRAFT)
+  isVerified      Boolean       @default(false)
+  rating          Float         @default(0)
+  reviewCount     Int           @default(0)
+  responseRate    Int           @default(100)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model FamilyProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  headline        String?
+  bio             String?
+  familyName      String?
+  city            String?
+  country         String?
+  addressArea     String?       // neighborhood only for privacy
+
+  childrenCount   Int           @default(1)
+  childrenAges    String        @default("[]") // JSON ages
+  childrenDetails String?
+
+  languages       String        @default("[]")
+  preferences     String?       // what they look for in an au pair
+  duties          String        @default("[]") // JSON
+  offers          String        @default("[]") // room, meals, language lessons etc.
+
+  startDate       DateTime?
+  durationMonths  Int?
+  weeklyHours     Int?
+  pocketMoney     Int?
+  liveIn          Boolean       @default(true)
+  hasPets         Boolean       @default(false)
+  petDetails      String?
+  ownRoom         Boolean       @default(true)
+  carProvided     Boolean       @default(false)
+
+  coverImage      String?
+  photos          String        @default("[]")
+
+  status          ListingStatus @default(DRAFT)
+  isVerified      Boolean       @default(false)
+  rating          Float         @default(0)
+  reviewCount     Int           @default(0)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Verification {
+  id          String             @id @default(cuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        String             // ID, BACKGROUND, ADDRESS, REFERENCES, SELFIE
+  status      VerificationStatus @default(PENDING)
+  documentUrl String?
+  notes       String?
+  reviewedAt  DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([userId])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  userAId       String
+  userBId       String
+  userA         User      @relation("UserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB         User      @relation("UserB", fields: [userBId], references: [id], onDelete: Cascade)
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  messages      Message[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User          @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  status         MessageStatus @default(SENT)
+  createdAt      DateTime      @default(now())
+
+  @@index([conversationId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType String   // AUPAIR | FAMILY
+  targetId   String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, targetType, targetId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  authorId   String
+  author     User     @relation("ReviewsGiven", fields: [authorId], references: [id], onDelete: Cascade)
+  targetId   String
+  target     User     @relation("ReviewsReceived", fields: [targetId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@unique([authorId, targetId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  targetId   String
+  reason     String
+  details    String?
+  status     String   @default("OPEN") // OPEN | REVIEWED | DISMISSED
+  createdAt  DateTime @default(now())
+
+  @@index([status])
+}
