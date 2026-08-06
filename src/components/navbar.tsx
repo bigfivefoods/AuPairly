@@ -21,10 +21,13 @@ export async function Navbar() {
             </span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
+            <NavLink href="/discover">Discover</NavLink>
+            <NavLink href="/map">Map</NavLink>
             <NavLink href="/browse/aupairs">Find au pairs</NavLink>
             <NavLink href="/browse/families">Find families</NavLink>
-            <NavLink href="/how-it-works">How it works</NavLink>
-            <NavLink href="/safety">Safety</NavLink>
+            <NavLink href="/placements">Placements</NavLink>
+            <NavLink href="/pricing">Pricing</NavLink>
+            <NavLink href="/guides">How it works</NavLink>
           </nav>
         </div>
 
@@ -135,15 +138,16 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold text-stone-900">Trust & safety</h4>
             <ul className="mt-3 space-y-2 text-sm text-stone-500">
-              <li><Link href="/safety" className="hover:text-teal-700">Verification</Link></li>
+              <li><Link href="/trust" className="hover:text-teal-700">Trust centre</Link></li>
               <li><Link href="/safety" className="hover:text-teal-700">Safety tips</Link></li>
-              <li><Link href="/safety" className="hover:text-teal-700">Community guidelines</Link></li>
+              <li><Link href="/privacy" className="hover:text-teal-700">Privacy (POPIA)</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-sm font-semibold text-stone-900">Company</h4>
             <ul className="mt-3 space-y-2 text-sm text-stone-500">
-              <li><a href="https://www.aupairly.me" className="hover:text-teal-700">aupairly.me</a></li>
+              <li><Link href="/guides" className="hover:text-teal-700">Guides</Link></li>
+              <li><Link href="/support" className="hover:text-teal-700">Support</Link></li>
               <li><Link href="/register" className="hover:text-teal-700">Join free</Link></li>
             </ul>
           </div>

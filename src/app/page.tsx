@@ -56,9 +56,9 @@ export default async function HomePage() {
                 <span className="block text-teal-200">au pair match</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-teal-100/90">
-                AuPairly is the beautiful, end-to-end marketplace where verified au pairs
-                and host families connect, message, and build lasting care relationships —
-                with confidence.
+                AuPairly is the commercial marketplace where verified au pairs and host
+                families swipe to match, message with confidence, and upgrade when they are
+                ready for unlimited outreach — freemium that scales with commitment.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href="/register?role=PARENT" className="btn-accent text-base !px-8 !py-3.5">
@@ -70,6 +70,12 @@ export default async function HomePage() {
                   className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-3.5 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20"
                 >
                   I&apos;m an au pair
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-sm font-semibold text-teal-100 transition hover:bg-white/10"
+                >
+                  See plans
                 </Link>
               </div>
               <div className="mt-14 grid grid-cols-3 gap-4 border-t border-white/10 pt-10 text-center">
@@ -109,14 +115,14 @@ export default async function HomePage() {
           <Step
             icon={<Search className="h-6 w-6" />}
             step="03"
-            title="Browse & filter"
-            desc="Explore verified listings by location, languages, dates, and lifestyle fit."
+            title="Discover & swipe"
+            desc="Swipe curated cards. Mutual likes open a chat instantly."
           />
           <Step
             icon={<MessageSquareHeart className="h-6 w-6" />}
             step="04"
-            title="Message & match"
-            desc="Chat in-app, share details, and agree on terms that work for both sides."
+            title="Message or upgrade"
+            desc="Free tier to try. Plus unlocks unlimited messages, interests, and boosts."
           />
         </div>
       </section>
@@ -256,8 +262,11 @@ export default async function HomePage() {
             <Link href="/safety" className="btn-secondary">
               Learn about safety
             </Link>
-            <Link href="/register" className="btn-primary">
-              Join AuPairly free
+            <Link href="/discover" className="btn-secondary">
+              Open Discover
+            </Link>
+            <Link href="/pricing" className="btn-primary">
+              Start free · upgrade anytime
             </Link>
           </div>
         </div>
@@ -304,7 +313,7 @@ async function getFeaturedAupairs() {
   return prisma.auPairProfile.findMany({
     where: { status: "ACTIVE" },
     include: { user: { select: { name: true, image: true } } },
-    orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
+    orderBy: [{ isFeatured: "desc" }, { isVerified: "desc" }, { rating: "desc" }],
     take: 3,
   });
 }
@@ -313,7 +322,7 @@ async function getFeaturedFamilies() {
   return prisma.familyProfile.findMany({
     where: { status: "ACTIVE" },
     include: { user: { select: { name: true, image: true } } },
-    orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
+    orderBy: [{ isFeatured: "desc" }, { isVerified: "desc" }, { rating: "desc" }],
     take: 3,
   });
 }

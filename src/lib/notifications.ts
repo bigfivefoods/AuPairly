@@ -5,7 +5,9 @@ export type NotificationType =
   | "INTEREST"
   | "INTEREST_UPDATE"
   | "SYSTEM"
-  | "REVIEW";
+  | "REVIEW"
+  | "MATCH"
+  | "BILLING";
 
 export async function createNotification(opts: {
   userId: string;

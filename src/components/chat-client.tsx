@@ -26,6 +26,7 @@ export function ChatClient({
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paywall, setPaywall] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export function ChatClient({
     e.preventDefault();
     if (!body.trim() || loading) return;
     setLoading(true);
+    setPaywall("");
     try {
       const res = await fetch(`/api/messages/${conversationId}`, {
         method: "POST",
@@ -43,6 +45,10 @@ export function ChatClient({
         body: JSON.stringify({ body }),
       });
       const data = await res.json();
+      if (res.status === 402) {
+        setPaywall(data.error || "Daily message limit reached. Upgrade for unlimited chat.");
+        return;
+      }
       if (res.ok && data.message) {
         setMessages((m) => [
           ...m,
@@ -97,6 +103,14 @@ export function ChatClient({
         <div ref={bottomRef} />
       </div>
 
+      {paywall && (
+        <div className="border-t border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
+          {paywall}{" "}
+          <a href="/pricing" className="font-bold underline">
+            Upgrade plan
+          </a>
+        </div>
+      )}
       <form onSubmit={send} className="flex gap-2 border-t border-stone-100 p-3 sm:p-4">
         <input
           value={body}

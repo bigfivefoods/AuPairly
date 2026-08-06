@@ -137,16 +137,76 @@ export default async function DashboardPage() {
           <h3 className="font-display text-lg font-semibold">Quick actions</h3>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Action
+              href="/discover"
+              icon={<Search className="h-5 w-5" />}
+              title="Discover"
+              desc="Swipe to match with families or au pairs"
+            />
+            <Action
+              href="/matches"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Weekly matches"
+              desc="Your top compatibility picks"
+            />
+            <Action
+              href="/map"
+              icon={<Search className="h-5 w-5" />}
+              title="Map browse"
+              desc="Explore by city (privacy-safe pins)"
+            />
+            <Action
               href={user.role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
               icon={<Search className="h-5 w-5" />}
               title={user.role === "AUPAIR" ? "Browse families" : "Browse au pairs"}
-              desc="Discover new matches"
+              desc="Full marketplace search"
             />
             <Action
               href="/messages"
               icon={<MessageCircle className="h-5 w-5" />}
               title="Messages"
               desc={`${conversations} conversation${conversations === 1 ? "" : "s"}`}
+            />
+            <Action
+              href="/pricing"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Upgrade plan"
+              desc="Unlimited likes, messages & boosts"
+            />
+            <Action
+              href="/placements"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Placements"
+              desc="Interview → trial → placed pipeline"
+            />
+            <Action
+              href="/trust"
+              icon={<Shield className="h-5 w-5" />}
+              title="Trust centre"
+              desc="Video, references, safety score"
+            />
+            <Action
+              href="/coach"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Profile coach"
+              desc="Tips & first-message assist"
+            />
+            <Action
+              href="/boost"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Boost listing"
+              desc="R49 · featured for 7 days"
+            />
+            <Action
+              href="/documents"
+              icon={<Shield className="h-5 w-5" />}
+              title="Document vault"
+              desc="Passport, clearance, first aid"
+            />
+            <Action
+              href="/connect"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Sell with Paystack"
+              desc="List products · cards & Apple Pay (SA)"
             />
             <Action
               href="/verification"

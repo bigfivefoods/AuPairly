@@ -24,6 +24,12 @@ export const metadata: Metadata = {
   description:
     "AuPairly is the beautiful marketplace where verified au pairs and families find each other. Register, verify, browse, message, and match with confidence.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"),
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "AuPairly",
+    statusBarStyle: "default",
+  },
   openGraph: {
     title: "AuPairly — Trusted au pairs & families",
     description: "Verified matches between au pairs and host families worldwide.",

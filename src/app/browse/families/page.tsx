@@ -50,6 +50,12 @@ export default async function BrowseFamiliesPage({
         description="Explore families looking for caring au pairs around the world."
       />
 
+      <div className="mb-4">
+        <Link href="/map?type=families" className="text-sm font-semibold text-teal-700 hover:underline">
+          Browse on map →
+        </Link>
+      </div>
+
       <form className="mb-8 flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end">
         <div className="flex-1">
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-stone-500">

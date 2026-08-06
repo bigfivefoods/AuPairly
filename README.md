@@ -2,11 +2,21 @@
 
 **The trusted marketplace for verified au pairs and host families** — built for [www.aupairly.me](https://www.aupairly.me).
 
-AuPairly is an Airbnb-style platform where:
+AuPairly is a dual-sided commercial marketplace for verified au pairs and host families:
 
 - **Au pairs** register, build rich profiles, complete identity verification, and get discovered by families
-- **Parents** list their household, set expectations and pay, verify themselves, and message candidates
-- Both sides **browse, filter, message, review, and match** in one beautiful end-to-end product
+- **Parents** list their household, set expectations, verify themselves, and message candidates
+- Both sides **swipe, match, message, review**, and **upgrade** when free-tier limits run out
+
+## Commercial model (freemium)
+
+| Plan | Parents | Au pairs | Limits |
+|------|---------|----------|--------|
+| **Starter (Free)** | $0 | $0 | 5 messages/day, 3 interests/week, 20 Discover swipes/day |
+| **Plus** | R69/mo | R69/mo | Unlimited matching, see who liked you, featured badge, 1 boost/mo |
+| **Premium** | R169/mo | R169/mo | Everything in Plus + priority search, 4 boosts/mo |
+
+Without Stripe keys, upgrades run in **demo mode** (30 days free) so you can pitch today.
 
 ## Features
 
@@ -15,8 +25,11 @@ AuPairly is an Airbnb-style platform where:
 | **Auth** | Email/password signup as au pair or parent; forgot/reset password |
 | **Profiles** | Full listing editor + **profile photo uploads** |
 | **Verification** | ID / selfie / docs with upload; auto-approve (demo) or **admin queue** |
+| **Discover** | Swipe cards; mutual likes open chat + match notifications |
+| **Pricing / Billing** | `/pricing` plans + `/billing` membership; Stripe Checkout or demo |
 | **Marketplace** | Search & filter au pairs and families; public detail pages |
-| **Messaging** | In-app conversations between parents and au pairs |
+| **Messaging** | In-app conversations with free-tier paywalls |
+| **Interests** | Express interest / apply with weekly free-tier limits |
 | **Reviews** | Rate members you've messaged; ratings update public scores |
 | **Safety** | Report profiles; admin sees open reports |
 | **Admin** | `/admin` — approve/reject verifications, view reports |
@@ -72,6 +85,10 @@ Demo parent ↔ au pair already have messages and mutual reviews.
 /                     Landing
 /register             Join as parent or au pair
 /login                Sign in
+/discover             Swipe-to-match
+/pricing              Plans & upgrade
+/billing              Current membership
+/interests            Interests sent/received
 /forgot-password      Request reset link
 /reset-password       Set new password
 /dashboard            Account hub + checklist
@@ -138,3 +155,30 @@ Uploads go to `public/uploads/{userId}/` on disk. On Vercel’s ephemeral filesy
 ## License
 
 Private — AuPairly / aupairly.me
+
+## Stripe Connect sample
+
+Seller marketplace payments (V2 Accounts + direct charges + platform fee).
+
+| Path | Purpose |
+|------|---------|
+| `/connect` | Seller dashboard: create account, onboard, products, seller subscription |
+| `/store/[accountId]` | Public storefront (demo uses raw `acct_` — use a slug in production) |
+| `/api/connect/account` | Create / status of connected account |
+| `/api/connect/onboard` | V2 Account Links |
+| `/api/connect/products` | Create & list products on connected account |
+| `/api/connect/checkout` | Hosted Checkout (direct charge + application fee) |
+| `/api/connect/subscribe` | Platform subscription + billing portal |
+| `/api/connect/webhook` | Thin V2 events + classic billing webhooks |
+
+### Local webhooks
+
+```bash
+# Thin events (Connect V2 requirements / capabilities)
+stripe listen --thin-events 'v2.core.account[requirements].updated,v2.core.account[configuration.merchant].capability_status_updated,v2.core.account[configuration.customer].capability_status_updated' --forward-thin-to localhost:3000/api/connect/webhook
+
+# Classic billing events
+stripe listen --events checkout.session.completed,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed --forward-to localhost:3000/api/connect/webhook
+```
+
+Set `STRIPE_SECRET_KEY` and webhook secrets in `.env` (see `.env.example`).

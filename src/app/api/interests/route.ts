@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
 import { sendInterestEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkAndConsume } from "@/lib/entitlements";
 
 const createSchema = z.object({
   toUserId: z.string().min(1),
@@ -81,6 +82,20 @@ export async function POST(req: Request) {
     }
     if (fromRole === "AUPAIR" && toUser.role !== "PARENT") {
       return NextResponse.json({ error: "Au pairs can only apply to families" }, { status: 400 });
+    }
+
+    const limit = await checkAndConsume(session.user.id, "INTEREST");
+    if (!limit.ok) {
+      return NextResponse.json(
+        {
+          error: limit.reason,
+          upgradeRequired: true,
+          limit: limit.limit,
+          used: limit.used,
+          upgradeUrl: "/pricing",
+        },
+        { status: 402 }
+      );
     }
 
     const interest = await prisma.interest.upsert({

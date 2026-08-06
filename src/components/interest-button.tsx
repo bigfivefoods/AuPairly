@@ -36,6 +36,10 @@ export function InterestButton({
           router.push("/login");
           return;
         }
+        if (res.status === 402) {
+          setError(data.error || "Upgrade to send more interests");
+          return;
+        }
         setError(data.error || "Could not send interest");
         return;
       }
@@ -89,7 +93,16 @@ export function InterestButton({
             placeholder="A short note about timing, kids, languages…"
             className="min-h-[90px] bg-white"
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-600">
+              {error}{" "}
+              {error.toLowerCase().includes("upgrade") && (
+                <a href="/pricing" className="font-semibold underline">
+                  View plans
+                </a>
+              )}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button onClick={submit} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Heart className="h-4 w-4" />}

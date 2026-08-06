@@ -1,0 +1,17 @@
+{
+  "name": "AuPairly",
+  "short_name": "AuPairly",
+  "description": "Verified au pairs and host families — match, message, place.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#0f766e",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -17,6 +17,7 @@ import { auth } from "@/lib/auth";
 import { Avatar, Badge, Card, Stars, VerifiedBadge } from "@/components/ui";
 import { ContactButton } from "@/components/contact-button";
 import { InterestButton } from "@/components/interest-button";
+import { StartPlacementButton } from "@/components/start-placement-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
@@ -238,6 +239,7 @@ export default async function AuPairDetailPage({
                     />
                   )}
                   <ContactButton recipientId={profile.userId} recipientName={profile.user.name} />
+                  <StartPlacementButton otherUserId={profile.userId} />
                 </>
               ) : (
                 <Link href="/login" className="btn-primary w-full">

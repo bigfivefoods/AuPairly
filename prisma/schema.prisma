@@ -64,6 +64,32 @@ model User {
   interestsSent     Interest[]  @relation("InterestsSent")
   interestsReceived Interest[]  @relation("InterestsReceived")
   notifications     Notification[]
+  subscription      Subscription?
+  swipes            Swipe[]    @relation("SwipesFrom")
+  swipesReceived    Swipe[]    @relation("SwipesTo")
+  plan            String       @default("FREE") // FREE | PLUS | PREMIUM
+  stripeCustomerId String?
+  /// Stripe Connect V2 account id (acct_...) for this user as a seller/merchant
+  stripeConnectAccountId String? @unique
+  /// Platform-level subscription status for the connected account (seller plan)
+  connectSubscriptionStatus String? // active | trialing | past_due | canceled | none
+  connectSubscriptionId     String?
+
+  /// Trust / placement product fields
+  videoIntroUrl       String?
+  placementVerified   Boolean  @default(false)
+  safetyScore         Int      @default(50) // 0–100, recomputed from signals
+  agencyId            String?
+  agency              Agency?  @relation(fields: [agencyId], references: [id])
+  locale              String   @default("en")
+
+  placementsAsParent  Placement[] @relation("PlacementParent")
+  placementsAsAupair  Placement[] @relation("PlacementAupair")
+  referencesRequested ReferenceRequest[] @relation("RefsRequested")
+  referencesAbout     ReferenceRequest[] @relation("RefsAbout")
+  documents           SecureDocument[]
+  supportTickets      SupportTicket[]
+  stories             Story[]
 }
 
 model AuPairProfile {
@@ -100,6 +126,8 @@ model AuPairProfile {
 
   status          ListingStatus @default(DRAFT)
   isVerified      Boolean       @default(false)
+  isFeatured      Boolean       @default(false)
+  boostedUntil    DateTime?
   rating          Float         @default(0)
   reviewCount     Int           @default(0)
   responseRate    Int           @default(100)
@@ -144,6 +172,8 @@ model FamilyProfile {
 
   status          ListingStatus @default(DRAFT)
   isVerified      Boolean       @default(false)
+  isFeatured      Boolean       @default(false)
+  boostedUntil    DateTime?
   rating          Float         @default(0)
   reviewCount     Int           @default(0)
 
@@ -263,7 +293,7 @@ model Notification {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // MESSAGE | INTEREST | INTEREST_UPDATE | SYSTEM | REVIEW
+  type      String   // MESSAGE | INTEREST | INTEREST_UPDATE | SYSTEM | REVIEW | MATCH | BILLING
   title     String
   body      String
   href      String?
@@ -273,4 +303,169 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
+}
+
+/// Subscription / membership (freemium + paid access)
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 String    // FREE | PLUS | PREMIUM
+  status               String    @default("ACTIVE") // ACTIVE | CANCELED | PAST_DUE | TRIALING
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  currentPeriodStart   DateTime  @default(now())
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+/// Discover swipe
+model Swipe {
+  id         String   @id @default(cuid())
+  fromUserId String
+  fromUser   User     @relation("SwipesFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User     @relation("SwipesTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  direction  String   // LIKE | PASS | SUPER
+  createdAt  DateTime @default(now())
+
+  @@unique([fromUserId, toUserId])
+  @@index([toUserId])
+  @@index([fromUserId, createdAt])
+}
+
+/// Track daily usage for free-tier limits
+model UsageCounter {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // MESSAGE | INTEREST | SWIPE | BOOST
+  dayKey    String   // YYYY-MM-DD UTC
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, action, dayKey])
+  @@index([userId, dayKey])
+}
+
+/// Seller catalog for Paystack storefront (SA marketplace)
+model MarketplaceProduct {
+  id          String   @id @default(cuid())
+  sellerUserId String
+  name        String
+  description String?
+  /// Amount in cents (ZAR)
+  amountCents Int
+  currency    String   @default("ZAR")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sellerUserId, active])
+}
+
+/// Placement pipeline: Interested → Interview → Trial → Placed → Completed
+model Placement {
+  id           String   @id @default(cuid())
+  parentUserId String
+  parent       User     @relation("PlacementParent", fields: [parentUserId], references: [id], onDelete: Cascade)
+  aupairUserId String
+  aupair       User     @relation("PlacementAupair", fields: [aupairUserId], references: [id], onDelete: Cascade)
+  /// INTERESTED | INTERVIEW | TRIAL | PLACED | COMPLETED | CANCELLED
+  status       String   @default("INTERESTED")
+  checklist    String   @default("{}") // JSON: dates, pocketMoney, duties, room, visa
+  interviewAt  DateTime?
+  interviewNotes String?
+  trialStart   DateTime?
+  trialEnd     DateTime?
+  trialNotes   String?
+  placedAt     DateTime?
+  completedAt  DateTime?
+  /// Success fee payment
+  successFeeCents   Int      @default(250000) // R2500 default
+  successFeePaidAt  DateTime?
+  successFeeRef     String?
+  contractText      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([parentUserId, aupairUserId])
+  @@index([parentUserId, status])
+  @@index([aupairUserId, status])
+}
+
+/// Reference request (email token → public form)
+model ReferenceRequest {
+  id            String    @id @default(cuid())
+  requesterId   String
+  requester     User      @relation("RefsRequested", fields: [requesterId], references: [id], onDelete: Cascade)
+  subjectId     String
+  subject       User      @relation("RefsAbout", fields: [subjectId], references: [id], onDelete: Cascade)
+  refereeEmail  String
+  refereeName   String?
+  token         String    @unique
+  status        String    @default("PENDING") // PENDING | SUBMITTED | EXPIRED
+  rating        Int?
+  comment       String?
+  relationship  String?
+  submittedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([subjectId, status])
+  @@index([token])
+}
+
+/// Private document vault (passport, clearance, first aid…)
+model SecureDocument {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String    // PASSPORT | POLICE | FIRST_AID | VISA | OTHER
+  label      String?
+  url        String
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+/// Short “available from” stories / status
+model Story {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+/// Agency (B2B) manages multiple au pairs
+model Agency {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  email     String?
+  plan      String   @default("STARTER") // STARTER | PRO
+  branding  String?  // logo URL
+  createdAt DateTime @default(now())
+  members   User[]
+}
+
+/// In-app support for paid users
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  body      String
+  status    String   @default("OPEN") // OPEN | REPLIED | CLOSED
+  reply     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
 }

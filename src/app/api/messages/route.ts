@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
 import { sendNewMessageEmail } from "@/lib/email";
+import { checkAndConsume } from "@/lib/entitlements";
 
 export async function GET() {
   const session = await auth();
@@ -51,6 +52,20 @@ export async function POST(req: Request) {
 
   if (recipientId === session.user.id) {
     return NextResponse.json({ error: "Cannot message yourself" }, { status: 400 });
+  }
+
+  const limit = await checkAndConsume(session.user.id, "MESSAGE");
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error: limit.reason,
+        upgradeRequired: true,
+        limit: limit.limit,
+        used: limit.used,
+        upgradeUrl: "/pricing",
+      },
+      { status: 402 }
+    );
   }
 
   const recipient = await prisma.user.findUnique({ where: { id: recipientId } });

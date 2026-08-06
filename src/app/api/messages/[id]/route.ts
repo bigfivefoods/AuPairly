@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
 import { sendNewMessageEmail } from "@/lib/email";
+import { checkAndConsume } from "@/lib/entitlements";
 
 export async function GET(
   _req: Request,
@@ -76,6 +77,20 @@ export async function POST(
   const messageBody = (body.body as string)?.trim();
   if (!messageBody) {
     return NextResponse.json({ error: "body is required" }, { status: 400 });
+  }
+
+  const limit = await checkAndConsume(session.user.id, "MESSAGE");
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        error: limit.reason,
+        upgradeRequired: true,
+        limit: limit.limit,
+        used: limit.used,
+        upgradeUrl: "/pricing",
+      },
+      { status: 402 }
+    );
   }
 
   const message = await prisma.message.create({
