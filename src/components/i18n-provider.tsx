@@ -7,8 +7,10 @@ import {
   useEffect,
   useMemo,
   useState,
+  useTransition,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   DEFAULT_LOCALE,
   LOCALE_COOKIE,
@@ -31,6 +33,7 @@ type I18nContextValue = {
   t: (key: keyof Dictionary, vars?: Record<string, string>) => string;
   locales: typeof LOCALES;
   meta: typeof LOCALE_META;
+  isChanging: boolean;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -42,6 +45,15 @@ function writeLocaleCookie(locale: Locale) {
   document.documentElement.dir = LOCALE_META[locale].dir;
 }
 
+function readCookieLocale(): Locale | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${LOCALE_COOKIE}=`));
+  if (!match) return null;
+  return resolveLocale(match.split("=")[1]);
+}
+
 export function I18nProvider({
   initialLocale = DEFAULT_LOCALE,
   children,
@@ -49,23 +61,43 @@ export function I18nProvider({
   initialLocale?: Locale;
   children: ReactNode;
 }) {
+  const router = useRouter();
+  const [isChanging, startTransition] = useTransition();
   const [locale, setLocaleState] = useState<Locale>(resolveLocale(initialLocale));
+
+  // Prefer cookie if user already chose a language (client hydration)
+  useEffect(() => {
+    const fromCookie = readCookieLocale();
+    if (fromCookie && fromCookie !== locale) {
+      setLocaleState(fromCookie);
+      writeLocaleCookie(fromCookie);
+    } else {
+      writeLocaleCookie(locale);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
+  }, []);
 
   useEffect(() => {
     writeLocaleCookie(locale);
   }, [locale]);
 
-  const setLocale = useCallback((next: Locale) => {
-    const loc = resolveLocale(next);
-    setLocaleState(loc);
-    writeLocaleCookie(loc);
-    // Persist on account when logged in (best-effort)
-    void fetch("/api/locale", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ locale: loc }),
-    }).catch(() => null);
-  }, []);
+  const setLocale = useCallback(
+    (next: Locale) => {
+      const loc = resolveLocale(next);
+      setLocaleState(loc);
+      writeLocaleCookie(loc);
+      void fetch("/api/locale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: loc }),
+      }).catch(() => null);
+      // Re-render server components that read the locale cookie
+      startTransition(() => {
+        router.refresh();
+      });
+    },
+    [router]
+  );
 
   const dict = useMemo(() => getDictionary(locale), [locale]);
 
@@ -77,17 +109,29 @@ export function I18nProvider({
       t: (key, vars) => translate(dict, key, vars),
       locales: LOCALES,
       meta: LOCALE_META,
+      isChanging,
     }),
-    [locale, dict, setLocale]
+    [locale, dict, setLocale, isChanging]
   );
 
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  return (
+    <I18nContext.Provider value={value}>
+      <div
+        key={locale}
+        lang={locale}
+        dir={LOCALE_META[locale].dir}
+        className="contents"
+        data-locale={locale}
+      >
+        {children}
+      </div>
+    </I18nContext.Provider>
+  );
 }
 
 export function useI18n() {
   const ctx = useContext(I18nContext);
   if (!ctx) {
-    // Safe fallback if used outside provider
     const dict = DICTIONARIES.en;
     return {
       locale: "en" as Locale,
@@ -97,6 +141,7 @@ export function useI18n() {
         translate(dict, key, vars),
       locales: LOCALES,
       meta: LOCALE_META,
+      isChanging: false,
     };
   }
   return ctx;

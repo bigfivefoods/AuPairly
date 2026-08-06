@@ -15,6 +15,15 @@ export type Dictionary = {
   nav_interests: string;
   nav_admin: string;
   nav_language: string;
+  nav_home: string;
+  nav_browse: string;
+  nav_chat: string;
+  nav_you: string;
+  nav_reviews: string;
+  service_childcare: string;
+  service_caregiving: string;
+  service_house_sitting: string;
+  service_pet_sitting: string;
   footer_marketplace: string;
   footer_trust: string;
   footer_company: string;
@@ -100,6 +109,15 @@ const en: Dictionary = {
   nav_interests: "Interests",
   nav_admin: "Admin",
   nav_language: "Language",
+  nav_home: "Home",
+  nav_browse: "Browse",
+  nav_chat: "Chat",
+  nav_you: "You",
+  nav_reviews: "Reviews",
+  service_childcare: "Childcare",
+  service_caregiving: "Caregiving",
+  service_house_sitting: "House sitting",
+  service_pet_sitting: "Pet sitting",
   footer_marketplace: "Marketplace",
   footer_trust: "Trust & safety",
   footer_company: "Company",
@@ -190,6 +208,15 @@ const zh: Dictionary = {
   nav_interests: "兴趣",
   nav_admin: "管理",
   nav_language: "语言",
+  nav_home: "首页",
+  nav_browse: "浏览",
+  nav_chat: "聊天",
+  nav_you: "我的",
+  nav_reviews: "评价",
+  service_childcare: "儿童照护",
+  service_caregiving: "成人照护",
+  service_house_sitting: "看家",
+  service_pet_sitting: "宠物照护",
   footer_marketplace: "市场",
   footer_trust: "信任与安全",
   footer_company: "公司",
@@ -276,6 +303,15 @@ const hi: Dictionary = {
   nav_interests: "रुचि",
   nav_admin: "एडमिन",
   nav_language: "भाषा",
+  nav_home: "होम",
+  nav_browse: "ब्राउज़",
+  nav_chat: "चैट",
+  nav_you: "आप",
+  nav_reviews: "समीक्षाएँ",
+  service_childcare: "बच्चों की देखभाल",
+  service_caregiving: "देखभाल सेवा",
+  service_house_sitting: "घर की देखभाल",
+  service_pet_sitting: "पालतू देखभाल",
   footer_marketplace: "बाज़ार",
   footer_trust: "विश्वास और सुरक्षा",
   footer_company: "कंपनी",
@@ -365,6 +401,15 @@ const es: Dictionary = {
   nav_interests: "Intereses",
   nav_admin: "Admin",
   nav_language: "Idioma",
+  nav_home: "Inicio",
+  nav_browse: "Explorar",
+  nav_chat: "Chat",
+  nav_you: "Tú",
+  nav_reviews: "Reseñas",
+  service_childcare: "Cuidado infantil",
+  service_caregiving: "Cuidado de adultos",
+  service_house_sitting: "Cuidado de casa",
+  service_pet_sitting: "Cuidado de mascotas",
   footer_marketplace: "Mercado",
   footer_trust: "Confianza y seguridad",
   footer_company: "Empresa",
@@ -454,6 +499,15 @@ const fr: Dictionary = {
   nav_interests: "Intérêts",
   nav_admin: "Admin",
   nav_language: "Langue",
+  nav_home: "Accueil",
+  nav_browse: "Parcourir",
+  nav_chat: "Chat",
+  nav_you: "Vous",
+  nav_reviews: "Avis",
+  service_childcare: "Garde d'enfants",
+  service_caregiving: "Aide à domicile",
+  service_house_sitting: "Garde de maison",
+  service_pet_sitting: "Garde d'animaux",
   footer_marketplace: "Place de marché",
   footer_trust: "Confiance et sécurité",
   footer_company: "Entreprise",
@@ -543,6 +597,15 @@ const ar: Dictionary = {
   nav_interests: "الاهتمامات",
   nav_admin: "المشرف",
   nav_language: "اللغة",
+  nav_home: "الرئيسية",
+  nav_browse: "تصفح",
+  nav_chat: "دردشة",
+  nav_you: "أنت",
+  nav_reviews: "التقييمات",
+  service_childcare: "رعاية الأطفال",
+  service_caregiving: "رعاية الكبار",
+  service_house_sitting: "حراسة المنزل",
+  service_pet_sitting: "رعاية الحيوانات",
   footer_marketplace: "السوق",
   footer_trust: "الثقة والأمان",
   footer_company: "الشركة",
@@ -632,6 +695,15 @@ const bn: Dictionary = {
   nav_interests: "আগ্রহ",
   nav_admin: "অ্যাডমিন",
   nav_language: "ভাষা",
+  nav_home: "হোম",
+  nav_browse: "ব্রাউজ",
+  nav_chat: "চ্যাট",
+  nav_you: "আপনি",
+  nav_reviews: "রিভিউ",
+  service_childcare: "শিশু যত্ন",
+  service_caregiving: "বয়স্ক যত্ন",
+  service_house_sitting: "বাড়ি দেখাশোনা",
+  service_pet_sitting: "পোষা প্রাণী যত্ন",
   footer_marketplace: "মার্কেটপ্লেস",
   footer_trust: "বিশ্বাস ও নিরাপত্তা",
   footer_company: "কোম্পানি",
@@ -721,6 +793,15 @@ const pt: Dictionary = {
   nav_interests: "Interesses",
   nav_admin: "Admin",
   nav_language: "Idioma",
+  nav_home: "Início",
+  nav_browse: "Explorar",
+  nav_chat: "Chat",
+  nav_you: "Você",
+  nav_reviews: "Avaliações",
+  service_childcare: "Cuidado infantil",
+  service_caregiving: "Cuidado de adultos",
+  service_house_sitting: "House sitting",
+  service_pet_sitting: "Pet sitting",
   footer_marketplace: "Mercado",
   footer_trust: "Confiança e segurança",
   footer_company: "Empresa",
@@ -810,6 +891,15 @@ const de: Dictionary = {
   nav_interests: "Interessen",
   nav_admin: "Admin",
   nav_language: "Sprache",
+  nav_home: "Start",
+  nav_browse: "Stöbern",
+  nav_chat: "Chat",
+  nav_you: "Du",
+  nav_reviews: "Bewertungen",
+  service_childcare: "Kinderbetreuung",
+  service_caregiving: "Pflege & Betreuung",
+  service_house_sitting: "Haussitting",
+  service_pet_sitting: "Tiersitting",
   footer_marketplace: "Marktplatz",
   footer_trust: "Vertrauen & Sicherheit",
   footer_company: "Unternehmen",
@@ -915,3 +1005,18 @@ export function t(
   }
   return s;
 }
+
+/** Service category labels from the active dictionary */
+export function serviceLabel(
+  dict: Dictionary,
+  id: "CHILDCARE" | "CAREGIVING" | "HOUSE_SITTING" | "PET_SITTING"
+): string {
+  const map = {
+    CHILDCARE: dict.service_childcare,
+    CAREGIVING: dict.service_caregiving,
+    HOUSE_SITTING: dict.service_house_sitting,
+    PET_SITTING: dict.service_pet_sitting,
+  } as const;
+  return map[id];
+}
+

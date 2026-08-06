@@ -4,28 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, Home, MessageCircle, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const items = [
-  { href: "/dashboard", label: "Home", icon: Home, match: ["/dashboard"] },
-  { href: "/discover", label: "Discover", icon: Compass, match: ["/discover"] },
-  {
-    href: "/browse/aupairs",
-    label: "Browse",
-    icon: Search,
-    match: ["/browse", "/map", "/cities"],
-  },
-  { href: "/messages", label: "Chat", icon: MessageCircle, match: ["/messages"] },
-  {
-    href: "/profile/edit",
-    label: "You",
-    icon: User,
-    match: ["/profile", "/settings", "/verification", "/trust"],
-  },
-];
+import { useI18n } from "@/components/i18n-provider";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export function MobileNav() {
   const path = usePathname() || "";
-  // Hide on auth pages
+  const { t, locale } = useI18n();
+
   if (
     path.startsWith("/login") ||
     path.startsWith("/register") ||
@@ -35,16 +20,38 @@ export function MobileNav() {
     return null;
   }
 
+  const items: {
+    href: string;
+    labelKey: keyof Dictionary;
+    icon: typeof Home;
+    match: string[];
+  }[] = [
+    { href: "/dashboard", labelKey: "nav_home", icon: Home, match: ["/dashboard"] },
+    { href: "/discover", labelKey: "nav_discover", icon: Compass, match: ["/discover"] },
+    {
+      href: "/browse/aupairs",
+      labelKey: "nav_browse",
+      icon: Search,
+      match: ["/browse", "/map", "/cities"],
+    },
+    { href: "/messages", labelKey: "nav_chat", icon: MessageCircle, match: ["/messages"] },
+    {
+      href: "/profile/edit",
+      labelKey: "nav_you",
+      icon: User,
+      match: ["/profile", "/settings", "/verification", "/trust"],
+    },
+  ];
+
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(28,25,23,0.06)] backdrop-blur-md md:hidden"
-      aria-label="Primary"
+      aria-label={t("nav_home")}
+      data-locale={locale}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between px-1 pt-1">
-        {items.map(({ href, label, icon: Icon, match }) => {
-          const active = match.some(
-            (m) => path === m || path.startsWith(m + "/")
-          );
+        {items.map(({ href, labelKey, icon: Icon, match }) => {
+          const active = match.some((m) => path === m || path.startsWith(m + "/"));
           return (
             <li key={href} className="flex-1">
               <Link
@@ -62,7 +69,7 @@ export function MobileNav() {
                 >
                   <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
                 </span>
-                {label}
+                {t(labelKey)}
               </Link>
             </li>
           );

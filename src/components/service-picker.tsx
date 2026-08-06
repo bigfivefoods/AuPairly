@@ -8,6 +8,8 @@ import {
 } from "@/lib/services";
 import { cn } from "@/lib/utils";
 import { ChipToggle, Label, Textarea } from "@/components/ui";
+import { useI18n } from "@/components/i18n-provider";
+import { serviceLabel } from "@/lib/i18n/dictionaries";
 
 const ICONS = {
   baby: Baby,
@@ -33,6 +35,8 @@ export function ServicePicker({
   houseNotes?: string;
   onHouseNotesChange?: (next: string) => void;
 }) {
+  const { dict } = useI18n();
+
   function toggle(id: ServiceId) {
     if (value.includes(id)) {
       if (value.length === 1) return; // keep at least one
@@ -69,7 +73,7 @@ export function ServicePicker({
               )}
             >
               <Icon className="h-6 w-6" />
-              <span className="text-sm font-semibold">{s.shortName}</span>
+              <span className="text-sm font-semibold">{serviceLabel(dict, s.id)}</span>
               <span className="text-xs opacity-80 leading-snug">{s.tagline}</span>
               <span className="text-[11px] opacity-70 leading-snug">
                 {s.examples.slice(0, 3).join(" · ")}
@@ -132,6 +136,7 @@ export function ServiceBadges({
   services: ServiceId[];
   className?: string;
 }) {
+  const { dict } = useI18n();
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
       {services.map((id) => {
@@ -148,7 +153,7 @@ export function ServiceBadges({
             )}
           >
             <Icon className="h-3 w-3" />
-            {s.shortName}
+            {serviceLabel(dict, id)}
           </span>
         );
       })}
