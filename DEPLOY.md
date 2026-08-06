@@ -1,66 +1,75 @@
 # Deploy AuPairly (Supabase + Vercel + aupairly.me)
 
-> **Database:** use **Supabase Postgres** (see [SUPABASE.md](./SUPABASE.md)). You do not need Prisma Postgres or Neon.
+> **Database = Supabase Postgres only.**  
+> Do **not** use Prisma Postgres, Neon, or SQLite for this project.  
+> Full Supabase guide: [SUPABASE.md](./SUPABASE.md)
+
+## Your Supabase project
+
+| | |
+|--|--|
+| Dashboard | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks |
+| Database settings | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/settings/database |
+| API URL | `https://bpbxjzgzyfbpkujrfzks.supabase.co` |
+| Project ref | `bpbxjzgzyfbpkujrfzks` |
 
 ## Status
 
 | Piece | Status |
 |-------|--------|
 | App code | ✅ GitHub: https://github.com/bigfivefoods/AuPairly |
-| Database | ✅ Prisma Postgres (claim to keep permanent) |
-| Vercel project | ✅ Created: **aupairly** (`prj_Xkd1WRxncxzJRvTp6FrY7s4l2VcG`) |
-| Production URL | https://aupairly-bigfivefoods-projects.vercel.app |
-| Full app on Vercel | ⚠️ Connect GitHub + set env (steps below) |
+| Database host | ✅ **Supabase** (project above) |
+| Vercel project | ✅ **aupairly** — https://vercel.com/bigfivefoods-projects/aupairly |
+| Env on Vercel | ⚠️ Must set Supabase `DATABASE_URL` + `DIRECT_URL` (build fails without them) |
 | Domain www.aupairly.me | ⚠️ Add in Vercel Domains |
 
 ---
 
-## 1. Claim permanent Postgres (do this first)
+## 1. Supabase connection strings
 
-Temporary DBs auto-delete. **Claim now:**
+Open [Database settings](https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/settings/database) → **Connection string** → **URI**.
 
-👉 https://create-db.prisma.io/claim?projectID=proj_xn4un7x3sl8rsocpibmmskvg&utm_source=create-db&utm_medium=cli
+| Env var | Supabase mode | Port | Used for |
+|---------|---------------|------|----------|
+| `DATABASE_URL` | **Transaction** pooler | **6543** | App runtime (+ `?pgbouncer=true`) |
+| `DIRECT_URL` | **Session** or **Direct** | **5432** | `prisma migrate deploy` on Vercel |
 
-Copy the production `DATABASE_URL` from the Prisma dashboard after claiming.
+Also set API keys (Settings → API):
+
+| Env var | Value |
+|---------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://bpbxjzgzyfbpkujrfzks.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | from Supabase API settings |
 
 ---
 
-## 2. Finish Vercel setup (5 minutes)
+## 2. Vercel environment variables
 
-### A. Import GitHub repo into the existing project
+https://vercel.com/bigfivefoods-projects/aupairly/settings/environment-variables  
 
-1. Open https://vercel.com/bigfivefoods-projects/aupairly/settings/git  
-2. Connect repository: **bigfivefoods/AuPairly** (branch `main`)  
-3. Or one-click re-import:  
-   https://vercel.com/new/clone?repository-url=https://github.com/bigfivefoods/AuPairly&project-name=aupairly&repository-name=AuPairly
-
-### B. Environment variables
-
-**Project → Settings → Environment Variables** (Production + Preview):
+Add for **Production** and **Preview** (available at **Build** time):
 
 | Name | Value |
 |------|--------|
-| `DATABASE_URL` | Postgres URL from step 1 |
-| `AUTH_SECRET` | run: `openssl rand -base64 32` |
-| `AUTH_URL` | `https://aupairly-bigfivefoods-projects.vercel.app` (update after custom domain) |
+| `DATABASE_URL` | Supabase Transaction URI (6543) |
+| `DIRECT_URL` | Supabase Session/Direct URI (5432) |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://bpbxjzgzyfbpkujrfzks.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | your publishable key |
+| `AUTH_SECRET` | `openssl rand -base64 32` |
+| `AUTH_URL` | `https://aupairly-bigfivefoods-projects.vercel.app` (then custom domain) |
 | `NEXT_PUBLIC_SITE_URL` | same as `AUTH_URL` |
 | `NEXT_PUBLIC_SITE_NAME` | `AuPairly` |
-| `AUTO_VERIFY` | `true` for demo / `false` for admin queue |
+| `AUTO_VERIFY` | `true` for demo |
 
-### C. Redeploy
+Then **Redeploy**.
 
-**Deployments → Redeploy** latest, or push to `main`.
+Build uses `scripts/vercel-build.sh` → `prisma generate` → `migrate deploy` → `next build`.
 
-Build command (already in `vercel.json`):
-
-```
-prisma generate && prisma migrate deploy && next build
-```
-
-### D. Seed production data
+### Seed production (once after first successful deploy)
 
 ```bash
-export DATABASE_URL="postgresql://..."   # production URL
+export DIRECT_URL="postgresql://..."   # Supabase :5432
+export DATABASE_URL="postgresql://..." # Supabase :6543
 npm run db:seed
 ```
 
@@ -70,48 +79,23 @@ Demo logins: `parent@demo.aupairly.me` / `demo1234` (also admin & aupair).
 
 ## 3. Domain www.aupairly.me
 
-1. Vercel → Project **aupairly** → **Settings → Domains**  
+1. Vercel → **aupairly** → Settings → Domains  
 2. Add `aupairly.me` and `www.aupairly.me`  
-3. DNS at your registrar:
-
-| Type | Name | Value |
-|------|------|--------|
-| A | `@` | `76.76.21.21` |
-| CNAME | `www` | `cname.vercel-dns.com` |
-
-(Use the exact records Vercel shows if different.)
-
-4. Update env:
-
-```
-AUTH_URL=https://www.aupairly.me
-NEXT_PUBLIC_SITE_URL=https://www.aupairly.me
-```
-
-5. Redeploy production.
+3. Point DNS as Vercel shows  
+4. Set `AUTH_URL` and `NEXT_PUBLIC_SITE_URL` to `https://www.aupairly.me`  
+5. Redeploy  
 
 ---
 
-## 4. CLI alternative (with token)
-
-```bash
-# https://vercel.com/account/tokens
-export VERCEL_TOKEN=...
-export VERCEL_SCOPE=bigfivefoods-projects
-./scripts/vercel-deploy.sh
-```
-
----
-
-## Local development (Postgres)
+## Local development (Supabase)
 
 ```bash
 cp .env.example .env
-# set DATABASE_URL to your Postgres URL
+# paste DATABASE_URL + DIRECT_URL from Supabase + public API keys
 npm install
 npx prisma migrate deploy
 npm run db:seed
 npm run dev
 ```
 
-Stack is **PostgreSQL only** (Prisma 7 + `@prisma/adapter-pg`).
+Stack: **Next.js + Prisma 7 + Supabase Postgres** (`@prisma/adapter-pg`).
