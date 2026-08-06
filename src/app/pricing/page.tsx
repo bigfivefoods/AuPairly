@@ -27,8 +27,8 @@ export default async function PricingPage() {
           Trusted care for your family, loved ones, home &amp; pets
         </div>
         <PageHeader
-          title="Plans that grow with your match"
-          description="Start free for childcare, caregiving, house sitting, and pet sitting. Upgrade when you're ready for unlimited messages, Discover, and featured visibility."
+          title="Simple ZAR pricing"
+          description="Start free, then unlock unlimited matching for a week (R299), 3 months at R99/mo, or a full year for R999."
         />
       </div>
 
@@ -52,8 +52,8 @@ export default async function PricingPage() {
           },
           {
             icon: <Sparkles className="h-5 w-5" />,
-            title: "Pay for outcomes",
-            body: "Free to browse. Plus unlocks unlimited outreach when you're serious.",
+            title: "Pay for the period you need",
+            body: "Week, 3 months (R99/mo min), or annual at R999 — same unlimited matching.",
           },
         ].map((f) => (
           <div
@@ -72,8 +72,9 @@ export default async function PricingPage() {
       <div className="mt-12 rounded-2xl border border-teal-100 bg-teal-50/50 px-6 py-5 text-center text-sm text-stone-600">
         <p className="font-semibold text-teal-900">Payments: Paystack (primary)</p>
         <p className="mt-1 text-stone-500">
-          Cards &amp; Apple Pay in South Africa. One clear upgrade path — free limits unlock with Plus or Premium.
-          Dev-only demo mode applies only when Paystack keys are missing.
+          Cards &amp; Apple Pay in South Africa. Free to browse; paid plans unlock unlimited
+          messages, Discover, and featured visibility for the period you choose.
+          Demo mode only when Paystack keys are missing.
         </p>
         <Link href="/billing" className="mt-3 inline-block font-semibold text-teal-700 hover:underline">
           Manage billing →

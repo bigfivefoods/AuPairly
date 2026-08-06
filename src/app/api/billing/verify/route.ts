@@ -9,7 +9,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
-import { planFor, type PlanId } from "@/lib/plans";
+import {
+  isPaidPlanId,
+  normalizePlanId,
+  planFor,
+  type PlanId,
+} from "@/lib/plans";
 import {
   paystackErrorResponse,
   verifyTransaction,
@@ -51,17 +56,23 @@ export async function POST(req: Request) {
     }
 
     const meta = parseMetadata(tx.metadata);
-    const planIdRaw = (body.planId || meta.planId || "PLUS") as string;
-    const planId: PlanId =
-      planIdRaw === "PREMIUM" || planIdRaw === "PLUS" ? planIdRaw : "PLUS";
+    const planIdRaw = String(body.planId || meta.planId || "QUARTER");
+    const planId: PlanId = normalizePlanId(planIdRaw);
+    if (!isPaidPlanId(planId)) {
+      return NextResponse.json({ error: "Invalid plan on payment" }, { status: 400 });
+    }
 
     const metaUserId = meta.userId ? String(meta.userId) : null;
     if (metaUserId && metaUserId !== session.user.id) {
-      return NextResponse.json({ error: "Payment does not belong to this user" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Payment does not belong to this user" },
+        { status: 403 }
+      );
     }
 
+    const plan = planFor(planId);
     await activatePlan(session.user.id, planId, {
-      days: 30,
+      days: plan.durationDays,
       stripeSubscriptionId: reference, // reuse field as external payment ref
     });
 
@@ -74,12 +85,11 @@ export async function POST(req: Request) {
       });
     }
 
-    const plan = planFor(planId);
     await createNotification({
       userId: session.user.id,
       type: "BILLING",
       title: "Payment successful",
-      body: `Your ${plan.name} membership is active for 30 days. Paid via Paystack.`,
+      body: `Your ${plan.name} membership is active for ${plan.durationDays} days. Paid via Paystack.`,
       href: "/billing",
     });
 
@@ -89,6 +99,7 @@ export async function POST(req: Request) {
       reference,
       amount: tx.amount,
       currency: tx.currency,
+      durationDays: plan.durationDays,
     });
   } catch (err) {
     console.error("[billing/verify]", err);

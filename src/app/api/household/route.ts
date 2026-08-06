@@ -56,10 +56,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Partner seats are for family accounts" }, { status: 400 });
     }
     const { plan } = await getUserPlan(session.user.id);
-    if (plan.id !== "PREMIUM") {
+    if (!plan.limits.partnerSeat) {
       return NextResponse.json(
         {
-          error: "Partner / co-parent seats require Premium.",
+          error: "Partner / co-parent seats require the Annual plan.",
           upgradeRequired: true,
           upgradeUrl: "/pricing",
         },

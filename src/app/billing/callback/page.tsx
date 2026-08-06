@@ -2,7 +2,7 @@
 
 /**
  * Paystack redirects here after checkout:
- *   /billing/callback?reference=...&trxref=...&plan=PLUS
+ *   /billing/callback?reference=...&trxref=...&plan=QUARTER
  *
  * We verify the transaction server-side, then send the user to the success page.
  */
@@ -19,7 +19,7 @@ function CallbackInner() {
 
   useEffect(() => {
     const reference = sp.get("reference") || sp.get("trxref") || "";
-    const plan = sp.get("plan") || "PLUS";
+    const plan = sp.get("plan") || "QUARTER";
 
     if (!reference) {
       setError("Missing payment reference from Paystack.");

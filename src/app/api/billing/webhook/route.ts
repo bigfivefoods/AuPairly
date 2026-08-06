@@ -20,7 +20,12 @@ import {
   isPaystackConfigured,
   verifyPaystackSignature,
 } from "@/lib/paystack";
-import type { PlanId } from "@/lib/plans";
+import {
+  isPaidPlanId,
+  normalizePlanId,
+  planFor,
+  type PlanId,
+} from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -79,16 +84,17 @@ async function handleChargeSuccess(data: any) {
   const userId = meta.userId ? String(meta.userId) : null;
   const planId = coercePlan(meta.planId);
 
-  if (purpose === "membership" && userId && planId && planId !== "FREE") {
+  if (purpose === "membership" && userId && planId && isPaidPlanId(planId)) {
+    const plan = planFor(planId);
     await activatePlan(userId, planId, {
-      days: 30,
+      days: plan.durationDays,
       stripeSubscriptionId: data.reference,
     });
     await createNotification({
       userId,
       type: "BILLING",
       title: "Payment successful",
-      body: `Your ${planId} membership is active. Welcome to unlimited matching.`,
+      body: `Your ${plan.name} membership is active for ${plan.durationDays} days. Welcome to unlimited matching.`,
       href: "/billing",
     });
     return;
@@ -145,11 +151,12 @@ async function handleChargeSuccess(data: any) {
 async function handleSubscriptionActive(data: any) {
   const meta = normalizeMeta(data.metadata);
   const userId = meta.userId ? String(meta.userId) : null;
-  const planId = (coercePlan(meta.planId) || "PLUS") as "PLUS" | "PREMIUM";
-  if (!userId) return;
+  const planId = coercePlan(meta.planId) || "QUARTER";
+  if (!userId || !isPaidPlanId(planId)) return;
 
+  const plan = planFor(planId);
   await activatePlan(userId, planId, {
-    days: 32,
+    days: plan.durationDays,
     stripeSubscriptionId: data.subscription_code || data.id,
   });
   await prisma.user.updateMany({
@@ -204,6 +211,7 @@ function normalizeMeta(meta: unknown): Record<string, unknown> {
 }
 
 function coercePlan(v: unknown): PlanId | null {
-  if (v === "PLUS" || v === "PREMIUM") return v;
-  return null;
+  if (v == null) return null;
+  const id = normalizePlanId(String(v));
+  return isPaidPlanId(id) || id === "FREE" ? id : null;
 }

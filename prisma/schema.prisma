@@ -67,7 +67,7 @@ model User {
   subscription      Subscription?
   swipes            Swipe[]    @relation("SwipesFrom")
   swipesReceived    Swipe[]    @relation("SwipesTo")
-  plan            String       @default("FREE") // FREE | PLUS | PREMIUM
+  plan            String       @default("FREE") // FREE | WEEK | QUARTER | ANNUAL (legacy: PLUS|PREMIUM)
   stripeCustomerId String?
   /// Stripe Connect V2 account id (acct_...) for this user as a seller/merchant
   stripeConnectAccountId String? @unique
@@ -437,7 +437,7 @@ model Subscription {
   id                   String    @id @default(cuid())
   userId               String    @unique
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan                 String    // FREE | PLUS | PREMIUM
+  plan                 String    // FREE | WEEK | QUARTER | ANNUAL (legacy: PLUS|PREMIUM)
   status               String    @default("ACTIVE") // ACTIVE | CANCELED | PAST_DUE | TRIALING
   stripeSubscriptionId String?
   stripePriceId        String?

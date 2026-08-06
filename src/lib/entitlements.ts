@@ -1,8 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import { dayKey, planFor, weekKey, type PlanDefinition } from "@/lib/plans";
+import {
+  dayKey,
+  isPaidPlanId,
+  normalizePlanId,
+  planFor,
+  weekKey,
+  type PlanDefinition,
+  type PlanId,
+} from "@/lib/plans";
 
 export async function getUserPlan(userId: string): Promise<{
-  planId: string;
+  planId: PlanId;
   plan: PlanDefinition;
   subscription: Awaited<ReturnType<typeof prisma.subscription.findUnique>>;
 }> {
@@ -11,13 +19,13 @@ export async function getUserPlan(userId: string): Promise<{
     select: { plan: true, subscription: true },
   });
 
-  let planId = user?.plan || "FREE";
+  let planId = normalizePlanId(user?.plan || "FREE");
   const sub = user?.subscription ?? null;
 
   // Prefer active subscription plan if present and not expired
   if (sub && sub.status === "ACTIVE") {
     if (!sub.currentPeriodEnd || sub.currentPeriodEnd > new Date()) {
-      planId = sub.plan;
+      planId = normalizePlanId(sub.plan);
     } else {
       // Expired
       await prisma.user.update({ where: { id: userId }, data: { plan: "FREE" } });
@@ -124,27 +132,33 @@ export async function checkAndConsume(
 
 export async function activatePlan(
   userId: string,
-  planId: "PLUS" | "PREMIUM",
+  planId: PlanId | string,
   opts?: {
     stripeSubscriptionId?: string;
     stripePriceId?: string;
     days?: number;
   }
 ) {
-  const days = opts?.days ?? 30;
+  const resolved = normalizePlanId(planId);
+  if (!isPaidPlanId(resolved)) {
+    throw new Error(`Cannot activate non-paid plan: ${planId}`);
+  }
+
+  const plan = planFor(resolved);
+  const days = opts?.days ?? plan.durationDays;
   const end = new Date();
   end.setDate(end.getDate() + days);
 
   await prisma.user.update({
     where: { id: userId },
-    data: { plan: planId },
+    data: { plan: resolved },
   });
 
   const sub = await prisma.subscription.upsert({
     where: { userId },
     create: {
       userId,
-      plan: planId,
+      plan: resolved,
       status: "ACTIVE",
       currentPeriodStart: new Date(),
       currentPeriodEnd: end,
@@ -152,7 +166,7 @@ export async function activatePlan(
       stripePriceId: opts?.stripePriceId,
     },
     update: {
-      plan: planId,
+      plan: resolved,
       status: "ACTIVE",
       currentPeriodStart: new Date(),
       currentPeriodEnd: end,

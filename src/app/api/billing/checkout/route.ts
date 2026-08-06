@@ -3,11 +3,18 @@
  *
  * Start membership upgrade via Paystack (SA + Apple Pay).
  * Redirects user to Paystack hosted authorization_url.
+ *
+ * Plans: WEEK (R299 / 7d), QUARTER (R297 for 3 mo @ R99/mo), ANNUAL (R999 / year).
  */
 
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { PLANS, priceCentsFor, type PlanId } from "@/lib/plans";
+import {
+  PLANS,
+  isPaidPlanId,
+  priceCentsFor,
+  type PlanId,
+} from "@/lib/plans";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
 import {
@@ -26,7 +33,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const planId = body.planId as PlanId;
-  if (planId !== "PLUS" && planId !== "PREMIUM") {
+  if (!isPaidPlanId(planId)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
 
@@ -40,18 +47,18 @@ export async function POST(req: Request) {
 
   // Demo mode when Paystack is not configured (local pitch without keys)
   if (!isPaystackConfigured()) {
-    await activatePlan(session.user.id, planId, { days: 30 });
+    await activatePlan(session.user.id, planId);
     await createNotification({
       userId: session.user.id,
       type: "BILLING",
       title: `${plan.name} activated (demo)`,
-      body: "Paystack is not configured — you got 30 days of access in demo mode.",
+      body: `Paystack is not configured — you got ${plan.durationDays} days of access in demo mode.`,
       href: "/billing",
     });
     return NextResponse.json({
       demo: true,
       url: `${site}/billing?success=1&plan=${planId}`,
-      message: "Demo upgrade applied (no Paystack keys). 30 days of access.",
+      message: `Demo upgrade applied (no Paystack keys). ${plan.durationDays} days of access.`,
     });
   }
 
@@ -64,7 +71,10 @@ export async function POST(req: Request) {
     const reference = makeReference(`plan_${planId.toLowerCase()}`);
     const email = session.user.email;
     if (!email) {
-      return NextResponse.json({ error: "Account email required for checkout" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Account email required for checkout" },
+        { status: 400 }
+      );
     }
 
     const init = await initializeTransaction({
@@ -77,9 +87,14 @@ export async function POST(req: Request) {
         planId,
         role,
         purpose: "membership",
+        durationDays: plan.durationDays,
         custom_fields: [
           { display_name: "Plan", variable_name: "plan", value: plan.name },
-          { display_name: "User", variable_name: "user_id", value: session.user.id },
+          {
+            display_name: "User",
+            variable_name: "user_id",
+            value: session.user.id,
+          },
         ],
       },
       // Apple Pay shows when enabled in Paystack Dashboard → Preferences

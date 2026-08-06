@@ -428,7 +428,7 @@ export function DiscoverClient({
           type="button"
           disabled={busy || planId === "FREE"}
           onClick={() => swipe("SUPER")}
-          title={planId === "FREE" ? "Super Like on Plus+" : "Super Like"}
+          title={planId === "FREE" ? "Super Like on paid plans" : "Super Like"}
           className={cn(
             "flex h-12 w-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white text-sky-500 shadow-md transition hover:scale-105",
             (busy || planId === "FREE") && "opacity-40"
