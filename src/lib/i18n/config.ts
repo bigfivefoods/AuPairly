@@ -1,9 +1,9 @@
 /**
  * Top languages by total speakers (common global ranking).
- * EN · ZH · HI · ES · FR · AR · BN · PT
+ * EN · ZH · HI · ES · FR · AR · BN · PT · DE
  */
 
-export const LOCALES = ["en", "zh", "hi", "es", "fr", "ar", "bn", "pt"] as const;
+export const LOCALES = ["en", "zh", "hi", "es", "fr", "ar", "bn", "pt", "de"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
@@ -21,6 +21,7 @@ export const LOCALE_META: Record<
   ar: { name: "Arabic", nativeName: "العربية", dir: "rtl", flag: "🇸🇦" },
   bn: { name: "Bengali", nativeName: "বাংলা", dir: "ltr", flag: "🇧🇩" },
   pt: { name: "Portuguese", nativeName: "Português", dir: "ltr", flag: "🇧🇷" },
+  de: { name: "German", nativeName: "Deutsch", dir: "ltr", flag: "🇩🇪" },
 };
 
 export function isLocale(v: unknown): v is Locale {
