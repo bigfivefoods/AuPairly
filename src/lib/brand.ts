@@ -10,6 +10,6 @@ export const BRAND = {
   /** Short variant for tight UI */
   taglineShort: "Family, home & pets",
   description:
-    "AuPairly.me is the trusted marketplace for childcare and au pairing, house sitting, and pet sitting — verified people, one account, worldwide.",
+    "AuPairly.me is the trusted marketplace for childcare, caregiving, house sitting, and pet sitting — verified people, one account, worldwide.",
   ogTitle: "AuPairly — Trusted care for your family, home & pets",
 } as const;

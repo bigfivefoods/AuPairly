@@ -1,16 +1,17 @@
 "use client";
 
-import { Baby, Home, PawPrint } from "lucide-react";
+import { Baby, HeartHandshake, Home, PawPrint } from "lucide-react";
 import {
   PET_TYPE_OPTIONS,
   SERVICE_LIST,
   type ServiceId,
 } from "@/lib/services";
 import { cn } from "@/lib/utils";
-import { ChipToggle, Input, Label, Textarea } from "@/components/ui";
+import { ChipToggle, Label, Textarea } from "@/components/ui";
 
 const ICONS = {
   baby: Baby,
+  heart: HeartHandshake,
   home: Home,
   paw: PawPrint,
 } as const;
@@ -48,10 +49,10 @@ export function ServicePicker({
     <div className="space-y-4">
       <p className="text-sm text-stone-500">
         {mode === "provider"
-          ? "Select every service you offer. You can do one or combine all three."
-          : "Select what you need help with. You can hire for one service or a combination."}
+          ? "Select every service you offer. One profile can cover multiple categories."
+          : "Select what you need. You can hire for one category or combine several."}
       </p>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {SERVICE_LIST.map((s) => {
           const Icon = ICONS[s.icon];
           const on = value.includes(s.id);
@@ -68,10 +69,11 @@ export function ServicePicker({
               )}
             >
               <Icon className="h-6 w-6" />
-              <span className="text-sm font-semibold">
-                {mode === "provider" ? s.providerLabel.replace(/^I offer /, "") : s.shortName}
+              <span className="text-sm font-semibold">{s.shortName}</span>
+              <span className="text-xs opacity-80 leading-snug">{s.tagline}</span>
+              <span className="text-[11px] opacity-70 leading-snug">
+                {s.examples.slice(0, 3).join(" · ")}
               </span>
-              <span className="text-xs opacity-80">{s.tagline}</span>
             </button>
           );
         })}
@@ -113,8 +115,8 @@ export function ServicePicker({
             onChange={(e) => onHouseNotesChange(e.target.value)}
             placeholder={
               mode === "provider"
-                ? "e.g. Experience with alarms, plants, long stays…"
-                : "e.g. Dates away, plants, alarm code process, mail…"
+                ? "e.g. Short/long stays, plants, property checks…"
+                : "e.g. Holiday dates, plants, alarm process, mail…"
             }
           />
         </div>

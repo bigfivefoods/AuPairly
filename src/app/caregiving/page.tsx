@@ -4,19 +4,19 @@ import { SERVICES } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 
-const s = SERVICES.HOUSE_SITTING;
+const s = SERVICES.CAREGIVING;
 
 export const metadata: Metadata = {
   title: s.seoTitle,
-  description: `${s.seoDescription} Including ${s.examples.join(", ").toLowerCase()}.`,
+  description: s.seoDescription,
   openGraph: {
     title: `${s.seoTitle} · AuPairly`,
     description: s.seoDescription,
-    url: "https://www.aupairly.me/house-sitting",
+    url: "https://www.aupairly.me/caregiving",
   },
-  alternates: { canonical: "/house-sitting" },
+  alternates: { canonical: "/caregiving" },
 };
 
-export default function HouseSittingPage() {
-  return <ServiceLanding serviceId="HOUSE_SITTING" />;
+export default function CaregivingPage() {
+  return <ServiceLanding serviceId="CAREGIVING" />;
 }

@@ -1,9 +1,14 @@
 /**
- * AuPairly multi-service marketplace.
- * One platform for childcare / au pairing, house sitting, and pet sitting.
+ * AuPairly multi-service marketplace categories.
+ * Childcare · Caregiving · House Sitting · Pet Sitting
  */
 
-export const SERVICE_IDS = ["CHILDCARE", "HOUSE_SITTING", "PET_SITTING"] as const;
+export const SERVICE_IDS = [
+  "CHILDCARE",
+  "CAREGIVING",
+  "HOUSE_SITTING",
+  "PET_SITTING",
+] as const;
 export type ServiceId = (typeof SERVICE_IDS)[number];
 
 export type ServiceDef = {
@@ -18,9 +23,11 @@ export type ServiceDef = {
   hostLabel: string;
   tagline: string;
   description: string;
+  /** Bullet examples for marketing / landings */
+  examples: string[];
   seoTitle: string;
   seoDescription: string;
-  icon: "baby" | "home" | "paw";
+  icon: "baby" | "heart" | "home" | "paw";
   color: string;
   bg: string;
   activeTab: string;
@@ -29,35 +36,75 @@ export type ServiceDef = {
 export const SERVICES: Record<ServiceId, ServiceDef> = {
   CHILDCARE: {
     id: "CHILDCARE",
-    name: "Childcare / Au pairing",
+    name: "Childcare",
     shortName: "Childcare",
     slug: "childcare",
-    providerLabel: "I offer childcare / au pairing",
-    hostLabel: "I need childcare / an au pair",
-    tagline: "Au pairs, nannies & trusted childcare",
+    providerLabel: "I offer childcare",
+    hostLabel: "I need childcare",
+    tagline: "Au pairs, babysitting & kids’ care",
     description:
-      "Live-in or live-out childcare, school runs, and cultural exchange-style au pairing.",
+      "Trusted care for children — au pairs, babysitting, after-school, special needs, overnight, and more.",
+    examples: [
+      "Au pairs",
+      "Babysitting",
+      "Online care",
+      "After-school",
+      "Special needs",
+      "Overnight care",
+    ],
     seoTitle: "Childcare & Au Pairs",
     seoDescription:
-      "Find verified au pairs and childcare on AuPairly.me — match with host families worldwide.",
+      "Find verified au pairs, babysitters, and childcare on AuPairly.me — after-school, overnight, special needs, and more.",
     icon: "baby",
     color: "text-teal-800",
     bg: "bg-teal-50 border-teal-200",
     activeTab: "bg-teal-600 text-white border-teal-600",
   },
+  CAREGIVING: {
+    id: "CAREGIVING",
+    name: "Caregiving",
+    shortName: "Caregiving",
+    slug: "caregiving",
+    providerLabel: "I offer caregiving",
+    hostLabel: "I need a caregiver",
+    tagline: "Elderly care, companionship & support",
+    description:
+      "Compassionate support for adults — elderly care, companionship, disability support, personal care, and respite.",
+    examples: [
+      "Elderly care",
+      "Companionship",
+      "Disability support",
+      "Personal care",
+      "Respite care",
+    ],
+    seoTitle: "Caregiving & Companion Care",
+    seoDescription:
+      "Find verified caregivers on AuPairly.me — elderly care, companionship, disability support, personal care, and respite.",
+    icon: "heart",
+    color: "text-rose-900",
+    bg: "bg-rose-50 border-rose-200",
+    activeTab: "bg-rose-600 text-white border-rose-600",
+  },
   HOUSE_SITTING: {
     id: "HOUSE_SITTING",
-    name: "House sitting",
+    name: "House Sitting",
     shortName: "House sitting",
     slug: "house-sitting",
     providerLabel: "I offer house sitting",
     hostLabel: "I need a house sitter",
-    tagline: "Trusted sitters while you’re away",
+    tagline: "Your home looked after while you’re away",
     description:
-      "Home care, plant watering, mail, security presence, and property checks.",
+      "Short-term or long-term house sitting, holiday stays, property checks, and plant care.",
+    examples: [
+      "Short-term sitting",
+      "Long-term sitting",
+      "Holiday house sitting",
+      "Property checks",
+      "Plant care",
+    ],
     seoTitle: "House Sitting",
     seoDescription:
-      "Book trusted house sitters on AuPairly.me — protect your home while you travel.",
+      "Book trusted house sitters on AuPairly.me — short or long stays, holiday cover, property checks, and plant care.",
     icon: "home",
     color: "text-amber-900",
     bg: "bg-amber-50 border-amber-200",
@@ -65,17 +112,25 @@ export const SERVICES: Record<ServiceId, ServiceDef> = {
   },
   PET_SITTING: {
     id: "PET_SITTING",
-    name: "Pet sitting",
+    name: "Pet Sitting",
     shortName: "Pet sitting",
     slug: "pet-sitting",
     providerLabel: "I offer pet sitting",
     hostLabel: "I need a pet sitter",
     tagline: "Dogs, cats & pets in safe hands",
     description:
-      "In-home pet care, walks, feeding, medication, and overnight stays.",
+      "Dog sitting and walking, cat sitting, overnight pet care, multi-pet homes, and drop-in visits.",
+    examples: [
+      "Dog sitting",
+      "Dog walking",
+      "Cat sitting",
+      "Overnight pet care",
+      "Multi-pet",
+      "Drop-in visits",
+    ],
     seoTitle: "Pet Sitting",
     seoDescription:
-      "Find verified pet sitters on AuPairly.me — dogs, cats, and more in safe hands.",
+      "Find verified pet sitters on AuPairly.me — dog walking, cat sitting, overnight care, multi-pet, and drop-ins.",
     icon: "paw",
     color: "text-orange-900",
     bg: "bg-orange-50 border-orange-200",
@@ -147,7 +202,8 @@ export function roleCopy(role: "AUPAIR" | "PARENT" | string) {
       browseOther: "Find sitters",
       browseOtherHref: "/browse/aupairs",
       editTitle: "Edit host listing",
-      editDesc: "What you need: childcare, house sitting, pet sitting — or a mix.",
+      editDesc:
+        "What you need: childcare, caregiving, house sitting, pet sitting — or a mix.",
     };
   }
   if (role === "AUPAIR") {
@@ -157,7 +213,8 @@ export function roleCopy(role: "AUPAIR" | "PARENT" | string) {
       browseOther: "Find hosts",
       browseOtherHref: "/browse/families",
       editTitle: "Edit sitter profile",
-      editDesc: "Services you offer: childcare, house sitting, pet sitting — or a mix.",
+      editDesc:
+        "Services you offer: childcare, caregiving, house sitting, pet sitting — or a mix.",
     };
   }
   return {
@@ -180,4 +237,22 @@ export const PET_TYPE_OPTIONS = [
   "Farm animals",
   "Reptiles",
   "Other pets",
+];
+
+/** Optional specialisms within childcare (profile chips) */
+export const CHILDCARE_FOCUS_OPTIONS = [
+  "Au pairs",
+  "Babysitting",
+  "Online care",
+  "After-school",
+  "Special needs",
+  "Overnight care",
+];
+
+export const CAREGIVING_FOCUS_OPTIONS = [
+  "Elderly care",
+  "Companionship",
+  "Disability support",
+  "Personal care",
+  "Respite care",
 ];

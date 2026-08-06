@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Baby, Home, LayoutGrid, PawPrint } from "lucide-react";
+import { Baby, HeartHandshake, Home, LayoutGrid, PawPrint } from "lucide-react";
 import {
   SERVICE_LIST,
   type ServiceId,
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS = {
   baby: Baby,
+  heart: HeartHandshake,
   home: Home,
   paw: PawPrint,
 } as const;
@@ -19,8 +20,7 @@ const ICONS = {
 type Side = "sitters" | "hosts";
 
 /**
- * Clear category tabs: All | Childcare | House Sitting | Pet Sitting
- * Works within browse (preserves other query params) or links to landing pages.
+ * Clear category tabs: All | Childcare | Caregiving | House Sitting | Pet Sitting
  */
 export function CategoryTabs({
   side = "sitters",
@@ -29,9 +29,7 @@ export function CategoryTabs({
   className,
 }: {
   side?: Side;
-  /** When set, highlights this service (server-provided preferred) */
   activeService?: ServiceId | "" | null;
-  /** browse = keep filters on /browse/* ; landing = use SEO paths */
   mode?: "browse" | "landing";
   className?: string;
 }) {
@@ -48,9 +46,11 @@ export function CategoryTabs({
           ? "HOUSE_SITTING"
           : path.includes("pet-sitting")
             ? "PET_SITTING"
-            : path.includes("/childcare")
-              ? "CHILDCARE"
-              : "";
+            : path.includes("caregiving")
+              ? "CAREGIVING"
+              : path.includes("/childcare")
+                ? "CHILDCARE"
+                : "";
 
   function hrefFor(service: ServiceId | "") {
     if (mode === "landing") {
@@ -74,7 +74,7 @@ export function CategoryTabs({
   }
 
   const tabs: { id: ServiceId | ""; label: string; icon: typeof LayoutGrid }[] = [
-    { id: "", label: "All services", icon: LayoutGrid },
+    { id: "", label: "All", icon: LayoutGrid },
     ...SERVICE_LIST.map((s) => ({
       id: s.id as ServiceId | "",
       label: s.shortName,
@@ -87,7 +87,7 @@ export function CategoryTabs({
       <div
         role="tablist"
         aria-label="Service categories"
-        className="flex gap-2 overflow-x-auto pb-1 scrollbar-none"
+        className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((tab) => {
           const active = current === tab.id;
@@ -100,7 +100,7 @@ export function CategoryTabs({
               aria-selected={active}
               href={hrefFor(tab.id)}
               className={cn(
-                "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition",
+                "inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition sm:px-4 sm:py-2.5",
                 active
                   ? def
                     ? def.activeTab
@@ -116,22 +116,22 @@ export function CategoryTabs({
       </div>
       <p className="mt-2 text-xs text-stone-500">
         {current
-          ? `Showing ${SERVICE_LIST.find((s) => s.id === current)?.name} only. Sitters can still offer multiple services on one profile.`
-          : "Search across all categories — or pick one tab to focus."}
+          ? `Showing ${SERVICE_LIST.find((s) => s.id === current)?.name} only. Sitters can offer multiple services on one profile.`
+          : "Search across all categories — or pick a tab to focus."}
       </p>
     </div>
   );
 }
 
-/** Compact nav pills for header: Childcare · House · Pets */
+/** Compact nav pills for header */
 export function CategoryNavLinks({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-0.5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-0.5", className)}>
       {SERVICE_LIST.map((s) => (
         <Link
           key={s.id}
           href={`/${s.slug}`}
-          className="rounded-full px-2.5 py-1 text-xs font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-teal-800"
+          className="rounded-full px-2 py-1 text-xs font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-teal-800 lg:px-2.5"
         >
           {s.shortName}
         </Link>

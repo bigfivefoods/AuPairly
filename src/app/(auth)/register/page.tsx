@@ -96,7 +96,7 @@ function RegisterForm() {
         </button>
       </div>
       <p className="mb-4 rounded-xl bg-stone-50 px-3 py-2 text-center text-xs text-stone-500">
-        After signup, choose childcare / au pairing, house sitting, pet sitting — or all three.
+        After signup, choose childcare, caregiving, house sitting, pet sitting — or combine them.
       </p>
 
       <form onSubmit={onSubmit} className="space-y-4">

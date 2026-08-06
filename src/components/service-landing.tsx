@@ -1,13 +1,26 @@
 import Link from "next/link";
-import { ArrowRight, Baby, BadgeCheck, Home, PawPrint, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Baby,
+  BadgeCheck,
+  HeartHandshake,
+  Home,
+  PawPrint,
+  ShieldCheck,
+} from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
 import { CategoryTabs } from "@/components/category-tabs";
 import { PageHeader } from "@/components/ui";
-import { SERVICES, type ServiceId } from "@/lib/services";
+import { SERVICE_LIST, SERVICES, type ServiceId } from "@/lib/services";
 import { Suspense } from "react";
 
-const ICONS = { baby: Baby, home: Home, paw: PawPrint } as const;
+const ICONS = {
+  baby: Baby,
+  heart: HeartHandshake,
+  home: Home,
+  paw: PawPrint,
+} as const;
 
 export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
   const s = SERVICES[serviceId];
@@ -49,19 +62,29 @@ export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
                   description={s.description}
                 />
               </div>
-              <p className="mt-2 text-sm text-stone-600">
-                Part of one trusted marketplace — also{" "}
-                <Link href="/childcare" className="font-semibold text-teal-800 hover:underline">
-                  Childcare
-                </Link>
-                ,{" "}
-                <Link href="/house-sitting" className="font-semibold text-teal-800 hover:underline">
-                  House sitting
-                </Link>
-                , and{" "}
-                <Link href="/pet-sitting" className="font-semibold text-teal-800 hover:underline">
-                  Pet sitting
-                </Link>
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {s.examples.map((ex) => (
+                  <li
+                    key={ex}
+                    className="rounded-full border border-white/80 bg-white/90 px-3 py-1 text-xs font-medium text-stone-700 shadow-sm"
+                  >
+                    {ex}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-stone-600">
+                Part of one trusted marketplace:{" "}
+                {SERVICE_LIST.map((x, i) => (
+                  <span key={x.id}>
+                    {i > 0 ? ", " : ""}
+                    <Link
+                      href={`/${x.slug}`}
+                      className="font-semibold text-teal-800 hover:underline"
+                    >
+                      {x.shortName}
+                    </Link>
+                  </span>
+                ))}
                 . Sitters can offer multiple services on a single profile.
               </p>
             </div>

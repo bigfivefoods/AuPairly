@@ -28,7 +28,7 @@ export default async function PricingPage() {
         </div>
         <PageHeader
           title="Plans that grow with your match"
-          description="Start free for childcare, house sitting, and pet sitting. Upgrade when you're ready for unlimited messages, Discover, and featured visibility."
+          description="Start free for childcare, caregiving, house sitting, and pet sitting. Upgrade when you're ready for unlimited messages, Discover, and featured visibility."
         />
       </div>
 

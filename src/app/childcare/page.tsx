@@ -8,7 +8,7 @@ const s = SERVICES.CHILDCARE;
 
 export const metadata: Metadata = {
   title: s.seoTitle,
-  description: s.seoDescription,
+  description: `${s.seoDescription} Including ${s.examples.join(", ").toLowerCase()}.`,
   openGraph: {
     title: `${s.seoTitle} · AuPairly`,
     description: s.seoDescription,

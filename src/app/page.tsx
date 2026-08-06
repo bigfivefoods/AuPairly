@@ -60,9 +60,9 @@ export default async function HomePage() {
                 <span className="block text-teal-200">family, home &amp; pets.</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-teal-100/90">
-                <strong className="font-semibold text-white">{BRAND.domain}</strong> keeps the
-                AuPairly name you know — now for childcare &amp; au pairing, house sitting, and
-                pet sitting. One account. Verified people. Match, message, and place with confidence.
+                <strong className="font-semibold text-white">{BRAND.domain}</strong> — childcare,
+                caregiving, house sitting, and pet sitting under one trusted brand. One account.
+                Verified people. Match, message, and place with confidence.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href="/register?role=PARENT" className="btn-accent text-base !px-8 !py-3.5">
@@ -99,28 +99,38 @@ export default async function HomePage() {
             {BRAND.tagline}
           </p>
           <h2 className="mt-2 font-display text-3xl font-semibold text-stone-900 sm:text-4xl">
-            Three kinds of care. One AuPairly.
+            Four kinds of care. One AuPairly.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-stone-500">
-            Book or offer childcare / au pairing, house sitting, and pet sitting — on the same
+            Book or offer childcare, caregiving, house sitting, and pet sitting — on the same
             trusted marketplace.
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 lg:gap-6">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
           {SERVICE_LIST.map((s) => {
-            const Icon = s.icon === "baby" ? Baby : s.icon === "home" ? Home : PawPrint;
+            const Icon =
+              s.icon === "baby"
+                ? Baby
+                : s.icon === "heart"
+                  ? HeartHandshake
+                  : s.icon === "home"
+                    ? Home
+                    : PawPrint;
             return (
               <Link
                 key={s.id}
                 href={`/${s.slug}`}
-                className={`group flex h-full min-h-0 flex-col rounded-3xl border-2 p-5 sm:p-6 transition hover:shadow-lg ${s.bg}`}
+                className={`group flex h-full min-h-0 flex-col rounded-3xl border-2 p-5 transition hover:shadow-lg sm:p-5 ${s.bg}`}
               >
                 <Icon className={`h-7 w-7 shrink-0 sm:h-8 sm:w-8 ${s.color}`} />
-                <h3 className={`mt-3 font-display text-lg font-semibold sm:mt-4 sm:text-xl ${s.color}`}>
+                <h3 className={`mt-3 font-display text-lg font-semibold sm:text-xl ${s.color}`}>
                   {s.name}
                 </h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-stone-600">
                   {s.description}
+                </p>
+                <p className="mt-2 text-[11px] font-medium leading-snug text-stone-500">
+                  {s.examples.slice(0, 4).join(" · ")}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition-all group-hover:gap-2">
                   Open {s.shortName.toLowerCase()} <ArrowRight className="h-4 w-4" />
@@ -154,7 +164,7 @@ export default async function HomePage() {
             icon={<Users className="h-6 w-6" />}
             step="01"
             title="Create your profile"
-            desc="Sign up as a host or sitter. Pick childcare, house sitting, pet sitting — or all three."
+            desc="Sign up as a host or sitter. Pick childcare, caregiving, house sitting, pet sitting — or mix."
           />
           <Step
             icon={<BadgeCheck className="h-6 w-6" />}
@@ -186,8 +196,8 @@ export default async function HomePage() {
             </div>
             <h3 className="mt-5 font-display text-2xl font-semibold text-stone-900">For hosts</h3>
             <p className="mt-3 text-stone-500 leading-relaxed">
-              Need an au pair, a house sitter while you travel, or someone to care for your pets?
-              Post once, choose your services, and message verified sitters.
+              Need childcare, a caregiver, a house sitter, or pet care? Post once, choose your
+              categories, and message verified sitters.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-stone-600">
               <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-600" /> Host verification badge</li>
@@ -204,8 +214,8 @@ export default async function HomePage() {
             </div>
             <h3 className="mt-5 font-display text-2xl font-semibold text-stone-900">For sitters</h3>
             <p className="mt-3 text-stone-500 leading-relaxed">
-              Offer childcare / au pairing, house sitting, pet sitting — or stack all three to
-              earn more. Get verified and connect with hosts worldwide.
+              Offer childcare, caregiving, house sitting, pet sitting — or stack several on one
+              profile. Get verified and connect with hosts worldwide.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-stone-600">
               <li className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-orange-500" /> Identity & reference checks</li>
