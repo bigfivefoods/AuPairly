@@ -194,7 +194,7 @@ export async function sendMatchDigestEmail(opts: {
     text,
     html: `<!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#faf8f5;padding:24px;color:#1c1917">
   <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:28px;border:1px solid #e7e5e4">
-    <div style="font-size:20px;font-weight:700;margin-bottom:8px">Au<span style="color:#0d9488">Pairly</span></div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:8px;color:#1c1917">Au<span style="color:#0d9488">Pair</span>ly</div>
     <h1 style="font-size:18px;margin:16px 0 8px">Hi ${escape(first)}, your weekly matches</h1>
     <p style="color:#57534e;font-size:14px;line-height:1.5">We picked profiles that fit your languages, location, and schedule.</p>
     <table style="width:100%;margin-top:8px;border-collapse:collapse">${listHtml}</table>

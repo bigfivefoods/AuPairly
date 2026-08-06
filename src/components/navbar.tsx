@@ -3,6 +3,7 @@ import { auth, signOut } from "@/lib/auth";
 import { Avatar } from "@/components/ui";
 import { NotificationBell } from "@/components/notification-bell";
 import { CategoryNavLinks } from "@/components/category-tabs";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { Heart, MessageCircle, Menu } from "lucide-react";
 
 export async function Navbar() {
@@ -17,9 +18,7 @@ export async function Navbar() {
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-lg font-bold text-white shadow-sm transition group-hover:scale-105">
               A
             </span>
-            <span className="font-display text-xl font-semibold tracking-tight text-stone-900">
-              Au<span className="text-teal-600">Pairly</span>
-            </span>
+            <BrandWordmark className="text-xl font-semibold text-stone-900" />
           </Link>
           <CategoryNavLinks className="hidden sm:flex" />
           <nav className="hidden items-center gap-1 lg:flex">
