@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { auth, signOut } from "@/lib/auth";
 import { Avatar } from "@/components/ui";
 import { NotificationBell } from "@/components/notification-bell";
 import { CategoryNavLinks } from "@/components/category-nav-links";
+import { MainNavLinks } from "@/components/nav-links";
 import { BrandWordmark } from "@/components/brand-wordmark";
 import { Heart, MessageCircle, Menu } from "lucide-react";
 
@@ -20,13 +22,10 @@ export async function Navbar() {
             </span>
             <BrandWordmark className="text-xl font-semibold text-stone-900" />
           </Link>
-          <CategoryNavLinks className="hidden sm:flex" />
-          <nav className="hidden items-center gap-1 lg:flex">
-            <NavLink href="/discover">Discover</NavLink>
-            <NavLink href="/browse/aupairs">Sitters</NavLink>
-            <NavLink href="/browse/families">Hosts</NavLink>
-            <NavLink href="/pricing">Pricing</NavLink>
-          </nav>
+          <Suspense fallback={<div className="hidden h-7 w-64 sm:block" />}>
+            <CategoryNavLinks className="hidden sm:flex" />
+          </Suspense>
+          <MainNavLinks className="hidden lg:flex" />
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -95,17 +94,6 @@ export async function Navbar() {
         </div>
       </div>
     </header>
-  );
-}
-
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="rounded-full px-3 py-1.5 text-sm font-medium text-stone-600 transition hover:bg-white hover:text-teal-700"
-    >
-      {children}
-    </Link>
   );
 }
 
