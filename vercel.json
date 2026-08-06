@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "prisma generate && prisma migrate deploy && next build",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "installCommand": "npm install",
+
   "regions": ["iad1"],
   "crons": [
     {
