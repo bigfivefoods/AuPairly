@@ -3,8 +3,23 @@ import type { NextAuthConfig } from "next-auth";
 /**
  * Edge-safe Auth.js config (no Prisma / Node APIs).
  * Used by middleware. Full credentials provider lives in auth.ts.
+ *
+ * AUTH_SECRET must be set on Vercel Production. A deterministic fallback
+ * keeps marketing pages loading if env is misconfigured (sessions will not
+ * be stable across deploys until a real secret is set).
  */
+function resolveAuthSecret(): string {
+  const s =
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    process.env.AUTH_SECRET_FALLBACK;
+  if (s && s.length >= 16) return s;
+  // Build-time / misconfigured prod — site must still render public pages
+  return "aupairly-temporary-secret-set-AUTH_SECRET-on-vercel";
+}
+
 export const authConfig = {
+  secret: resolveAuthSecret(),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",

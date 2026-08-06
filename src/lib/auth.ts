@@ -29,6 +29,11 @@ declare module "@auth/core/jwt" {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  // Ensure secret is always present (inherited from authConfig, explicit for Node runtime)
+  secret:
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    authConfig.secret,
   providers: [
     Credentials({
       name: "credentials",
