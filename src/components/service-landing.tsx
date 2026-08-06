@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
 import { PageHeader } from "@/components/ui";
 import { SERVICE_LIST, SERVICES, type ServiceId } from "@/lib/services";
+import { profileIdsForService } from "@/lib/service-tags";
 
 const ICONS = {
   baby: Baby,
@@ -24,15 +25,36 @@ export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
   const s = SERVICES[serviceId];
   const Icon = ICONS[s.icon];
 
+  const [sitterTagIds, hostTagIds] = await Promise.all([
+    profileIdsForService("AUPAIR", serviceId),
+    profileIdsForService("FAMILY", serviceId),
+  ]);
+
+  const sitterWhere =
+    sitterTagIds.length > 0
+      ? {
+          status: "ACTIVE" as const,
+          OR: [{ id: { in: sitterTagIds } }, { services: { contains: serviceId } }],
+        }
+      : { status: "ACTIVE" as const, services: { contains: serviceId } };
+
+  const hostWhere =
+    hostTagIds.length > 0
+      ? {
+          status: "ACTIVE" as const,
+          OR: [{ id: { in: hostTagIds } }, { services: { contains: serviceId } }],
+        }
+      : { status: "ACTIVE" as const, services: { contains: serviceId } };
+
   const [sitters, hosts] = await Promise.all([
     prisma.auPairProfile.findMany({
-      where: { status: "ACTIVE", services: { contains: serviceId } },
+      where: sitterWhere,
       include: { user: { select: { name: true, image: true } } },
       orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
       take: 6,
     }),
     prisma.familyProfile.findMany({
-      where: { status: "ACTIVE", services: { contains: serviceId } },
+      where: hostWhere,
       include: { user: { select: { name: true, image: true } } },
       orderBy: [{ isVerified: "desc" }, { rating: "desc" }],
       take: 6,

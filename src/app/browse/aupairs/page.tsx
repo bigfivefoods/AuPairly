@@ -6,6 +6,7 @@ import { LocationFilterFields } from "@/components/location-fields";
 import { CategoryTabs } from "@/components/category-tabs";
 import { continentName } from "@/lib/locations";
 import { serviceFromParam, SERVICES } from "@/lib/services";
+import { profileIdsForService } from "@/lib/service-tags";
 import { Users } from "lucide-react";
 import Link from "next/link";
 
@@ -42,6 +43,10 @@ export default async function BrowseAupairsPage({
   const liveInOnly = sp.liveIn === "1";
   const firstAidOnly = sp.firstAid === "1";
 
+  const taggedIds = service
+    ? await profileIdsForService("AUPAIR", service)
+    : null;
+
   const aupairs = await prisma.auPairProfile.findMany({
     where: {
       status: "ACTIVE",
@@ -49,7 +54,16 @@ export default async function BrowseAupairsPage({
       ...(drivingOnly ? { drivingLicense: true } : {}),
       ...(liveInOnly ? { liveIn: true } : {}),
       ...(firstAidOnly ? { firstAid: true } : {}),
-      ...(service ? { services: { contains: service } } : {}),
+      ...(service
+        ? taggedIds && taggedIds.length > 0
+          ? {
+              OR: [
+                { id: { in: taggedIds } },
+                { services: { contains: service } },
+              ],
+            }
+          : { services: { contains: service } }
+        : {}),
       ...(continent ? { continent } : {}),
       ...(country
         ? {

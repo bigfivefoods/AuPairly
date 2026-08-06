@@ -6,6 +6,7 @@ import { LocationFilterFields } from "@/components/location-fields";
 import { CategoryTabs } from "@/components/category-tabs";
 import { continentName } from "@/lib/locations";
 import { serviceFromParam, SERVICES } from "@/lib/services";
+import { profileIdsForService } from "@/lib/service-tags";
 import { Home } from "lucide-react";
 import Link from "next/link";
 
@@ -36,11 +37,24 @@ export default async function BrowseFamiliesPage({
   const service = serviceFromParam(sp.service);
   const verifiedOnly = sp.verified === "1";
 
+  const taggedIds = service
+    ? await profileIdsForService("FAMILY", service)
+    : null;
+
   const families = await prisma.familyProfile.findMany({
     where: {
       status: "ACTIVE",
       ...(verifiedOnly ? { isVerified: true } : {}),
-      ...(service ? { services: { contains: service } } : {}),
+      ...(service
+        ? taggedIds && taggedIds.length > 0
+          ? {
+              OR: [
+                { id: { in: taggedIds } },
+                { services: { contains: service } },
+              ],
+            }
+          : { services: { contains: service } }
+        : {}),
       ...(continent ? { continent } : {}),
       ...(country
         ? {

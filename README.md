@@ -38,7 +38,7 @@ Without Stripe keys, upgrades run in **demo mode** (30 days free) so you can pit
 ## Tech stack
 
 - **Next.js 16** (App Router) + TypeScript + Tailwind CSS v4
-- **Prisma 7** + **Supabase Postgres** (preferred)
+- **Prisma 7** + **Supabase Postgres** only (no SQLite / Neon / other DBs)
 - **Auth.js (next-auth v5)** credentials provider
 - **bcryptjs**, **Zod**, optional **Resend** for email
 

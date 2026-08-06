@@ -137,12 +137,15 @@ model AuPairProfile {
   liveIn          Boolean       @default(true)
   /// Recurring weekly availability: days + start/end times (JSON)
   scheduleJson    String?
-  /// Marketplace services offered: CHILDCARE | HOUSE_SITTING | PET_SITTING (JSON array)
+  /// Marketplace services offered (JSON array of ServiceCategory ids)
+  /// CHILDCARE | CAREGIVING | HOUSE_SITTING | PET_SITTING
   services        String        @default("[\"CHILDCARE\"]")
   /// Pet types comfortable with (JSON) when PET_SITTING
   petTypes        String        @default("[]")
   /// House-sitting experience / notes
   houseSittingNotes String?
+  /// Caregiving / childcare focus chips (JSON)
+  careFocus       String        @default("[]")
 
   city            String?
   /// Province / state / region
@@ -176,6 +179,8 @@ model AuPairProfile {
   @@index([country])
   @@index([region])
   @@index([city])
+  @@index([services])
+  @@index([status, services])
 }
 
 model FamilyProfile {
@@ -219,12 +224,14 @@ model FamilyProfile {
   lifestyleNotes  String?
   /// Recurring au pair schedule: days, hours, weekly/alternating pattern (JSON)
   scheduleJson    String?
-  /// Services needed: CHILDCARE | HOUSE_SITTING | PET_SITTING (JSON array)
+  /// Services needed (JSON array of ServiceCategory ids)
   services        String        @default("[\"CHILDCARE\"]")
   /// Pets to care for (JSON) when PET_SITTING
   petTypes        String        @default("[]")
   /// House-sitting specific notes (alarms, plants, dates)
   houseSittingNotes String?
+  /// Caregiving / childcare focus chips (JSON)
+  careFocus       String        @default("[]")
 
   coverImage      String?
   photos          String        @default("[]")
@@ -245,6 +252,40 @@ model FamilyProfile {
   @@index([country])
   @@index([region])
   @@index([city])
+  @@index([services])
+  @@index([status, services])
+}
+
+/// Catalog of marketplace categories (seeded; stable IDs)
+model ServiceCategory {
+  id          String   @id // CHILDCARE | CAREGIVING | HOUSE_SITTING | PET_SITTING
+  name        String
+  shortName   String
+  slug        String   @unique
+  description String?
+  examples    String   @default("[]") // JSON
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tags        ProfileServiceTag[]
+}
+
+/// Normalized service tags for reliable filtering (synced from profile.services JSON)
+model ProfileServiceTag {
+  id          String   @id @default(cuid())
+  /// AUPAIR (sitter) | FAMILY (host)
+  profileRole String
+  /// AuPairProfile.id or FamilyProfile.id
+  profileId   String
+  serviceId   String
+  service     ServiceCategory @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([profileRole, profileId, serviceId])
+  @@index([serviceId])
+  @@index([profileId])
+  @@index([profileRole, serviceId])
 }
 
 model Verification {

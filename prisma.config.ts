@@ -1,14 +1,9 @@
-// Prisma config — Supabase-friendly
-// Prefer DIRECT_URL for migrations (port 5432). App runtime uses DATABASE_URL (pooler).
+// Prisma config — Supabase Postgres only
+// DIRECT_URL (Session/Direct :5432) for migrations; DATABASE_URL (Transaction :6543) at runtime.
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
-const url =
-  process.env.DIRECT_URL ||
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_URL_NON_POOLING ||
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.POSTGRES_URL;
+const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -16,7 +11,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Must be a non-empty string when migrate runs; scripts/vercel-build.sh validates first
+    // Non-empty placeholder so config loads; scripts/vercel-build.sh validates real URLs first
     url: url ?? "postgresql://missing:missing@localhost:5432/missing",
   },
 });

@@ -1,5 +1,8 @@
 # Supabase setup for AuPairly
 
+**This project’s only database is Supabase Postgres.**  
+Do not use SQLite, Neon, Prisma Postgres, Vercel Postgres, or `POSTGRES_*` env aliases.
+
 ## Your project
 
 | | |
@@ -9,8 +12,7 @@
 | **Database settings** | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/settings/database |
 | **Table editor** | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/editor |
 
-You do **not** need Prisma Postgres. Supabase is regular **PostgreSQL**.
-
+Prisma talks to Supabase over the standard Postgres connection strings below.
 ## 1. Get connection strings (required)
 
 Open **[Database settings](https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/settings/database)** → **Connection string**.
@@ -44,17 +46,33 @@ cp .env.example .env
 
 ```bash
 npm install
-npx prisma migrate deploy    # creates tables on Supabase
-npm run db:seed              # demo accounts
+npx prisma migrate deploy    # creates / updates all tables on Supabase
+npm run db:seed              # demo accounts for all 4 categories
 npm run dev
 ```
+
+### Marketplace categories (DB)
+
+| `ServiceCategory.id` | Landing page | Profile fields |
+|----------------------|--------------|----------------|
+| `CHILDCARE` | `/childcare` | `services` JSON + `ProfileServiceTag` |
+| `CAREGIVING` | `/caregiving` | same |
+| `HOUSE_SITTING` | `/house-sitting` | + `houseSittingNotes` |
+| `PET_SITTING` | `/pet-sitting` | + `petTypes` |
+
+Related tables: `ServiceCategory`, `ProfileServiceTag`, plus `services` / `petTypes` / `careFocus` / `houseSittingNotes` on `AuPairProfile` and `FamilyProfile`.
+
+**Manual SQL (optional):** run `supabase-marketplace-categories.sql` in the Supabase SQL Editor if you cannot run Prisma migrate.
 
 Open [http://localhost:3000](http://localhost:3000).
 
 | Role | Email | Password |
 |------|-------|----------|
-| Parent | `parent@demo.aupairly.me` | `demo1234` |
-| Au pair | `aupair@demo.aupairly.me` | `demo1234` |
+| Host | `parent@demo.aupairly.me` | `demo1234` |
+| Sitter (multi-service) | `aupair@demo.aupairly.me` | `demo1234` |
+| Caregiver | `grace@demo.aupairly.me` | `demo1234` |
+| House sitter | `daniel@demo.aupairly.me` | `demo1234` |
+| Pet sitter | `mia@demo.aupairly.me` | `demo1234` |
 | Admin | `admin@demo.aupairly.me` | `demo1234` |
 
 ## 5. Vercel env vars

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toJsonArray } from "@/lib/utils";
 import { serializeServices, type ServiceId } from "@/lib/services";
+import { syncProfileServiceTags } from "@/lib/service-tags";
 
 export async function GET() {
   const session = await auth();
@@ -69,6 +70,7 @@ export async function PUT(req: Request) {
           : '["CHILDCARE"]',
       petTypes: toJsonArray(body.petTypes ?? []),
       houseSittingNotes: body.houseSittingNotes || null,
+      careFocus: toJsonArray(body.careFocus ?? []),
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -118,8 +120,15 @@ export async function PUT(req: Request) {
       petTypes: body.petTypes ? toJsonArray(body.petTypes) : undefined,
       houseSittingNotes:
         body.houseSittingNotes !== undefined ? body.houseSittingNotes || null : undefined,
+      careFocus: body.careFocus ? toJsonArray(body.careFocus) : undefined,
       status: body.status,
     },
+  });
+
+  await syncProfileServiceTags({
+    profileRole: "FAMILY",
+    profileId: profile.id,
+    servicesJson: profile.services,
   });
 
   if (body.phone !== undefined || body.name) {
