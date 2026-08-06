@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Badge, Button, Card, Input, Label, Textarea } from "@/components/ui";
+import { Badge, Button, Card, Input, Label, Select, Textarea } from "@/components/ui";
 import { PLACEMENT_LABELS, PLACEMENT_STATUSES } from "@/lib/placement-constants";
+import { emptyOffer, type OfferLetter, type TrialFeedback } from "@/lib/offer-template";
 
 const STEPS = ["INTERESTED", "INTERVIEW", "TRIAL", "PLACED", "COMPLETED"] as const;
 
@@ -26,6 +27,14 @@ export function PlacementDetailClient({ id }: { id: string }) {
   const [trialEnd, setTrialEnd] = useState("");
   const [trialNotes, setTrialNotes] = useState("");
   const [contractText, setContractText] = useState("");
+  const [offer, setOffer] = useState<OfferLetter>(emptyOffer());
+  const [trialFb, setTrialFb] = useState<TrialFeedback>({
+    wouldHire: null,
+    rating: null,
+    strengths: "",
+    concerns: "",
+    notes: "",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +68,17 @@ export function PlacementDetailClient({ id }: { id: string }) {
       );
       setTrialNotes(data.placement.trialNotes || "");
       setContractText(data.placement.contractText || "");
+      setOffer({ ...emptyOffer(), ...(data.placement.offer || {}) });
+      if (data.placement.trialFeedback) {
+        setTrialFb({
+          wouldHire: null,
+          rating: null,
+          strengths: "",
+          concerns: "",
+          notes: "",
+          ...data.placement.trialFeedback,
+        });
+      }
     } else setError(data.error || "Failed to load");
     setLoading(false);
   }, [id]);
@@ -249,6 +269,154 @@ export function PlacementDetailClient({ id }: { id: string }) {
         >
           Save trial
         </Button>
+      </Card>
+
+      <Card>
+        <h3 className="font-display text-lg font-semibold">Offer letter</h3>
+        <p className="mt-1 text-sm text-stone-500">
+          Structured terms both parties can accept. Saves into placement for hire kit.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label>Start date</Label>
+            <Input
+              value={offer.startDate || ""}
+              onChange={(e) => setOffer({ ...offer, startDate: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>Pocket money (R / week)</Label>
+            <Input
+              value={offer.pocketMoneyZar || ""}
+              onChange={(e) => setOffer({ ...offer, pocketMoneyZar: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>Weekly hours</Label>
+            <Input
+              value={offer.weeklyHours || ""}
+              onChange={(e) => setOffer({ ...offer, weeklyHours: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>School runs</Label>
+            <Input
+              value={offer.schoolRuns || ""}
+              onChange={(e) => setOffer({ ...offer, schoolRuns: e.target.value })}
+            />
+          </div>
+        </div>
+        <Label className="mt-3">Duties</Label>
+        <Textarea
+          value={offer.duties || ""}
+          onChange={(e) => setOffer({ ...offer, duties: e.target.value })}
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button disabled={busy} onClick={() => patch({ offer })}>
+            Save offer
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => patch({ acceptOffer: true })}
+          >
+            I accept this offer
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-stone-500">
+          Parent accepted:{" "}
+          {p.offerAcceptedParentAt
+            ? new Date(p.offerAcceptedParentAt).toLocaleDateString()
+            : "—"}{" "}
+          · Au pair accepted:{" "}
+          {p.offerAcceptedAupairAt
+            ? new Date(p.offerAcceptedAupairAt).toLocaleDateString()
+            : "—"}
+        </p>
+      </Card>
+
+      <Card>
+        <h3 className="font-display text-lg font-semibold">Trial feedback</h3>
+        <Label className="mt-2">Would you hire / continue?</Label>
+        <Select
+          value={trialFb.wouldHire === true ? "yes" : trialFb.wouldHire === false ? "no" : ""}
+          onChange={(e) =>
+            setTrialFb({
+              ...trialFb,
+              wouldHire: e.target.value === "yes" ? true : e.target.value === "no" ? false : null,
+            })
+          }
+        >
+          <option value="">Select…</option>
+          <option value="yes">Yes</option>
+          <option value="no">No / not yet</option>
+        </Select>
+        <Label className="mt-2">Rating (1–5)</Label>
+        <Input
+          type="number"
+          min={1}
+          max={5}
+          value={trialFb.rating ?? ""}
+          onChange={(e) =>
+            setTrialFb({
+              ...trialFb,
+              rating: e.target.value ? Number(e.target.value) : null,
+            })
+          }
+        />
+        <Label className="mt-2">Notes</Label>
+        <Textarea
+          value={trialFb.notes || ""}
+          onChange={(e) => setTrialFb({ ...trialFb, notes: e.target.value })}
+        />
+        <Button
+          className="mt-3"
+          disabled={busy}
+          onClick={() => patch({ trialFeedback: trialFb })}
+        >
+          Save trial feedback
+        </Button>
+      </Card>
+
+      <Card>
+        <h3 className="font-display text-lg font-semibold">Post-placement check-ins</h3>
+        <p className="mt-1 text-sm text-stone-500">Day 7 and day 30 wellbeing check-ins.</p>
+        <div className="mt-4 space-y-3">
+          {[7, 30].map((day) => {
+            const existing = (p.checkIns || []).find(
+              (c: { dayOffset: number }) => c.dayOffset === day
+            );
+            return (
+              <div key={day} className="rounded-xl border border-stone-100 p-3">
+                <p className="font-semibold text-sm">Day {day}</p>
+                {existing?.respondedAt ? (
+                  <p className="text-xs text-stone-500">
+                    Logged {new Date(existing.respondedAt).toLocaleDateString()}
+                    {existing.rating != null ? ` · ${existing.rating}/5` : ""}
+                    {existing.response ? ` — ${existing.response}` : ""}
+                  </p>
+                ) : (
+                  <Button
+                    className="mt-2 !text-xs"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() =>
+                      patch({
+                        checkIn: {
+                          dayOffset: day,
+                          rating: 5,
+                          response: "All good so far",
+                        },
+                      })
+                    }
+                  >
+                    Mark day {day} OK
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </Card>
 
       <Card>

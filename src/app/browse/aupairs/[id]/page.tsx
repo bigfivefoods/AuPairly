@@ -18,9 +18,11 @@ import { Avatar, Badge, Card, Stars, VerifiedBadge } from "@/components/ui";
 import { ContactButton } from "@/components/contact-button";
 import { InterestButton } from "@/components/interest-button";
 import { StartPlacementButton } from "@/components/start-placement-button";
+import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
+import { responseTimeLabel } from "@/lib/completeness";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +37,18 @@ export default async function AuPairDetailPage({
 
   const profile = await prisma.auPairProfile.findUnique({
     where: { id },
-    include: { user: { select: { id: true, name: true, image: true } } },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          avgResponseMinutes: true,
+          safetyScore: true,
+          videoIntroUrl: true,
+        },
+      },
+    },
   });
 
   if (!profile || (profile.status !== "ACTIVE" && profile.userId !== session?.user?.id)) {
@@ -97,6 +110,29 @@ export default async function AuPairDetailPage({
       conversation.messages.length > 0
   );
 
+  // Boost analytics: count views while featured
+  if (
+    !isOwn &&
+    profile.boostedUntil &&
+    profile.boostedUntil.getTime() > Date.now()
+  ) {
+    void prisma.auPairProfile
+      .update({
+        where: { id: profile.id },
+        data: { boostViews: { increment: 1 } },
+      })
+      .catch(() => {});
+    void prisma.boostEvent
+      .updateMany({
+        where: { userId: profile.userId, endsAt: { gt: new Date() } },
+        data: { views: { increment: 1 } },
+      })
+      .catch(() => {});
+  }
+
+  const replyLabel = responseTimeLabel(profile.user.avgResponseMinutes);
+  const certs = parseJsonArray(profile.certificates);
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Link
@@ -127,6 +163,20 @@ export default async function AuPairDetailPage({
                       {profile.isVerified && <VerifiedBadge />}
                     </div>
                     <p className="mt-1 text-stone-500">{profile.headline}</p>
+                    {replyLabel && (
+                      <p className="mt-1 text-xs font-medium text-teal-700">{replyLabel}</p>
+                    )}
+                    {profile.workRights && (
+                      <p className="mt-1 text-xs text-stone-500">
+                        Work rights: {profile.workRights}
+                        {profile.willingRelocate ? " · Open to relocate" : ""}
+                      </p>
+                    )}
+                    {certs.length > 0 && (
+                      <p className="mt-1 text-xs text-stone-500">
+                        Certs: {certs.join(" · ")}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {profile.rating > 0 && (
@@ -239,6 +289,7 @@ export default async function AuPairDetailPage({
                     />
                   )}
                   <ContactButton recipientId={profile.userId} recipientName={profile.user.name} />
+                  <ShortlistButton targetUserId={profile.userId} />
                   <StartPlacementButton otherUserId={profile.userId} />
                 </>
               ) : (

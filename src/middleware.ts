@@ -23,5 +23,10 @@ export const config = {
     "/agency/:path*",
     "/coach/:path*",
     "/matches/:path*",
+    "/shortlist/:path*",
+    "/availability/:path*",
+    "/saved-searches/:path*",
+    "/applications/:path*",
+    "/household/:path*",
   ],
 };

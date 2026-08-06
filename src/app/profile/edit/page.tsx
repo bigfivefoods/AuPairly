@@ -49,6 +49,10 @@ export default async function EditProfilePage() {
       liveIn: profile?.liveIn ?? true,
       city: profile?.city ?? "",
       country: profile?.country ?? "",
+      workRights: profile?.workRights ?? "",
+      willingRelocate: profile?.willingRelocate ?? false,
+      relocateCities: parseJsonArray(profile?.relocateCities),
+      certificates: parseJsonArray(profile?.certificates),
       status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
     };
 
@@ -97,6 +101,9 @@ export default async function EditProfilePage() {
     petDetails: profile?.petDetails ?? "",
     ownRoom: profile?.ownRoom ?? true,
     carProvided: profile?.carProvided ?? false,
+    schoolArea: profile?.schoolArea ?? "",
+    drivingRequired: profile?.drivingRequired ?? false,
+    lifestyleNotes: profile?.lifestyleNotes ?? "",
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
   };
 

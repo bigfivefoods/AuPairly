@@ -34,6 +34,13 @@ export async function POST() {
         data: { isFeatured: true, boostedUntil: until },
       });
     }
+    await prisma.boostEvent.create({
+      data: {
+        userId: session.user.id,
+        startedAt: new Date(),
+        endsAt: until,
+      },
+    });
     return NextResponse.json({
       demo: true,
       boostedUntil: until.toISOString(),
@@ -92,6 +99,13 @@ export async function PATCH(req: Request) {
         data: { isFeatured: true, boostedUntil: until },
       });
     }
+    await prisma.boostEvent.create({
+      data: {
+        userId: session.user.id,
+        startedAt: new Date(),
+        endsAt: until,
+      },
+    });
     return NextResponse.json({ ok: true, boostedUntil: until.toISOString() });
   } catch (err) {
     const { error, code, status } = paystackErrorResponse(err);

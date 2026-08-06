@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import { Navbar, Footer } from "@/components/navbar";
 import { Providers } from "@/components/providers";
+import { MobileNav } from "@/components/mobile-nav";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -45,8 +47,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <Providers>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 pb-16 md:pb-0">{children}</main>
           <Footer />
+          <MobileNav />
+          <PwaInstallPrompt />
         </Providers>
       </body>
     </html>

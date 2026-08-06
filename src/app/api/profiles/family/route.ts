@@ -50,6 +50,9 @@ export async function PUT(req: Request) {
       petDetails: body.petDetails,
       ownRoom: body.ownRoom !== false,
       carProvided: Boolean(body.carProvided),
+      schoolArea: body.schoolArea || null,
+      drivingRequired: Boolean(body.drivingRequired),
+      lifestyleNotes: body.lifestyleNotes || null,
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -75,6 +78,11 @@ export async function PUT(req: Request) {
       petDetails: body.petDetails,
       ownRoom: body.ownRoom !== undefined ? Boolean(body.ownRoom) : undefined,
       carProvided: body.carProvided !== undefined ? Boolean(body.carProvided) : undefined,
+      schoolArea: body.schoolArea !== undefined ? body.schoolArea || null : undefined,
+      drivingRequired:
+        body.drivingRequired !== undefined ? Boolean(body.drivingRequired) : undefined,
+      lifestyleNotes:
+        body.lifestyleNotes !== undefined ? body.lifestyleNotes || null : undefined,
       status: body.status,
     },
   });

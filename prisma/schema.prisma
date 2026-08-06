@@ -82,6 +82,14 @@ model User {
   agencyId            String?
   agency              Agency?  @relation(fields: [agencyId], references: [id])
   locale              String   @default("en")
+  /// Median-ish response time in minutes (updated when replying to messages)
+  avgResponseMinutes  Int?
+  lastActiveAt        DateTime?
+  /// Partner / co-parent seat: linked secondary account
+  householdOwnerId    String?
+  householdOwner      User?    @relation("Household", fields: [householdOwnerId], references: [id])
+  householdMembers    User[]   @relation("Household")
+  partnerInviteToken  String?  @unique
 
   placementsAsParent  Placement[] @relation("PlacementParent")
   placementsAsAupair  Placement[] @relation("PlacementAupair")
@@ -90,6 +98,14 @@ model User {
   documents           SecureDocument[]
   supportTickets      SupportTicket[]
   stories             Story[]
+  savedSearches       SavedSearch[]
+  availabilitySlots   AvailabilitySlot[]
+  shortlistItems      ShortlistItem[] @relation("ShortlistOwner")
+  shortlistedBy       ShortlistItem[] @relation("ShortlistTarget")
+  applicationsSent    ApplicationPacket[] @relation("AppsSent")
+  applicationsReceived ApplicationPacket[] @relation("AppsReceived")
+  interviewProposals  InterviewProposal[] @relation("InterviewFrom")
+  boostEvents         BoostEvent[]
 }
 
 model AuPairProfile {
@@ -123,6 +139,11 @@ model AuPairProfile {
   country         String?
   coverImage      String?
   photos          String        @default("[]") // JSON
+  /// Work / relocation readiness
+  workRights      String?       // CITIZEN | PERMIT | SEEKING | UNKNOWN
+  willingRelocate Boolean       @default(false)
+  relocateCities  String        @default("[]") // JSON
+  certificates    String        @default("[]") // JSON labels e.g. First aid cert
 
   status          ListingStatus @default(DRAFT)
   isVerified      Boolean       @default(false)
@@ -131,6 +152,9 @@ model AuPairProfile {
   rating          Float         @default(0)
   reviewCount     Int           @default(0)
   responseRate    Int           @default(100)
+  /// Profile views while boosted (analytics)
+  boostViews      Int           @default(0)
+  boostLikes      Int           @default(0)
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -166,6 +190,11 @@ model FamilyProfile {
   petDetails      String?
   ownRoom         Boolean       @default(true)
   carProvided     Boolean       @default(false)
+  /// School-run / location filters
+  schoolArea      String?
+  drivingRequired Boolean       @default(false)
+  /// Lifestyle / home preview captions (photos JSON already holds URLs)
+  lifestyleNotes  String?
 
   coverImage      String?
   photos          String        @default("[]")
@@ -176,6 +205,8 @@ model FamilyProfile {
   boostedUntil    DateTime?
   rating          Float         @default(0)
   reviewCount     Int           @default(0)
+  boostViews      Int           @default(0)
+  boostLikes      Int           @default(0)
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -387,8 +418,15 @@ model Placement {
   successFeePaidAt  DateTime?
   successFeeRef     String?
   contractText      String?
+  /// Structured offer letter (JSON) accepted by both parties
+  offerJson         String?
+  offerAcceptedParentAt  DateTime?
+  offerAcceptedAupairAt  DateTime?
+  trialFeedback     String?  // JSON after trial
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  checkIns     PlacementCheckIn[]
 
   @@unique([parentUserId, aupairUserId])
   @@index([parentUserId, status])
@@ -464,8 +502,122 @@ model SupportTicket {
   body      String
   status    String   @default("OPEN") // OPEN | REPLIED | CLOSED
   reply     String?
+  /// Premium SLA target hours
+  slaHours  Int      @default(48)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId, status])
+}
+
+/// Saved search + email/push-style alerts
+model SavedSearch {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  /// JSON filters: city, country, verified, driving, liveIn, q, role target
+  filters       String    @default("{}")
+  alertEnabled  Boolean   @default(true)
+  lastAlertedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+/// Availability / need-cover calendar blocks
+model AvailabilitySlot {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// FREE | BUSY | NEED_COVER
+  kind      String   @default("FREE")
+  startDate DateTime
+  endDate   DateTime
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, startDate])
+}
+
+/// Family shortlist for comparing au pairs (or vice versa)
+model ShortlistItem {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("ShortlistOwner", fields: [userId], references: [id], onDelete: Cascade)
+  targetUserId    String
+  targetUser      User     @relation("ShortlistTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetProfileId String?
+  targetType      String   // AUPAIR | FAMILY
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, targetUserId])
+  @@index([userId])
+}
+
+/// One-tap application packet (video + refs + docs + intro)
+model ApplicationPacket {
+  id           String   @id @default(cuid())
+  fromUserId   String
+  fromUser     User     @relation("AppsSent", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId     String
+  toUser       User     @relation("AppsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  message      String?
+  /// Snapshot JSON: videoUrl, docs[], refs[], headline, safetyScore
+  packetJson   String   @default("{}")
+  status       String   @default("SENT") // SENT | VIEWED | ACCEPTED | DECLINED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([toUserId, status])
+  @@index([fromUserId])
+}
+
+/// Propose interview times in chat
+model InterviewProposal {
+  id             String    @id @default(cuid())
+  conversationId String
+  fromUserId     String
+  fromUser       User      @relation("InterviewFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  proposedAt     DateTime
+  durationMin    Int       @default(30)
+  note           String?
+  meetingUrl     String?
+  status         String    @default("PENDING") // PENDING | ACCEPTED | DECLINED
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([conversationId])
+  @@index([fromUserId])
+}
+
+/// Day 7 / day 30 placement check-ins
+model PlacementCheckIn {
+  id          String    @id @default(cuid())
+  placementId String
+  placement   Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  dayOffset   Int       // 7 | 30
+  sentAt      DateTime  @default(now())
+  response    String?
+  rating      Int?
+  respondedAt DateTime?
+
+  @@unique([placementId, dayOffset])
+  @@index([placementId])
+}
+
+/// Boost purchase analytics window
+model BoostEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt DateTime @default(now())
+  endsAt    DateTime
+  views     Int      @default(0)
+  likes     Int      @default(0)
+  messages  Int      @default(0)
+
+  @@index([userId, endsAt])
 }

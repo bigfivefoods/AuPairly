@@ -12,6 +12,8 @@ import {
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Avatar, Badge, Card, PageHeader, VerifiedBadge } from "@/components/ui";
+import { CompletenessCoach } from "@/components/completeness-coach";
+import { responseTimeLabel } from "@/lib/completeness";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -19,20 +21,34 @@ export const metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const [aupair, family, verifications, conversations] = await Promise.all([
-    user.role === "AUPAIR"
-      ? prisma.auPairProfile.findUnique({ where: { userId: user.id } })
-      : null,
-    user.role === "PARENT"
-      ? prisma.familyProfile.findUnique({ where: { userId: user.id } })
-      : null,
-    prisma.verification.findMany({
-      where: { userId: user.id, status: "VERIFIED" },
-    }),
-    prisma.conversation.count({
-      where: { OR: [{ userAId: user.id }, { userBId: user.id }] },
-    }),
-  ]);
+  const [aupair, family, verifications, conversations, refCount, docCount, meUser] =
+    await Promise.all([
+      user.role === "AUPAIR"
+        ? prisma.auPairProfile.findUnique({ where: { userId: user.id } })
+        : null,
+      user.role === "PARENT"
+        ? prisma.familyProfile.findUnique({ where: { userId: user.id } })
+        : null,
+      prisma.verification.findMany({
+        where: { userId: user.id, status: "VERIFIED" },
+      }),
+      prisma.conversation.count({
+        where: { OR: [{ userAId: user.id }, { userBId: user.id }] },
+      }),
+      prisma.referenceRequest.count({
+        where: { subjectId: user.id, status: "SUBMITTED" },
+      }),
+      prisma.secureDocument.count({ where: { userId: user.id } }),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          videoIntroUrl: true,
+          safetyScore: true,
+          avgResponseMinutes: true,
+          image: true,
+        },
+      }),
+    ]);
 
   const profile = aupair || family;
   const isVerified = profile?.isVerified ?? false;
@@ -40,6 +56,7 @@ export default async function DashboardPage() {
   const verifiedTypes = new Set(verifications.map((v) => v.type));
   const verifySteps = ["ID", "SELFIE", "REFERENCES", "BACKGROUND"] as const;
   const verifyProgress = verifySteps.filter((t) => verifiedTypes.has(t)).length;
+  const responseLabel = responseTimeLabel(meUser?.avgResponseMinutes);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -80,6 +97,7 @@ export default async function DashboardPage() {
                 ? "Au pair account"
                 : "Parent / family account"}{" "}
             · {user.email}
+            {responseLabel ? ` · ${responseLabel}` : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -132,6 +150,37 @@ export default async function DashboardPage() {
         />
       </div>
 
+      <div className="mb-8">
+        <CompletenessCoach
+          input={{
+            role: user.role,
+            name: user.name,
+            image: meUser?.image || user.image,
+            videoIntroUrl: meUser?.videoIntroUrl,
+            headline: profile?.headline,
+            bio: profile?.bio,
+            city: profile?.city,
+            country: profile?.country,
+            languages: profile?.languages,
+            status: profile?.status,
+            isVerified,
+            experienceYears: aupair?.experienceYears,
+            pocketMoneyMin: aupair?.pocketMoneyMin,
+            availableFrom: aupair?.availableFrom,
+            workRights: aupair?.workRights,
+            childrenCount: family?.childrenCount,
+            childrenAges: family?.childrenAges,
+            pocketMoney: family?.pocketMoney,
+            startDate: family?.startDate,
+            schoolArea: family?.schoolArea,
+            lifestyleNotes: family?.lifestyleNotes,
+            referenceCount: refCount,
+            documentCount: docCount,
+            safetyScore: meUser?.safetyScore,
+          }}
+        />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <h3 className="font-display text-lg font-semibold">Quick actions</h3>
@@ -141,6 +190,30 @@ export default async function DashboardPage() {
               icon={<Search className="h-5 w-5" />}
               title="Discover"
               desc="Swipe to match with families or au pairs"
+            />
+            <Action
+              href="/shortlist"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Shortlist"
+              desc="Compare saved candidates side-by-side"
+            />
+            <Action
+              href="/availability"
+              icon={<Search className="h-5 w-5" />}
+              title="Availability"
+              desc="Free / busy / need cover calendar"
+            />
+            <Action
+              href="/saved-searches"
+              icon={<Search className="h-5 w-5" />}
+              title="Saved searches"
+              desc="Alerts when new matches appear"
+            />
+            <Action
+              href="/applications"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Applications"
+              desc="Full packets with docs & references"
             />
             <Action
               href="/matches"
@@ -179,6 +252,12 @@ export default async function DashboardPage() {
               desc="Interview → trial → placed pipeline"
             />
             <Action
+              href="/household"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Partner seat"
+              desc="Co-parent access (Premium)"
+            />
+            <Action
               href="/trust"
               icon={<Shield className="h-5 w-5" />}
               title="Trust centre"
@@ -194,7 +273,7 @@ export default async function DashboardPage() {
               href="/boost"
               icon={<Sparkles className="h-5 w-5" />}
               title="Boost listing"
-              desc="R49 · featured for 7 days"
+              desc="R49 · featured for 7 days + analytics"
             />
             <Action
               href="/documents"

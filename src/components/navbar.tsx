@@ -25,9 +25,10 @@ export async function Navbar() {
             <NavLink href="/map">Map</NavLink>
             <NavLink href="/browse/aupairs">Find au pairs</NavLink>
             <NavLink href="/browse/families">Find families</NavLink>
+            <NavLink href="/shortlist">Shortlist</NavLink>
             <NavLink href="/placements">Placements</NavLink>
             <NavLink href="/pricing">Pricing</NavLink>
-            <NavLink href="/guides">How it works</NavLink>
+            <NavLink href="/cities/cape-town">Cities</NavLink>
           </nav>
         </div>
 

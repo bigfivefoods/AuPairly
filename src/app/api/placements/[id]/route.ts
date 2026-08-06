@@ -35,10 +35,18 @@ export async function GET(
     select: { id: true, name: true, image: true, role: true, email: true },
   });
 
+  const checkIns = await prisma.placementCheckIn.findMany({
+    where: { placementId: id },
+    orderBy: { dayOffset: "asc" },
+  });
+
   return NextResponse.json({
     placement: {
       ...p,
       checklist: safeJson(p.checklist),
+      offer: p.offerJson ? safeJson(p.offerJson) : null,
+      trialFeedback: p.trialFeedback ? safeJson(p.trialFeedback) : null,
+      checkIns,
       parent: users.find((u) => u.id === p.parentUserId),
       aupair: users.find((u) => u.id === p.aupairUserId),
     },
@@ -84,10 +92,57 @@ export async function PATCH(
   }
   if (body.contractText != null) data.contractText = String(body.contractText);
 
+  if (body.offer && typeof body.offer === "object") {
+    data.offerJson = JSON.stringify(body.offer);
+  }
+  if (body.acceptOffer === true) {
+    if (session.user.id === existing.parentUserId) {
+      data.offerAcceptedParentAt = new Date();
+    } else {
+      data.offerAcceptedAupairAt = new Date();
+    }
+  }
+  if (body.trialFeedback && typeof body.trialFeedback === "object") {
+    data.trialFeedback = JSON.stringify(body.trialFeedback);
+  }
+  if (body.checkIn && typeof body.checkIn === "object") {
+    const dayOffset = Number(body.checkIn.dayOffset);
+    if (dayOffset === 7 || dayOffset === 30) {
+      await prisma.placementCheckIn.upsert({
+        where: {
+          placementId_dayOffset: { placementId: id, dayOffset },
+        },
+        create: {
+          placementId: id,
+          dayOffset,
+          response: body.checkIn.response || null,
+          rating: body.checkIn.rating != null ? Number(body.checkIn.rating) : null,
+          respondedAt: new Date(),
+        },
+        update: {
+          response: body.checkIn.response || null,
+          rating: body.checkIn.rating != null ? Number(body.checkIn.rating) : null,
+          respondedAt: new Date(),
+        },
+      });
+    }
+  }
+
   const placement = await prisma.placement.update({
     where: { id },
     data,
   });
+
+  // Schedule check-in placeholders when placed
+  if (body.status === "PLACED") {
+    for (const dayOffset of [7, 30]) {
+      await prisma.placementCheckIn.upsert({
+        where: { placementId_dayOffset: { placementId: id, dayOffset } },
+        create: { placementId: id, dayOffset },
+        update: {},
+      });
+    }
+  }
 
   const otherId =
     session.user.id === placement.parentUserId
@@ -100,6 +155,24 @@ export async function PATCH(
       type: "SYSTEM",
       title: "Placement updated",
       body: `Status is now ${body.status}.`,
+      href: `/placements/${id}`,
+    });
+  }
+  if (body.offer) {
+    await createNotification({
+      userId: otherId,
+      type: "SYSTEM",
+      title: "Offer letter updated",
+      body: "Review the placement offer and accept if you agree.",
+      href: `/placements/${id}`,
+    });
+  }
+  if (body.acceptOffer) {
+    await createNotification({
+      userId: otherId,
+      type: "SYSTEM",
+      title: "Offer accepted",
+      body: `${session.user.name} accepted the offer letter.`,
       href: `/placements/${id}`,
     });
   }

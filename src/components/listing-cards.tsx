@@ -67,7 +67,7 @@ export function AuPairCard(p: AuPairCardProps) {
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
           <span className="text-stone-500">{p.experienceYears}+ yrs experience</span>
           {p.pocketMoneyMin ? (
-            <span className="font-semibold text-teal-700">from ${p.pocketMoneyMin}/wk</span>
+            <span className="font-semibold text-teal-700">from R{p.pocketMoneyMin}/wk</span>
           ) : (
             <span className="text-stone-400">Open to discuss</span>
           )}
@@ -151,7 +151,7 @@ export function FamilyCard(p: FamilyCardProps) {
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
           <span className="text-stone-500">Seeking au pair</span>
           {p.pocketMoney ? (
-            <span className="font-semibold text-teal-700">${p.pocketMoney}/wk</span>
+            <span className="font-semibold text-teal-700">R{p.pocketMoney}/wk</span>
           ) : (
             <span className="text-stone-400">Competitive pay</span>
           )}

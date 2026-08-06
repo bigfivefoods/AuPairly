@@ -104,8 +104,10 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Priority in search & Discover",
       "4 profile boosts / month",
       "Early access to new listings",
-      "Priority support",
-      "Placement checklist tools",
+      "Priority support (faster SLA)",
+      "Placement offer & hire kit tools",
+      "Partner / co-parent seat",
+      "Shortlist comparison",
     ],
     limits: {
       messagesPerDay: -1,

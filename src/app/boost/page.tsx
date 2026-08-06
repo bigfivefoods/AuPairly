@@ -10,6 +10,15 @@ function BoostInner() {
   const sp = useSearchParams();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [analytics, setAnalytics] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/boost/analytics")
+      .then((r) => r.json())
+      .then((d) => setAnalytics(d))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const ref = sp.get("reference");
@@ -56,6 +65,44 @@ function BoostInner() {
         </Button>
         {msg && <p className="mt-4 text-sm text-emerald-700">{msg}</p>}
       </Card>
+
+      {analytics && (
+        <Card className="mt-6">
+          <h3 className="font-display text-lg font-semibold">Boost analytics</h3>
+          <p className="mt-2 text-sm text-stone-500">
+            Lifetime while boosted:{" "}
+            <strong>{analytics.totals?.boostViews ?? 0}</strong> profile views ·{" "}
+            <strong>{analytics.totals?.boostLikes ?? 0}</strong> likes tracked
+          </p>
+          {analytics.active && (
+            <p className="mt-2 text-xs text-teal-800">
+              Active boost until {new Date(analytics.active.endsAt).toLocaleDateString()} —{" "}
+              {analytics.active.views} views · {analytics.active.likes} likes ·{" "}
+              {analytics.active.messages} messages
+            </p>
+          )}
+          {Array.isArray(analytics.events) && analytics.events.length > 0 && (
+            <ul className="mt-4 space-y-2 text-xs text-stone-600">
+              {analytics.events.slice(0, 5).map(
+                (e: {
+                  id: string;
+                  startedAt: string;
+                  endsAt: string;
+                  views: number;
+                  likes: number;
+                  messages: number;
+                }) => (
+                  <li key={e.id} className="rounded-lg bg-stone-50 px-3 py-2">
+                    {new Date(e.startedAt).toLocaleDateString()} →{" "}
+                    {new Date(e.endsAt).toLocaleDateString()}: {e.views} views, {e.likes} likes,{" "}
+                    {e.messages} msgs
+                  </li>
+                )
+              )}
+            </ul>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

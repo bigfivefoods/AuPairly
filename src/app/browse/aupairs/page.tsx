@@ -7,7 +7,14 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Browse au pairs" };
 
-type SearchParams = Promise<{ q?: string; country?: string; verified?: string }>;
+type SearchParams = Promise<{
+  q?: string;
+  country?: string;
+  verified?: string;
+  driving?: string;
+  liveIn?: string;
+  firstAid?: string;
+}>;
 
 export default async function BrowseAupairsPage({
   searchParams,
@@ -18,11 +25,17 @@ export default async function BrowseAupairsPage({
   const q = sp.q?.trim() || "";
   const country = sp.country?.trim() || "";
   const verifiedOnly = sp.verified === "1";
+  const drivingOnly = sp.driving === "1";
+  const liveInOnly = sp.liveIn === "1";
+  const firstAidOnly = sp.firstAid === "1";
 
   const aupairs = await prisma.auPairProfile.findMany({
     where: {
       status: "ACTIVE",
       ...(verifiedOnly ? { isVerified: true } : {}),
+      ...(drivingOnly ? { drivingLicense: true } : {}),
+      ...(liveInOnly ? { liveIn: true } : {}),
+      ...(firstAidOnly ? { firstAid: true } : {}),
       ...(country
         ? {
             OR: [
@@ -45,7 +58,16 @@ export default async function BrowseAupairsPage({
           }
         : {}),
     },
-    include: { user: { select: { name: true, image: true } } },
+    include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+          avgResponseMinutes: true,
+          safetyScore: true,
+        },
+      },
+    },
     orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
   });
 
@@ -84,12 +106,51 @@ export default async function BrowseAupairsPage({
             defaultChecked={verifiedOnly}
             className="h-4 w-4 rounded border-stone-300 text-teal-600"
           />
-          Verified only
+          Verified
+        </label>
+        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            name="driving"
+            value="1"
+            defaultChecked={drivingOnly}
+            className="h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          Drives
+        </label>
+        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            name="firstAid"
+            value="1"
+            defaultChecked={firstAidOnly}
+            className="h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          First aid
+        </label>
+        <label className="flex items-center gap-2 pb-2 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            name="liveIn"
+            value="1"
+            defaultChecked={liveInOnly}
+            className="h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          Live-in
         </label>
         <button type="submit" className="btn-primary shrink-0">
           Search
         </button>
       </form>
+
+      <div className="mb-6 flex flex-wrap items-center gap-3 text-sm">
+        <Link href="/saved-searches" className="font-semibold text-teal-700 hover:underline">
+          Save this search + alerts
+        </Link>
+        <Link href="/cities/cape-town" className="text-stone-500 hover:text-teal-700">
+          City guides
+        </Link>
+      </div>
 
       {aupairs.length === 0 ? (
         <EmptyState

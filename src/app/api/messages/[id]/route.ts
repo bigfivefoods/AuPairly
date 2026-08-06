@@ -113,6 +113,44 @@ export async function POST(
     conversation.userAId === session.user.id
       ? conversation.userBId
       : conversation.userAId;
+
+  // Response-time: minutes since the other person's last message
+  const lastFromOther = await prisma.message.findFirst({
+    where: { conversationId: id, senderId: otherId },
+    orderBy: { createdAt: "desc" },
+  });
+  if (lastFromOther) {
+    const mins = Math.max(
+      1,
+      Math.round((Date.now() - lastFromOther.createdAt.getTime()) / 60000)
+    );
+    const meUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { avgResponseMinutes: true },
+    });
+    const prev = meUser?.avgResponseMinutes;
+    const next = prev == null ? mins : Math.round(prev * 0.7 + mins * 0.3);
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { avgResponseMinutes: next, lastActiveAt: new Date() },
+    });
+  } else {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { lastActiveAt: new Date() },
+    });
+  }
+
+  // Boost analytics: count messages while either party is boosted
+  const now = new Date();
+  await prisma.boostEvent.updateMany({
+    where: {
+      userId: { in: [session.user.id, otherId] },
+      endsAt: { gt: now },
+    },
+    data: { messages: { increment: 1 } },
+  });
+
   const other = await prisma.user.findUnique({
     where: { id: otherId },
     select: { id: true, name: true, email: true },

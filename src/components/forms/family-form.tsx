@@ -46,6 +46,9 @@ type Initial = {
   petDetails: string;
   ownRoom: boolean;
   carProvided: boolean;
+  schoolArea: string;
+  drivingRequired: boolean;
+  lifestyleNotes: string;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -269,8 +272,16 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
             <Input type="number" value={form.weeklyHours} onChange={(e) => set("weeklyHours", e.target.value)} />
           </div>
           <div>
-            <Label>Pocket money ($/wk)</Label>
+            <Label>Pocket money (R/wk)</Label>
             <Input type="number" value={form.pocketMoney} onChange={(e) => set("pocketMoney", e.target.value)} />
+          </div>
+          <div>
+            <Label>School / area for school runs</Label>
+            <Input
+              value={form.schoolArea}
+              onChange={(e) => set("schoolArea", e.target.value)}
+              placeholder="e.g. Rondebosch / near Bishops"
+            />
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -279,6 +290,7 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
               ["liveIn", "Live-in arrangement"],
               ["ownRoom", "Private room for au pair"],
               ["carProvided", "Car provided"],
+              ["drivingRequired", "Driving required for role"],
               ["hasPets", "We have pets"],
             ] as const
           ).map(([key, label]) => (
@@ -299,6 +311,14 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
             <Input value={form.petDetails} onChange={(e) => set("petDetails", e.target.value)} placeholder="Friendly golden retriever" />
           </div>
         )}
+        <div>
+          <Label>Lifestyle / day-in-the-life notes</Label>
+          <Textarea
+            value={form.lifestyleNotes}
+            onChange={(e) => set("lifestyleNotes", e.target.value)}
+            placeholder="Morning routines, neighbourhood feel, what weekends look like…"
+          />
+        </div>
       </Card>
 
       {message && (

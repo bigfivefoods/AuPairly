@@ -16,6 +16,8 @@ import { Avatar, Badge, Card, Stars, VerifiedBadge } from "@/components/ui";
 import { ContactButton } from "@/components/contact-button";
 import { InterestButton } from "@/components/interest-button";
 import { StartPlacementButton } from "@/components/start-placement-button";
+import { ApplyPacketButton } from "@/components/apply-packet-button";
+import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
@@ -287,6 +289,10 @@ export default async function FamilyDetailPage({
                     />
                   )}
                   <ContactButton recipientId={profile.userId} recipientName={displayName} />
+                  <ShortlistButton targetUserId={profile.userId} />
+                  {session.user.role === "AUPAIR" && (
+                    <ApplyPacketButton toUserId={profile.userId} />
+                  )}
                   <StartPlacementButton otherUserId={profile.userId} />
                 </>
               ) : (

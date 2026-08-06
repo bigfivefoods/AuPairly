@@ -49,6 +49,10 @@ export async function PUT(req: Request) {
       liveIn: body.liveIn !== false,
       city: body.city,
       country: body.country,
+      workRights: body.workRights || null,
+      willingRelocate: Boolean(body.willingRelocate),
+      relocateCities: toJsonArray(body.relocateCities ?? []),
+      certificates: toJsonArray(body.certificates ?? []),
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -73,6 +77,11 @@ export async function PUT(req: Request) {
       liveIn: body.liveIn !== undefined ? Boolean(body.liveIn) : undefined,
       city: body.city,
       country: body.country,
+      workRights: body.workRights !== undefined ? body.workRights || null : undefined,
+      willingRelocate:
+        body.willingRelocate !== undefined ? Boolean(body.willingRelocate) : undefined,
+      relocateCities: body.relocateCities ? toJsonArray(body.relocateCities) : undefined,
+      certificates: body.certificates ? toJsonArray(body.certificates) : undefined,
       status: body.status,
     },
   });

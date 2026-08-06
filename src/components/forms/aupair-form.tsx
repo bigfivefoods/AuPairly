@@ -44,6 +44,10 @@ type Initial = {
   liveIn: boolean;
   city: string;
   country: string;
+  workRights: string;
+  willingRelocate: boolean;
+  relocateCities: string[];
+  certificates: string[];
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -59,7 +63,10 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function toggle(key: "languages" | "childcareSkills" | "preferredCountries", value: string) {
+  function toggle(
+    key: "languages" | "childcareSkills" | "preferredCountries" | "relocateCities" | "certificates",
+    value: string
+  ) {
     setForm((f) => {
       const arr = f[key];
       return {
@@ -253,8 +260,40 @@ export function AuPairProfileForm({ initial }: { initial: Initial }) {
             <Input type="number" value={form.weeklyHours} onChange={(e) => set("weeklyHours", e.target.value)} />
           </div>
           <div>
-            <Label>Min pocket money ($/wk)</Label>
+            <Label>Min pocket money (R/wk)</Label>
             <Input type="number" value={form.pocketMoneyMin} onChange={(e) => set("pocketMoneyMin", e.target.value)} />
+          </div>
+          <div>
+            <Label>Work rights / visa</Label>
+            <Select value={form.workRights} onChange={(e) => set("workRights", e.target.value)}>
+              <option value="">Select…</option>
+              <option value="CITIZEN">Citizen / permanent resident</option>
+              <option value="PERMIT">Valid work permit</option>
+              <option value="SEEKING">Seeking visa / sponsorship</option>
+              <option value="UNKNOWN">Prefer not to say</option>
+            </Select>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            checked={form.willingRelocate}
+            onChange={(e) => set("willingRelocate", e.target.checked)}
+            className="h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          Willing to relocate within SA
+        </label>
+        <div>
+          <Label>Certificates</Label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {["First aid", "CPR", "Police clearance", "Driver's licence", "Teaching cert"].map((c) => (
+              <ChipToggle
+                key={c}
+                label={c}
+                selected={form.certificates.includes(c)}
+                onClick={() => toggle("certificates", c)}
+              />
+            ))}
           </div>
         </div>
         <div>

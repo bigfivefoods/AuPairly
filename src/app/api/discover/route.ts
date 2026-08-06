@@ -242,6 +242,23 @@ export async function POST(req: Request) {
     update: { direction },
   });
 
+  // Boost analytics: likes while target is boosted
+  if (direction === "LIKE" || direction === "SUPER") {
+    const now = new Date();
+    await prisma.boostEvent.updateMany({
+      where: { userId: toUserId, endsAt: { gt: now } },
+      data: { likes: { increment: 1 } },
+    });
+    await prisma.auPairProfile.updateMany({
+      where: { userId: toUserId, boostedUntil: { gt: now } },
+      data: { boostLikes: { increment: 1 } },
+    });
+    await prisma.familyProfile.updateMany({
+      where: { userId: toUserId, boostedUntil: { gt: now } },
+      data: { boostLikes: { increment: 1 } },
+    });
+  }
+
   let matched = false;
   let conversationId: string | null = null;
 
