@@ -4,8 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { checkAndConsume, getUserPlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
 import { computeCompatibility, type MatchProfile } from "@/lib/matching";
+import { marketplaceReady } from "@/lib/gates";
+import { isServiceId, type ServiceId } from "@/lib/services";
+import { profileIdsForService } from "@/lib/service-tags";
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,7 +17,47 @@ export async function GET() {
   const me = session.user;
   const targetRole = me.role === "PARENT" ? "AUPAIR" : me.role === "AUPAIR" ? "PARENT" : null;
   if (!targetRole) {
-    return NextResponse.json({ cards: [], message: "Discover is for parents and au pairs" });
+    return NextResponse.json({ cards: [], message: "Discover is for hosts and sitters" });
+  }
+
+  const url = new URL(req.url);
+  const serviceRaw = url.searchParams.get("service");
+  const serviceFilter: ServiceId | null =
+    serviceRaw && isServiceId(serviceRaw.toUpperCase().replace(/-/g, "_"))
+      ? (serviceRaw.toUpperCase().replace(/-/g, "_") as ServiceId)
+      : null;
+
+  const meUser = await prisma.user.findUnique({
+    where: { id: me.id },
+    select: { image: true, videoIntroUrl: true, safetyScore: true },
+  });
+  const myAupair = await prisma.auPairProfile.findUnique({ where: { userId: me.id } });
+  const myFamily = await prisma.familyProfile.findUnique({ where: { userId: me.id } });
+  const profile = myAupair || myFamily;
+
+  const gate = marketplaceReady({
+    role: me.role,
+    image: meUser?.image || me.image,
+    headline: profile?.headline,
+    bio: profile?.bio,
+    city: profile?.city,
+    country: profile?.country,
+    status: profile?.status,
+    services: profile?.services,
+    isVerified: profile?.isVerified,
+  });
+
+  if (!gate.ok) {
+    return NextResponse.json({
+      cards: [],
+      plan: (await getUserPlan(me.id)).plan.id,
+      gate: {
+        ok: false,
+        percent: gate.percent,
+        blockers: gate.blockers,
+        reason: gate.reason,
+      },
+    });
   }
 
   const swiped = await prisma.swipe.findMany({
@@ -27,8 +70,6 @@ export async function GET() {
   const { plan } = await getUserPlan(me.id);
   const excludeIds = [...exclude];
 
-  const myAupair = await prisma.auPairProfile.findUnique({ where: { userId: me.id } });
-  const myFamily = await prisma.familyProfile.findUnique({ where: { userId: me.id } });
   const meProfile: MatchProfile = myAupair
     ? {
         role: "AUPAIR",
@@ -40,6 +81,7 @@ export async function GET() {
         availableFrom: myAupair.availableFrom,
         pocketMoneyMin: myAupair.pocketMoneyMin,
         experienceYears: myAupair.experienceYears,
+        services: myAupair.services,
       }
     : {
         role: "PARENT",
@@ -52,13 +94,26 @@ export async function GET() {
         pocketMoney: myFamily?.pocketMoney,
         childrenAges: myFamily?.childrenAges,
         childrenCount: myFamily?.childrenCount,
+        services: myFamily?.services,
       };
+
+  // Prefer normalized tags; fall back to JSON contains
+  let taggedIds: string[] | null = null;
+  if (serviceFilter) {
+    const roleTag = targetRole === "AUPAIR" ? "AUPAIR" : "FAMILY";
+    taggedIds = await profileIdsForService(roleTag, serviceFilter);
+  }
 
   if (targetRole === "AUPAIR") {
     const profiles = await prisma.auPairProfile.findMany({
       where: {
         status: "ACTIVE",
         ...(excludeIds.length ? { userId: { notIn: excludeIds } } : {}),
+        ...(serviceFilter
+          ? taggedIds && taggedIds.length > 0
+            ? { OR: [{ id: { in: taggedIds } }, { services: { contains: serviceFilter } }] }
+            : { services: { contains: serviceFilter } }
+          : {}),
       },
       include: {
         user: {
@@ -88,6 +143,7 @@ export async function GET() {
         pocketMoneyMin: p.pocketMoneyMin,
         experienceYears: p.experienceYears,
         age: p.age,
+        services: p.services,
       });
       return { p, compat };
     });
@@ -120,12 +176,15 @@ export async function GET() {
         isFeatured: p.isFeatured,
         experienceYears: p.experienceYears,
         rating: p.rating,
+        services: p.services,
         placementVerified: p.user.placementVerified,
         safetyScore: p.user.safetyScore,
         matchScore: compat.score,
         matchReasons: compat.reasons,
       })),
       plan: plan.id,
+      gate: { ok: true, percent: gate.percent },
+      service: serviceFilter,
     });
   }
 
@@ -133,6 +192,11 @@ export async function GET() {
     where: {
       status: "ACTIVE",
       ...(excludeIds.length ? { userId: { notIn: excludeIds } } : {}),
+      ...(serviceFilter
+        ? taggedIds && taggedIds.length > 0
+          ? { OR: [{ id: { in: taggedIds } }, { services: { contains: serviceFilter } }] }
+          : { services: { contains: serviceFilter } }
+        : {}),
     },
     include: {
       user: {
@@ -160,6 +224,7 @@ export async function GET() {
       pocketMoney: p.pocketMoney,
       childrenAges: p.childrenAges,
       childrenCount: p.childrenCount,
+      services: p.services,
     });
     return { p, compat };
   });
@@ -187,12 +252,15 @@ export async function GET() {
       isFeatured: p.isFeatured,
       pocketMoney: p.pocketMoney,
       rating: p.rating,
+      services: p.services,
       placementVerified: p.user.placementVerified,
       safetyScore: p.user.safetyScore,
       matchScore: compat.score,
       matchReasons: compat.reasons,
     })),
     plan: plan.id,
+    gate: { ok: true, percent: gate.percent },
+    service: serviceFilter,
   });
 }
 

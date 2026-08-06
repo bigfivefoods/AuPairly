@@ -67,8 +67,10 @@ export function PricingCards({
       <p className="mb-6 text-center text-sm text-stone-500">
         Showing prices for{" "}
         <span className="font-semibold text-stone-800">
-          {role === "AUPAIR" ? "au pairs" : "parents / families"}
+          {role === "AUPAIR" ? "sitters / caregivers" : "hosts / families"}
         </span>
+        {" · "}
+        <span className="text-stone-400">Paystack checkout</span>
       </p>
       <div className="grid gap-6 lg:grid-cols-3">
         {order.map((id) => {

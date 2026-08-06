@@ -15,6 +15,9 @@ import {
 import Link from "next/link";
 import { Avatar, Badge, Button } from "@/components/ui";
 import { parseJsonArray, cn } from "@/lib/utils";
+import { SERVICE_LIST, type ServiceId } from "@/lib/services";
+import { parseServices } from "@/lib/services";
+import { ServiceBadges } from "@/components/service-picker";
 
 type Card = {
   userId: string;
@@ -40,6 +43,7 @@ type Card = {
   matchReasons?: string[];
   placementVerified?: boolean;
   safetyScore?: number;
+  services?: string | null;
 };
 
 export function DiscoverClient({
@@ -56,24 +60,38 @@ export function DiscoverClient({
   const [match, setMatch] = useState<{ conversationId: string } | null>(null);
   const [upgradeMsg, setUpgradeMsg] = useState("");
   const [error, setError] = useState("");
+  const [service, setService] = useState<ServiceId | "">("");
+  const [gate, setGate] = useState<{
+    ok: boolean;
+    percent?: number;
+    blockers?: string[];
+    reason?: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/discover");
+      const q = service ? `?service=${service}` : "";
+      const res = await fetch(`/api/discover${q}`);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Could not load Discover");
         return;
       }
-      setCards(data.cards || []);
+      if (data.gate && data.gate.ok === false) {
+        setGate(data.gate);
+        setCards([]);
+      } else {
+        setGate(data.gate || { ok: true });
+        setCards(data.cards || []);
+      }
     } catch {
       setError("Network error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [service]);
 
   useEffect(() => {
     load();
@@ -110,10 +128,86 @@ export function DiscoverClient({
     }
   }
 
+  const filterBar = (
+    <div className="mb-4 flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => setService("")}
+        className={cn(
+          "rounded-full px-3 py-1 text-xs font-semibold border transition",
+          !service
+            ? "border-teal-600 bg-teal-600 text-white"
+            : "border-stone-200 bg-white text-stone-600 hover:border-teal-300"
+        )}
+      >
+        All services
+      </button>
+      {SERVICE_LIST.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          onClick={() => setService(s.id)}
+          className={cn(
+            "rounded-full px-3 py-1 text-xs font-semibold border transition",
+            service === s.id
+              ? "border-teal-600 bg-teal-600 text-white"
+              : "border-stone-200 bg-white text-stone-600 hover:border-teal-300"
+          )}
+        >
+          {s.shortName}
+        </button>
+      ))}
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex h-[480px] items-center justify-center rounded-3xl border border-stone-200 bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+      <div>
+        {filterBar}
+        <div className="flex h-[480px] items-center justify-center rounded-3xl border border-stone-200 bg-white">
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+        </div>
+      </div>
+    );
+  }
+
+  if (gate && gate.ok === false) {
+    return (
+      <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white px-6 py-12 text-center shadow-sm">
+        <p className="text-sm font-semibold uppercase tracking-wider text-amber-800">
+          Profile gate · {gate.percent ?? 0}% complete
+        </p>
+        <h2 className="mt-2 font-display text-2xl font-semibold text-stone-900">
+          Finish your profile to Discover
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-sm text-stone-600">
+          {gate.reason ||
+            "We require a photo, location, bio, and an Active listing so matches are high quality."}
+        </p>
+        {gate.blockers && gate.blockers.length > 0 && (
+          <ul className="mx-auto mt-4 max-w-sm space-y-1 text-left text-sm text-stone-700">
+            {gate.blockers.map((b) => (
+              <li key={b} className="flex gap-2">
+                <span className="text-amber-600">•</span>
+                {b}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/profile/edit" className="btn-primary">
+            Complete profile
+          </Link>
+          <Link href="/onboarding" className="btn-secondary">
+            Re-run setup
+          </Link>
+          <Link href="/verification" className="btn-secondary">
+            Get verified
+          </Link>
+        </div>
+        <p className="mt-4 text-xs text-stone-400">
+          Plan: {planId} · browse marketplace still works without Discover.
+        </p>
       </div>
     );
   }
@@ -150,26 +244,44 @@ export function DiscoverClient({
 
   if (!card) {
     return (
-      <div className="rounded-3xl border border-dashed border-stone-300 bg-white px-6 py-16 text-center">
-        <p className="font-display text-xl font-semibold text-stone-800">No more cards</p>
-        <p className="mt-2 text-sm text-stone-500">
-          You&apos;ve seen everyone for now. Check back later or browse the full marketplace.
-        </p>
-        <Link
-          href={role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
-          className="btn-primary mt-6 inline-flex"
-        >
-          Browse all listings
-        </Link>
+      <div>
+        {filterBar}
+        <div className="rounded-3xl border border-dashed border-stone-300 bg-white px-6 py-16 text-center">
+          <p className="font-display text-xl font-semibold text-stone-800">No more cards</p>
+          <p className="mt-2 text-sm text-stone-500">
+            {service
+              ? "No more people in this category. Try another service or browse all listings."
+              : "You've seen everyone for now. Check back later or browse the full marketplace."}
+          </p>
+          <Link
+            href={role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
+            className="btn-primary mt-6 inline-flex"
+          >
+            Browse all listings
+          </Link>
+        </div>
       </div>
     );
   }
 
   const langs = parseJsonArray(card.languages || "[]").slice(0, 4);
   const ages = parseJsonArray(card.childrenAges || "[]");
+  const cardServices = parseServices(card.services);
 
   return (
     <div>
+      {filterBar}
+      {upgradeMsg && (
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
+          {upgradeMsg}{" "}
+          <Link href="/pricing" className="font-semibold underline">
+            Upgrade with Paystack →
+          </Link>
+        </div>
+      )}
+      {error && (
+        <p className="mb-4 text-center text-sm text-red-600">{error}</p>
+      )}
       <div className="relative mx-auto h-[520px] w-full max-w-md">
         {/* Stack shadow cards */}
         {cards.slice(1, 3).map((c, i) => (
@@ -224,6 +336,7 @@ export function DiscoverClient({
               ) : null}
             </h2>
             <p className="mt-1 line-clamp-1 text-sm text-stone-500">{card.headline}</p>
+            <ServiceBadges services={cardServices} className="mt-2" />
             {card.matchReasons && card.matchReasons.length > 0 && (
               <ul className="mt-2 space-y-1 rounded-xl bg-teal-50 px-3 py-2 text-xs text-teal-900">
                 <li className="font-semibold text-teal-800">Why you match</li>

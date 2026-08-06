@@ -12,6 +12,8 @@ export type MatchProfile = {
   languages?: string | null;
   liveIn?: boolean | null;
   weeklyHours?: number | null;
+  /** JSON array of service IDs */
+  services?: string | null;
   // Au pair
   availableFrom?: Date | string | null;
   pocketMoneyMin?: number | null;
@@ -42,6 +44,27 @@ export function computeCompatibility(
   const reasons: string[] = [];
   let points = 0;
   let max = 0;
+
+  // Shared services (20)
+  max += 20;
+  const myServices = new Set(
+    parseJsonArray(me.services || "[]").map((s) => s.toUpperCase())
+  );
+  const theirServices = parseJsonArray(them.services || "[]").map((s) =>
+    s.toUpperCase()
+  );
+  const sharedServices = theirServices.filter((s) => myServices.has(s));
+  if (sharedServices.length > 0) {
+    points += Math.min(20, 10 + sharedServices.length * 5);
+    reasons.push(
+      `Shared services: ${sharedServices
+        .slice(0, 3)
+        .map((s) => s.replace(/_/g, " ").toLowerCase())
+        .join(", ")}`
+    );
+  } else if (myServices.size === 0 || theirServices.length === 0) {
+    points += 8; // incomplete profiles — neutral
+  }
 
   // Location (25)
   max += 25;

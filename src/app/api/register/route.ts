@@ -44,8 +44,9 @@ export async function POST(req: Request) {
           ? {
               aupairProfile: {
                 create: {
-                  headline: `${data.name.split(" ")[0]} — caring au pair`,
+                  headline: `${data.name.split(" ")[0]} — trusted care`,
                   status: "DRAFT",
+                  services: '["CHILDCARE"]',
                 },
               },
             }
@@ -53,8 +54,9 @@ export async function POST(req: Request) {
               familyProfile: {
                 create: {
                   familyName: `${data.name.split(" ")[0]} Family`,
-                  headline: `Looking for a wonderful au pair`,
+                  headline: `Looking for trusted care`,
                   status: "DRAFT",
+                  services: '["CHILDCARE"]',
                 },
               },
             }),
@@ -66,8 +68,8 @@ export async function POST(req: Request) {
       userId: user.id,
       type: "SYSTEM",
       title: "Welcome to AuPairly",
-      body: "Complete your profile and verification to start matching.",
-      href: "/dashboard",
+      body: "Pick your services and city — takes under 2 minutes.",
+      href: "/onboarding",
     });
 
     void sendWelcomeEmail({

@@ -17,6 +17,8 @@ export type CompletenessInput = {
   languages?: string | null | string[];
   status?: string | null;
   isVerified?: boolean;
+  /** JSON or array of service IDs */
+  services?: string | null | string[];
   // au pair
   experienceYears?: number | null;
   pocketMoneyMin?: number | null;
@@ -58,6 +60,11 @@ export type CompletenessResult = {
 function langs(input: CompletenessInput): string[] {
   if (Array.isArray(input.languages)) return input.languages;
   return parseJsonArray(input.languages || "[]");
+}
+
+function servicesCount(input: CompletenessInput): number {
+  if (Array.isArray(input.services)) return input.services.length;
+  return parseJsonArray(input.services || "[]").length;
 }
 
 export function computeCompleteness(input: CompletenessInput): CompletenessResult {
@@ -104,6 +111,14 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     href: "/profile/edit",
     points: 10,
     done: langs(input).length >= 1,
+  });
+  push({
+    id: "services",
+    label: "Choose services",
+    detail: "Childcare, caregiving, house sitting, and/or pet sitting.",
+    href: "/onboarding",
+    points: 10,
+    done: servicesCount(input) >= 1,
   });
   push({
     id: "publish",

@@ -22,6 +22,17 @@ export const authConfig = {
         "/interests",
         "/discover",
         "/billing",
+        "/onboarding",
+        "/placements",
+        "/trust",
+        "/documents",
+        "/boost",
+        "/matches",
+        "/shortlist",
+        "/applications",
+        "/settings",
+        "/connect",
+        "/agency",
       ];
       const isProtected = protectedPaths.some((p) => path.startsWith(p));
       if (isProtected) return !!auth?.user;

@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { BadgeCheck, Search, MessageSquare, Handshake, Shield } from "lucide-react";
+import { BadgeCheck, Search, MessageSquare, Handshake, Shield, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui";
 
-export const metadata = { title: "How it works" };
+export const metadata = {
+  title: "How it works",
+  description:
+    "From signup to trusted match for childcare, caregiving, house sitting, and pet sitting.",
+};
 
 export default function HowItWorksPage() {
   return (
@@ -10,55 +14,67 @@ export default function HowItWorksPage() {
       <PageHeader
         eyebrow="Guide"
         title="How AuPairly works"
-        description="A clear path from signup to a successful match — for parents and au pairs."
+        description="A clear path from signup to a successful match — for hosts and sitters across four care categories."
       />
 
       <div className="space-y-8">
         {[
           {
             icon: <Handshake className="h-6 w-6" />,
-            title: "1. Choose your role",
-            body: "Sign up as a parent (host family) or as an au pair. Your role shapes your profile, listing, and browse experience.",
+            title: "1. Choose your role & services",
+            body: "Sign up as a host (need care) or sitter (offer care). Pick childcare, caregiving, house sitting, pet sitting — or combine them in a 2-minute setup.",
           },
           {
             icon: <BadgeCheck className="h-6 w-6" />,
-            title: "2. Build & verify your profile",
-            body: "Add photos, bio, languages, children or experience details. Complete verification steps (ID, selfie, references) to earn a Verified badge that builds trust.",
+            title: "2. Complete & verify your profile",
+            body: "Add a clear photo, bio, and city. Complete ID + selfie verification for a Verified badge. Reach ~70% completeness to unlock Discover and boosts.",
           },
           {
             icon: <Search className="h-6 w-6" />,
-            title: "3. Browse the marketplace",
-            body: "Filter by country, languages, dates, and lifestyle. Save favorites and open rich profile pages with everything you need to decide.",
+            title: "3. Browse or Discover",
+            body: "Filter the marketplace by category and location, or swipe in Discover with service filters and match scores.",
           },
           {
             icon: <MessageSquare className="h-6 w-6" />,
-            title: "4. Message securely",
-            body: "Start a conversation in-app. Share schedules, pocket money expectations, and cultural fit before committing.",
+            title: "4. Message, shortlist, place",
+            body: "Express interest, chat in-app, shortlist favourites, and move serious matches into placements. Free tier applies; upgrade when you hit limits.",
           },
           {
-            icon: <Shield className="h-6 w-6" />,
-            title: "5. Match with confidence",
-            body: "Agree on terms privately. Keep communication on AuPairly for safety. Report anything that feels off — our community standards protect both sides.",
+            icon: <Sparkles className="h-6 w-6" />,
+            title: "5. Upgrade when you're serious",
+            body: "Plus and Premium (Paystack) unlock unlimited messages, interests, Discover swipes, and featured visibility — one clear upgrade path.",
           },
-        ].map((item) => (
-          <div key={item.title} className="flex gap-5 rounded-2xl border border-stone-200 bg-white p-6 shadow-[var(--shadow)]">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
-              {item.icon}
+        ].map((step, i) => (
+          <div
+            key={step.title}
+            className="flex gap-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+              {step.icon}
             </div>
             <div>
-              <h2 className="font-display text-xl font-semibold text-stone-900">{item.title}</h2>
-              <p className="mt-2 text-stone-500 leading-relaxed">{item.body}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
+                Step {i + 1}
+              </p>
+              <h2 className="mt-1 font-display text-xl font-semibold text-stone-900">
+                {step.title}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-stone-500">{step.body}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-12 flex flex-wrap justify-center gap-3">
-        <Link href="/register?role=PARENT" className="btn-primary">
-          Join as a parent
+      <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+        <Link href="/register" className="btn-primary">
+          Get started free
         </Link>
-        <Link href="/register?role=AUPAIR" className="btn-accent">
-          Join as an au pair
+        <Link href="/safety" className="btn-secondary inline-flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          Safety tips
+        </Link>
+        <Link href="/pricing" className="btn-secondary">
+          See plans
         </Link>
       </div>
     </div>

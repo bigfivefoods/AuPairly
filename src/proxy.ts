@@ -1,6 +1,10 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/lib/auth.config";
 
+/**
+ * Next.js 16 Proxy (formerly middleware) — auth gate for private routes.
+ * @see https://nextjs.org/docs/messages/middleware-to-proxy
+ */
 export default NextAuth(authConfig).auth;
 
 export const config = {
@@ -29,5 +33,7 @@ export const config = {
     "/applications/:path*",
     "/household/:path*",
     "/settings/:path*",
+    "/onboarding/:path*",
+    "/onboarding",
   ],
 };

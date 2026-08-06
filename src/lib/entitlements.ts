@@ -96,9 +96,17 @@ export async function checkAndConsume(
 
   const used = await getCounter(userId, action, periodKey);
   if (used >= limit) {
+    const actionLabel =
+      action === "MESSAGE"
+        ? "daily messages"
+        : action === "INTEREST"
+          ? "weekly interests"
+          : action === "SWIPE"
+            ? "daily Discover swipes"
+            : "monthly boosts";
     return {
       ok: false,
-      reason: `You've hit your ${plan.name} plan limit. Upgrade for unlimited access.`,
+      reason: `You've used ${used}/${limit} ${actionLabel} on the ${plan.name} plan. Upgrade with Paystack for unlimited matching.`,
       upgradeRequired: true,
       limit,
       used,

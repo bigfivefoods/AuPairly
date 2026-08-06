@@ -19,6 +19,40 @@ export async function POST() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Gate: require solid profile before boost spend / demo boost
+  const { marketplaceReady } = await import("@/lib/gates");
+  const me = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      image: true,
+      aupairProfile: true,
+      familyProfile: true,
+    },
+  });
+  const prof = me?.aupairProfile || me?.familyProfile;
+  const gate = marketplaceReady({
+    role: session.user.role,
+    image: me?.image,
+    headline: prof?.headline,
+    bio: prof?.bio,
+    city: prof?.city,
+    country: prof?.country,
+    status: prof?.status,
+    services: prof?.services,
+    isVerified: prof?.isVerified,
+  });
+  if (!gate.ok) {
+    return NextResponse.json(
+      {
+        error: gate.reason || "Complete your profile before boosting",
+        blockers: gate.blockers,
+        upgradeRequired: false,
+        profileGate: true,
+      },
+      { status: 403 }
+    );
+  }
+
   if (!isPaystackConfigured()) {
     // Demo boost
     const until = new Date();

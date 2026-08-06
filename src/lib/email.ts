@@ -58,17 +58,46 @@ function wrapHtml(title: string, bodyHtml: string) {
 
 export async function sendWelcomeEmail(user: { email: string; name: string; role: string }) {
   const first = user.name.split(" ")[0];
-  const roleLabel = user.role === "AUPAIR" ? "au pair" : "parent";
-  const dash = `${site()}/dashboard`;
-  const text = `Hi ${first},\n\nWelcome to AuPairly! Your ${roleLabel} account is ready.\n\nComplete your profile, get verified, and start matching:\n${dash}\n\n— The AuPairly team`;
+  const roleLabel =
+    user.role === "AUPAIR" ? "sitter / caregiver" : user.role === "PARENT" ? "host / family" : "member";
+  const onboard = `${site()}/onboarding`;
+  const text = `Hi ${first},\n\nWelcome to AuPairly! Your ${roleLabel} account is ready.\n\n1) Choose services (childcare, caregiving, house or pet sitting)\n2) Set your city\n3) Add a photo + bio\n4) Get verified\n\nStart here (under 2 minutes):\n${onboard}\n\n— The AuPairly team`;
   return sendEmail({
     to: user.email,
-    subject: "Welcome to AuPairly ✨",
+    subject: "Welcome to AuPairly — finish setup in 2 minutes",
     text,
     html: wrapHtml(
       `Welcome, ${first}!`,
-      `<p style="line-height:1.6;color:#44403c">Your <strong>${roleLabel}</strong> account is ready. Complete your profile, get verified, and start matching with confidence.</p>
-       <p style="margin-top:20px"><a href="${dash}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">Go to your dashboard</a></p>`
+      `<p style="line-height:1.6;color:#44403c">Your <strong>${roleLabel}</strong> account is ready. AuPairly covers <strong>childcare, caregiving, house sitting &amp; pet sitting</strong>.</p>
+       <ol style="line-height:1.7;color:#44403c;padding-left:18px">
+         <li>Pick the services you offer or need</li>
+         <li>Set your city</li>
+         <li>Add a photo &amp; bio</li>
+         <li>Get verified for the trust badge</li>
+       </ol>
+       <p style="margin-top:20px"><a href="${onboard}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">Finish setup</a></p>`
+    ),
+  });
+}
+
+/** Nudge incomplete profiles (callable from cron or admin later). */
+export async function sendCompleteProfileEmail(user: {
+  email: string;
+  name: string;
+  percent?: number;
+}) {
+  const first = user.name.split(" ")[0];
+  const edit = `${site()}/profile/edit`;
+  const pct = user.percent != null ? ` You're at ${user.percent}% complete.` : "";
+  const text = `Hi ${first},\n\nProfiles with a photo and full bio get far more messages.${pct}\n\nFinish yours:\n${edit}\n\n— AuPairly`;
+  return sendEmail({
+    to: user.email,
+    subject: "Unlock Discover — complete your AuPairly profile",
+    text,
+    html: wrapHtml(
+      `You're almost match-ready`,
+      `<p style="line-height:1.6;color:#44403c">Profiles with a clear photo and solid bio get more messages.${pct}</p>
+       <p style="margin-top:20px"><a href="${edit}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">Complete profile</a></p>`
     ),
   });
 }

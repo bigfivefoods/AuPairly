@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { MapPin, Calendar, Clock, Baby, Languages } from "lucide-react";
+import { MapPin, Calendar, Clock, Baby, Languages, Shield } from "lucide-react";
 import { Avatar, Badge, Stars, VerifiedBadge } from "@/components/ui";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { parseSchedule, WEEKDAYS } from "@/lib/schedule";
 import { parseServices } from "@/lib/services";
 import { ServiceBadges } from "@/components/service-picker";
+import { trustBadgeLabel } from "@/lib/gates";
 import { format } from "date-fns";
 
 type AuPairCardProps = {
@@ -28,12 +29,19 @@ type AuPairCardProps = {
   weeklyHours?: number | null;
   scheduleJson?: string | null;
   services?: string | null;
+  safetyScore?: number | null;
+  placementVerified?: boolean;
 };
 
 export function AuPairCard(p: AuPairCardProps) {
   const langs = parseJsonArray(p.languages).slice(0, 3);
   const schedule = parseSchedule(p.scheduleJson);
   const services = parseServices(p.services);
+  const trust = trustBadgeLabel({
+    isVerified: p.isVerified,
+    safetyScore: p.safetyScore,
+    placementVerified: p.placementVerified,
+  });
   const activeDays = schedule.days
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
@@ -47,11 +55,15 @@ export function AuPairCard(p: AuPairCardProps) {
         <div className="absolute inset-0 flex items-center justify-center">
           <Avatar name={p.name} image={p.image} size="xl" className="!ring-4 !ring-white/80 shadow-lg" />
         </div>
-        {p.isVerified && (
-          <div className="absolute right-3 top-3">
-            <VerifiedBadge />
-          </div>
-        )}
+        <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
+          {p.isVerified && <VerifiedBadge />}
+          {trust && trust !== "Verified" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+              <Shield className="h-3 w-3" />
+              {trust}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-2">
@@ -118,6 +130,8 @@ type FamilyCardProps = {
   rating: number;
   reviewCount: number;
   pocketMoney?: number | null;
+  safetyScore?: number | null;
+  placementVerified?: boolean;
   startDate?: Date | string | null;
   weeklyHours?: number | null;
   languages: string;
@@ -129,6 +143,11 @@ export function FamilyCard(p: FamilyCardProps) {
   const ages = parseJsonArray(p.childrenAges);
   const schedule = parseSchedule(p.scheduleJson);
   const services = parseServices(p.services);
+  const trust = trustBadgeLabel({
+    isVerified: p.isVerified,
+    safetyScore: p.safetyScore,
+    placementVerified: p.placementVerified,
+  });
   const activeDays = schedule.days
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
@@ -142,11 +161,15 @@ export function FamilyCard(p: FamilyCardProps) {
         <div className="absolute inset-0 flex items-center justify-center">
           <Avatar name={p.familyName || p.name} image={p.image} size="xl" className="!ring-4 !ring-white/80 shadow-lg" />
         </div>
-        {p.isVerified && (
-          <div className="absolute right-3 top-3">
-            <VerifiedBadge />
-          </div>
-        )}
+        <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
+          {p.isVerified && <VerifiedBadge />}
+          {trust && trust !== "Verified" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+              <Shield className="h-3 w-3" />
+              {trust}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-2">

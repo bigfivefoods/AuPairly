@@ -69,13 +69,16 @@ export default async function PricingPage() {
         ))}
       </div>
 
-      <p className="mt-12 text-center text-sm text-stone-400">
-        Payments via <strong>Paystack</strong> (South Africa) — cards &amp; Apple Pay.
-        Without Paystack keys, upgrades run in <strong>demo mode</strong> (30 days).{" "}
-        <Link href="/billing" className="text-teal-700 font-medium hover:underline">
-          Manage billing
+      <div className="mt-12 rounded-2xl border border-teal-100 bg-teal-50/50 px-6 py-5 text-center text-sm text-stone-600">
+        <p className="font-semibold text-teal-900">Payments: Paystack (primary)</p>
+        <p className="mt-1 text-stone-500">
+          Cards &amp; Apple Pay in South Africa. One clear upgrade path — free limits unlock with Plus or Premium.
+          Dev-only demo mode applies only when Paystack keys are missing.
+        </p>
+        <Link href="/billing" className="mt-3 inline-block font-semibold text-teal-700 hover:underline">
+          Manage billing →
         </Link>
-      </p>
+      </div>
     </div>
   );
 }

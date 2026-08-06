@@ -44,7 +44,7 @@ function RegisterForm() {
         router.push("/login");
         return;
       }
-      router.push("/dashboard");
+      router.push("/onboarding");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");

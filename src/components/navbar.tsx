@@ -115,10 +115,13 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-stone-900">Discover</h4>
+            <h4 className="text-sm font-semibold text-stone-900">Marketplace</h4>
             <ul className="mt-3 space-y-2 text-sm text-stone-500">
-              <li><Link href="/browse/aupairs" className="hover:text-teal-700">Au pairs</Link></li>
-              <li><Link href="/browse/families" className="hover:text-teal-700">Families</Link></li>
+              <li><Link href="/childcare" className="hover:text-teal-700">Childcare</Link></li>
+              <li><Link href="/caregiving" className="hover:text-teal-700">Caregiving</Link></li>
+              <li><Link href="/house-sitting" className="hover:text-teal-700">House sitting</Link></li>
+              <li><Link href="/pet-sitting" className="hover:text-teal-700">Pet sitting</Link></li>
+              <li><Link href="/browse/aupairs" className="hover:text-teal-700">All sitters</Link></li>
               <li><Link href="/how-it-works" className="hover:text-teal-700">How it works</Link></li>
             </ul>
           </div>
@@ -128,11 +131,13 @@ export function Footer() {
               <li><Link href="/trust" className="hover:text-teal-700">Trust centre</Link></li>
               <li><Link href="/safety" className="hover:text-teal-700">Safety tips</Link></li>
               <li><Link href="/privacy" className="hover:text-teal-700">Privacy (POPIA)</Link></li>
+              <li><Link href="/verification" className="hover:text-teal-700">Get verified</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-sm font-semibold text-stone-900">Company</h4>
             <ul className="mt-3 space-y-2 text-sm text-stone-500">
+              <li><Link href="/pricing" className="hover:text-teal-700">Pricing</Link></li>
               <li><Link href="/guides" className="hover:text-teal-700">Guides</Link></li>
               <li><Link href="/support" className="hover:text-teal-700">Support</Link></li>
               <li><Link href="/register" className="hover:text-teal-700">Join free</Link></li>

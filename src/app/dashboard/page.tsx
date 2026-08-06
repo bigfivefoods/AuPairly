@@ -107,10 +107,19 @@ export default async function DashboardPage() {
               Open admin console
             </Link>
           ) : (
-            <Link href="/profile/edit" className="btn-primary">
-              <Edit3 className="h-4 w-4" />
-              Edit profile
-            </Link>
+            <>
+              <Link href="/onboarding" className="btn-secondary">
+                Setup wizard
+              </Link>
+              <Link href="/profile/edit" className="btn-primary">
+                <Edit3 className="h-4 w-4" />
+                Edit profile
+              </Link>
+              <Link href="/discover" className="btn-secondary">
+                <Search className="h-4 w-4" />
+                Discover
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -163,6 +172,7 @@ export default async function DashboardPage() {
             city: profile?.city,
             country: profile?.country,
             languages: profile?.languages,
+            services: profile?.services,
             status: profile?.status,
             isVerified,
             experienceYears: aupair?.experienceYears,
@@ -181,6 +191,18 @@ export default async function DashboardPage() {
           }}
         />
       </div>
+
+      {/* Simple invite / growth */}
+      <Card className="mb-8 border-teal-100 bg-gradient-to-r from-teal-50/80 to-white">
+        <h3 className="font-display text-lg font-semibold text-stone-900">Invite someone</h3>
+        <p className="mt-1 text-sm text-stone-500">
+          Share AuPairly with a host or sitter. More local supply = better matches for everyone.
+        </p>
+        <p className="mt-3 break-all rounded-xl bg-white px-3 py-2 font-mono text-xs text-teal-800 border border-teal-100">
+          {(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me").replace(/\/$/, "")}
+          /register?ref={user.id.slice(0, 8)}
+        </p>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
@@ -231,8 +253,14 @@ export default async function DashboardPage() {
             <Action
               href={user.role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
               icon={<Search className="h-5 w-5" />}
-              title={user.role === "AUPAIR" ? "Browse families" : "Browse au pairs"}
-              desc="Full marketplace search"
+              title={user.role === "AUPAIR" ? "Browse hosts" : "Browse sitters"}
+              desc="Full marketplace search by service"
+            />
+            <Action
+              href="/safety"
+              icon={<Shield className="h-5 w-5" />}
+              title="Safety tips"
+              desc="Category-specific trust checklist"
             />
             <Action
               href="/messages"

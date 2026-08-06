@@ -12,6 +12,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
+    "test": "node scripts/unit-tests.mjs",
+    "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate"
   },
   "prisma": {
