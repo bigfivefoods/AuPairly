@@ -1,33 +1,37 @@
 # Supabase setup for AuPairly
 
-You do **not** need Prisma Postgres if you prefer Supabase.  
-Supabase is regular **PostgreSQL** — this app already uses Prisma + Postgres.
+## Your project
 
-## 1. Create a Supabase project
+| | |
+|--|--|
+| **Dashboard** | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks |
+| **Project ref** | `bpbxjzgzyfbpkujrfzks` |
+| **Database settings** | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/settings/database |
+| **Table editor** | https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/editor |
 
-1. Go to [https://supabase.com/dashboard](https://supabase.com/dashboard)
-2. **New project** → name it e.g. `aupairly`
-3. Set a strong **database password** (save it)
-4. Choose a region close to your users
-5. Wait until the project is ready
+You do **not** need Prisma Postgres. Supabase is regular **PostgreSQL**.
 
-## 2. Copy connection strings
+## 1. Get connection strings (required)
 
-**Project Settings → Database → Connection string**
+Open **[Database settings](https://supabase.com/dashboard/project/bpbxjzgzyfbpkujrfzks/settings/database)** → **Connection string**.
 
-| Env var | Supabase mode | Port | Used for |
-|---------|---------------|------|----------|
-| `DATABASE_URL` | **Transaction** pooler | `6543` | App / Vercel (serverless) |
+| Env var | Mode in UI | Port | Used for |
+|---------|------------|------|----------|
+| `DATABASE_URL` | **Transaction** pooler | `6543` | App / Vercel |
 | `DIRECT_URL` | **Session** pooler or **Direct** | `5432` | `prisma migrate` |
 
-Example shape (yours will differ):
+Click **URI**, paste your database password when prompted, copy both.
+
+Template with your project ref (region host may differ — use what Supabase shows):
 
 ```env
-DATABASE_URL="postgresql://postgres.abcdefgh:YOUR_PASSWORD@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.abcdefgh:YOUR_PASSWORD@aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
+DATABASE_URL="postgresql://postgres.bpbxjzgzyfbpkujrfzks:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.bpbxjzgzyfbpkujrfzks:YOUR_PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres"
 ```
 
 If the password has `@`, `#`, `/`, etc., [URL-encode](https://developer.mozilla.org/en-US/docs/Glossary/Percent-encoding) it.
+
+**Forgot password?** Database settings → **Reset database password**.
 
 ## 3. Local `.env`
 
