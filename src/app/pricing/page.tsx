@@ -27,8 +27,8 @@ export default async function PricingPage() {
           Trusted care for your family, loved ones, home &amp; pets
         </div>
         <PageHeader
-          title="Simple ZAR pricing"
-          description="Start free, then unlock unlimited matching for a week (R299), 3 months at R99/mo, or a full year for R999."
+          title="Free, Plus & Premium"
+          description="Pick a tier, then choose 1 week, 3 months (R99/mo on Plus), or annual. Same periods for Plus and Premium."
         />
       </div>
 
@@ -52,8 +52,8 @@ export default async function PricingPage() {
           },
           {
             icon: <Sparkles className="h-5 w-5" />,
-            title: "Pay for the period you need",
-            body: "Week, 3 months (R99/mo min), or annual at R999 — same unlimited matching.",
+            title: "Tier + period",
+            body: "Free forever, or Plus / Premium for a week, 3 months, or a discounted year.",
           },
         ].map((f) => (
           <div

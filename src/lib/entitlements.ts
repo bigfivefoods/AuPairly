@@ -144,8 +144,8 @@ export async function activatePlan(
     throw new Error(`Cannot activate non-paid plan: ${planId}`);
   }
 
-  const plan = planFor(resolved);
-  const days = opts?.days ?? plan.durationDays;
+  // Prefer explicit days from checkout period; default 90 (3-month Plus/Premium)
+  const days = opts?.days ?? 90;
   const end = new Date();
   end.setDate(end.getDate() + days);
 

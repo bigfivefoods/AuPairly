@@ -1,8 +1,6 @@
 /**
  * POST /api/billing/verify
- * Body: { reference, planId? }
- *
- * Verifies a Paystack transaction and activates the membership plan.
+ * Body: { reference, planId?, period? }
  */
 
 import { NextResponse } from "next/server";
@@ -10,9 +8,12 @@ import { auth } from "@/lib/auth";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
 import {
+  durationDaysFor,
+  isBillingPeriod,
   isPaidPlanId,
   normalizePlanId,
   planFor,
+  type BillingPeriod,
   type PlanId,
 } from "@/lib/plans";
 import {
@@ -56,11 +57,19 @@ export async function POST(req: Request) {
     }
 
     const meta = parseMetadata(tx.metadata);
-    const planIdRaw = String(body.planId || meta.planId || "QUARTER");
-    const planId: PlanId = normalizePlanId(planIdRaw);
+    const planId: PlanId = normalizePlanId(
+      String(body.planId || meta.planId || "PLUS")
+    );
     if (!isPaidPlanId(planId)) {
       return NextResponse.json({ error: "Invalid plan on payment" }, { status: 400 });
     }
+
+    const periodRaw = body.period || meta.period;
+    const period: BillingPeriod = isBillingPeriod(
+      periodRaw != null ? String(periodRaw) : null
+    )
+      ? (String(periodRaw) as BillingPeriod)
+      : "QUARTER";
 
     const metaUserId = meta.userId ? String(meta.userId) : null;
     if (metaUserId && metaUserId !== session.user.id) {
@@ -70,18 +79,19 @@ export async function POST(req: Request) {
       );
     }
 
+    const days = durationDaysFor(planId, period);
     const plan = planFor(planId);
+
     await activatePlan(session.user.id, planId, {
-      days: plan.durationDays,
-      stripeSubscriptionId: reference, // reuse field as external payment ref
+      days,
+      stripeSubscriptionId: reference,
     });
 
-    // Store Paystack customer code if present
     const customerCode = tx.customer?.customer_code;
     if (customerCode) {
       await prisma.user.update({
         where: { id: session.user.id },
-        data: { stripeCustomerId: customerCode }, // legacy column — stores Paystack customer_code
+        data: { stripeCustomerId: customerCode },
       });
     }
 
@@ -89,17 +99,18 @@ export async function POST(req: Request) {
       userId: session.user.id,
       type: "BILLING",
       title: "Payment successful",
-      body: `Your ${plan.name} membership is active for ${plan.durationDays} days. Paid via Paystack.`,
+      body: `Your ${plan.name} membership is active for ${days} days. Paid via Paystack.`,
       href: "/billing",
     });
 
     return NextResponse.json({
       ok: true,
       plan: planId,
+      period,
       reference,
       amount: tx.amount,
       currency: tx.currency,
-      durationDays: plan.durationDays,
+      durationDays: days,
     });
   } catch (err) {
     console.error("[billing/verify]", err);

@@ -1,80 +1,147 @@
 /**
- * AuPairly commercial plans — freemium multi-service marketplace
- * (childcare / au pairing, caregiving, house sitting, pet sitting).
+ * AuPairly commercial plans — freemium multi-service marketplace.
  * Primary currency: ZAR (Paystack).
  *
- * Paid access is duration-based (same unlimited matching benefits):
- * - Week: R299 once-off
- * - 3 months: R99/mo (must buy 3 months → R297)
- * - Annual: R999 discounted (vs R99 × 12 = R1,188)
+ * Tiers: Free · Plus · Premium
+ * Paid periods (once-off access, no forced auto-renew):
+ * - Week: once-off
+ * - 3 months: monthly rate × 3 (minimum purchase)
+ * - Annual: discounted full year
  */
 
-export type PlanId = "FREE" | "WEEK" | "QUARTER" | "ANNUAL";
+/** Membership tier stored on user / subscription */
+export type PlanId = "FREE" | "PLUS" | "PREMIUM";
 
-/** Legacy plan ids still stored on some users */
-export type LegacyPlanId = "PLUS" | "PREMIUM";
+/** Billing / access length for paid tiers */
+export type BillingPeriod = "WEEK" | "QUARTER" | "ANNUAL";
 
 export type PlanRole = "PARENT" | "AUPAIR" | "BOTH";
+
+export type PlanLimits = {
+  messagesPerDay: number; // -1 = unlimited
+  interestsPerWeek: number;
+  swipesPerDay: number;
+  canSeeWhoLikedYou: boolean;
+  featuredListing: boolean;
+  boostsPerMonth: number;
+  prioritySearch: boolean;
+  readReceipts: boolean;
+  partnerSeat: boolean;
+};
+
+export type PeriodPricing = {
+  period: BillingPeriod;
+  label: string;
+  shortLabel: string;
+  /** Amount charged at checkout (ZAR, full period) */
+  priceZar: number;
+  /** Headline number on the card */
+  displayPrice: number;
+  /** e.g. "once off" | "/mo" | "/year" */
+  priceSuffix: string;
+  billingNote: string;
+  compareAtZar?: number;
+  durationDays: number;
+};
 
 export type PlanDefinition = {
   id: PlanId;
   name: string;
   tagline: string;
-  /**
-   * Amount charged at checkout in ZAR (once-off for the full period).
-   * Same for parents and sitters.
-   */
-  priceZar: number;
-  /**
-   * Large number shown on the card (e.g. 99 for “R99/mo”, 299 for week).
-   */
-  displayPrice: number;
-  /** Suffix next to display price: "once off" | "/mo" | "/year" */
-  priceSuffix: string;
-  /** Extra line under the price */
-  billingNote?: string;
-  /** Strikethrough compare-at (e.g. annual was R1,188) */
-  compareAtZar?: number;
-  /** Access length after successful payment */
-  durationDays: number;
   features: string[];
-  limits: {
-    messagesPerDay: number; // -1 = unlimited
-    interestsPerWeek: number;
-    swipesPerDay: number;
-    canSeeWhoLikedYou: boolean;
-    featuredListing: boolean;
-    boostsPerMonth: number;
-    prioritySearch: boolean;
-    readReceipts: boolean;
-    partnerSeat: boolean;
-  };
+  limits: PlanLimits;
   popular?: boolean;
   bestValue?: boolean;
+  /** Period options — empty for FREE */
+  periods: PeriodPricing[];
 };
 
-/** Shared paid-tier limits (unlimited matching). */
-const PAID_LIMITS_BASE = {
-  messagesPerDay: -1,
-  interestsPerWeek: -1,
-  swipesPerDay: -1,
-  canSeeWhoLikedYou: true,
-  featuredListing: true,
-  boostsPerMonth: 2,
-  prioritySearch: true,
-  readReceipts: true,
-  partnerSeat: false,
-} as const;
+export const BILLING_PERIODS: BillingPeriod[] = ["WEEK", "QUARTER", "ANNUAL"];
+
+export const PERIOD_LABELS: Record<
+  BillingPeriod,
+  { label: string; shortLabel: string }
+> = {
+  WEEK: { label: "1 Week", shortLabel: "Week" },
+  QUARTER: { label: "3 Months", shortLabel: "3 mo" },
+  ANNUAL: { label: "Annual", shortLabel: "Year" },
+};
+
+/** Plus — prices from product: week R299, R99/mo (×3), annual R999 */
+const PLUS_PERIODS: PeriodPricing[] = [
+  {
+    period: "WEEK",
+    label: "1 Week",
+    shortLabel: "Week",
+    priceZar: 299,
+    displayPrice: 299,
+    priceSuffix: "once off",
+    billingNote: "7 days of Plus · no auto-renew",
+    durationDays: 7,
+  },
+  {
+    period: "QUARTER",
+    label: "3 Months",
+    shortLabel: "3 mo",
+    priceZar: 297, // R99 × 3
+    displayPrice: 99,
+    priceSuffix: "/mo",
+    billingNote: "R297 billed once for 3 months (R99 × 3)",
+    durationDays: 90,
+  },
+  {
+    period: "ANNUAL",
+    label: "Annual",
+    shortLabel: "Year",
+    priceZar: 999,
+    displayPrice: 999,
+    priceSuffix: "/year",
+    billingNote: "Save R189 vs 12 × R99 (was R1,188)",
+    compareAtZar: 1188,
+    durationDays: 365,
+  },
+];
+
+/** Premium — higher tier for same periods */
+const PREMIUM_PERIODS: PeriodPricing[] = [
+  {
+    period: "WEEK",
+    label: "1 Week",
+    shortLabel: "Week",
+    priceZar: 499,
+    displayPrice: 499,
+    priceSuffix: "once off",
+    billingNote: "7 days of Premium · no auto-renew",
+    durationDays: 7,
+  },
+  {
+    period: "QUARTER",
+    label: "3 Months",
+    shortLabel: "3 mo",
+    priceZar: 597, // R199 × 3
+    displayPrice: 199,
+    priceSuffix: "/mo",
+    billingNote: "R597 billed once for 3 months (R199 × 3)",
+    durationDays: 90,
+  },
+  {
+    period: "ANNUAL",
+    label: "Annual",
+    shortLabel: "Year",
+    priceZar: 1799,
+    displayPrice: 1799,
+    priceSuffix: "/year",
+    billingNote: "Save R589 vs 12 × R199 (was R2,388)",
+    compareAtZar: 2388,
+    durationDays: 365,
+  },
+];
 
 export const PLANS: Record<PlanId, PlanDefinition> = {
   FREE: {
     id: "FREE",
-    name: "Starter",
+    name: "Free",
     tagline: "Browse & try the marketplace",
-    priceZar: 0,
-    displayPrice: 0,
-    priceSuffix: "",
-    durationDays: 0,
     features: [
       "Create & publish a profile",
       "Browse verified listings",
@@ -93,40 +160,12 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       readReceipts: false,
       partnerSeat: false,
     },
+    periods: [],
   },
-  WEEK: {
-    id: "WEEK",
-    name: "1 Week",
-    tagline: "Try unlimited matching for 7 days",
-    priceZar: 299,
-    displayPrice: 299,
-    priceSuffix: "once off",
-    billingNote: "7 days of full access · no auto-renew",
-    durationDays: 7,
-    features: [
-      "Unlimited messages & interests",
-      "Unlimited Discover swipes",
-      "See who liked you",
-      "Featured listing badge",
-      "Read receipts",
-      "Perfect for a short hiring burst",
-    ],
-    limits: {
-      ...PAID_LIMITS_BASE,
-      boostsPerMonth: 1,
-      prioritySearch: false,
-      partnerSeat: false,
-    },
-  },
-  QUARTER: {
-    id: "QUARTER",
-    name: "3 Months",
-    tagline: "R99/mo — buy 3 months minimum",
-    priceZar: 297, // R99 × 3
-    displayPrice: 99,
-    priceSuffix: "/mo",
-    billingNote: "R297 billed once for 3 months (R99 × 3)",
-    durationDays: 90,
+  PLUS: {
+    id: "PLUS",
+    name: "Plus",
+    tagline: "Unlimited matching — most popular",
     popular: true,
     features: [
       "Unlimited messages & interests",
@@ -135,65 +174,72 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Featured listing badge",
       "Read receipts",
       "2 profile boosts / month",
-      "Priority in search & Discover",
+      "Week, 3 months, or annual access",
     ],
     limits: {
-      ...PAID_LIMITS_BASE,
+      messagesPerDay: -1,
+      interestsPerWeek: -1,
+      swipesPerDay: -1,
+      canSeeWhoLikedYou: true,
+      featuredListing: true,
       boostsPerMonth: 2,
-      prioritySearch: true,
+      prioritySearch: false,
+      readReceipts: true,
       partnerSeat: false,
     },
+    periods: PLUS_PERIODS,
   },
-  ANNUAL: {
-    id: "ANNUAL",
-    name: "Annual",
-    tagline: "Best value — full year discounted",
-    priceZar: 999,
-    displayPrice: 999,
-    priceSuffix: "/year",
-    billingNote: "Save R189 vs 12 × R99 (was R1,188)",
-    compareAtZar: 1188,
-    durationDays: 365,
+  PREMIUM: {
+    id: "PREMIUM",
+    name: "Premium",
+    tagline: "Maximum visibility & priority",
     bestValue: true,
     features: [
-      "Everything in 3 Months",
-      "12 months of unlimited matching",
+      "Everything in Plus",
+      "Priority in search & Discover",
       "4 profile boosts / month",
       "Partner / co-parent seat",
       "Placement offer & hire kit tools",
       "Priority support",
-      "Best price per month (~R83)",
+      "Early access to new listings",
     ],
     limits: {
-      ...PAID_LIMITS_BASE,
+      messagesPerDay: -1,
+      interestsPerWeek: -1,
+      swipesPerDay: -1,
+      canSeeWhoLikedYou: true,
+      featuredListing: true,
       boostsPerMonth: 4,
       prioritySearch: true,
+      readReceipts: true,
       partnerSeat: true,
     },
+    periods: PREMIUM_PERIODS,
   },
 };
 
-/** Checkout / upgrade plan ids (excludes FREE). */
-export const PAID_PLAN_IDS: Exclude<PlanId, "FREE">[] = [
-  "WEEK",
-  "QUARTER",
-  "ANNUAL",
-];
+export const TIER_ORDER: PlanId[] = ["FREE", "PLUS", "PREMIUM"];
+
+export const PAID_PLAN_IDS: Exclude<PlanId, "FREE">[] = ["PLUS", "PREMIUM"];
 
 export function isPaidPlanId(
   id?: string | null
 ): id is Exclude<PlanId, "FREE"> {
-  return id === "WEEK" || id === "QUARTER" || id === "ANNUAL";
+  return id === "PLUS" || id === "PREMIUM";
 }
 
-/** Normalise stored plan ids (incl. legacy PLUS/PREMIUM). */
+export function isBillingPeriod(v?: string | null): v is BillingPeriod {
+  return v === "WEEK" || v === "QUARTER" || v === "ANNUAL";
+}
+
+/**
+ * Normalise stored plan ids.
+ * Legacy duration-only ids (WEEK/QUARTER/ANNUAL) map to PLUS.
+ */
 export function normalizePlanId(id?: string | null): PlanId {
-  if (id === "WEEK" || id === "QUARTER" || id === "ANNUAL" || id === "FREE") {
-    return id;
-  }
-  // Legacy mappings
-  if (id === "PLUS") return "QUARTER";
-  if (id === "PREMIUM") return "ANNUAL";
+  if (id === "FREE" || id === "PLUS" || id === "PREMIUM") return id;
+  // Duration-only ids from previous pricing model → Plus
+  if (id === "WEEK" || id === "QUARTER" || id === "ANNUAL") return "PLUS";
   return "FREE";
 }
 
@@ -201,19 +247,56 @@ export function planFor(id?: string | null): PlanDefinition {
   return PLANS[normalizePlanId(id)];
 }
 
-/** Display amount (card headline) in ZAR. */
-export function priceFor(plan: PlanDefinition, _role?: string) {
-  return plan.displayPrice;
+export function getPeriodPricing(
+  planId: PlanId | string | null | undefined,
+  period: BillingPeriod | string | null | undefined
+): PeriodPricing | null {
+  const plan = planFor(planId);
+  if (!plan.periods.length) return null;
+  const p = isBillingPeriod(period) ? period : "QUARTER";
+  return plan.periods.find((x) => x.period === p) ?? plan.periods[1] ?? plan.periods[0];
 }
 
-/** Amount charged at checkout in ZAR (full period). */
-export function chargePriceFor(plan: PlanDefinition, _role?: string) {
-  return plan.priceZar;
+export function defaultPeriodFor(planId: PlanId): BillingPeriod | null {
+  if (planId === "FREE") return null;
+  return "QUARTER";
+}
+
+/** Headline display price for a tier + period */
+export function priceFor(
+  plan: PlanDefinition,
+  period?: BillingPeriod | null
+): number {
+  if (plan.id === "FREE") return 0;
+  const pp = getPeriodPricing(plan.id, period ?? "QUARTER");
+  return pp?.displayPrice ?? 0;
+}
+
+/** Full checkout amount (ZAR) for tier + period */
+export function chargePriceFor(
+  plan: PlanDefinition,
+  period?: BillingPeriod | null
+): number {
+  if (plan.id === "FREE") return 0;
+  const pp = getPeriodPricing(plan.id, period ?? "QUARTER");
+  return pp?.priceZar ?? 0;
 }
 
 /** Amount in cents for Paystack (ZAR). */
-export function priceCentsFor(plan: PlanDefinition, role?: string) {
-  return Math.round(chargePriceFor(plan, role) * 100);
+export function priceCentsFor(
+  plan: PlanDefinition,
+  period?: BillingPeriod | null
+): number {
+  return Math.round(chargePriceFor(plan, period) * 100);
+}
+
+export function durationDaysFor(
+  planId: PlanId | string | null | undefined,
+  period?: BillingPeriod | null
+): number {
+  const plan = planFor(planId);
+  if (plan.id === "FREE") return 0;
+  return getPeriodPricing(plan.id, period)?.durationDays ?? 30;
 }
 
 export function currencySymbol() {
@@ -225,7 +308,6 @@ export function dayKey(d = new Date()) {
 }
 
 export function weekKey(d = new Date()) {
-  // ISO week key: YYYY-Www
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = date.getUTCDay() || 7;
   date.setUTCDate(date.getUTCDate() + 4 - dayNum);

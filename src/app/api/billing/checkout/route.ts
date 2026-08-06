@@ -1,18 +1,19 @@
 /**
  * POST /api/billing/checkout
+ * Body: { planId: "PLUS"|"PREMIUM", period: "WEEK"|"QUARTER"|"ANNUAL" }
  *
  * Start membership upgrade via Paystack (SA + Apple Pay).
- * Redirects user to Paystack hosted authorization_url.
- *
- * Plans: WEEK (R299 / 7d), QUARTER (R297 for 3 mo @ R99/mo), ANNUAL (R999 / year).
  */
 
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
   PLANS,
+  getPeriodPricing,
+  isBillingPeriod,
   isPaidPlanId,
   priceCentsFor,
+  type BillingPeriod,
   type PlanId,
 } from "@/lib/plans";
 import { activatePlan } from "@/lib/entitlements";
@@ -33,11 +34,21 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const planId = body.planId as PlanId;
+  const periodRaw = body.period as string | undefined;
+
   if (!isPaidPlanId(planId)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
 
+  const period: BillingPeriod = isBillingPeriod(periodRaw)
+    ? periodRaw
+    : "QUARTER";
   const plan = PLANS[planId];
+  const periodPricing = getPeriodPricing(planId, period);
+  if (!periodPricing) {
+    return NextResponse.json({ error: "Invalid billing period" }, { status: 400 });
+  }
+
   const role = session.user.role;
   if (role === "ADMIN") {
     return NextResponse.json({ error: "Admins don't need a plan" }, { status: 400 });
@@ -45,30 +56,34 @@ export async function POST(req: Request) {
 
   const site = getSiteUrl();
 
-  // Demo mode when Paystack is not configured (local pitch without keys)
+  // Demo mode when Paystack is not configured
   if (!isPaystackConfigured()) {
-    await activatePlan(session.user.id, planId);
+    await activatePlan(session.user.id, planId, {
+      days: periodPricing.durationDays,
+    });
     await createNotification({
       userId: session.user.id,
       type: "BILLING",
-      title: `${plan.name} activated (demo)`,
-      body: `Paystack is not configured — you got ${plan.durationDays} days of access in demo mode.`,
+      title: `${plan.name} (${periodPricing.label}) activated (demo)`,
+      body: `Paystack is not configured — you got ${periodPricing.durationDays} days of ${plan.name} in demo mode.`,
       href: "/billing",
     });
     return NextResponse.json({
       demo: true,
-      url: `${site}/billing?success=1&plan=${planId}`,
-      message: `Demo upgrade applied (no Paystack keys). ${plan.durationDays} days of access.`,
+      url: `${site}/billing?success=1&plan=${planId}&period=${period}`,
+      message: `Demo upgrade applied. ${periodPricing.durationDays} days of ${plan.name}.`,
     });
   }
 
   try {
-    const amountCents = priceCentsFor(plan, role);
+    const amountCents = priceCentsFor(plan, period);
     if (amountCents < 100) {
       return NextResponse.json({ error: "Invalid plan amount" }, { status: 400 });
     }
 
-    const reference = makeReference(`plan_${planId.toLowerCase()}`);
+    const reference = makeReference(
+      `plan_${planId.toLowerCase()}_${period.toLowerCase()}`
+    );
     const email = session.user.email;
     if (!email) {
       return NextResponse.json(
@@ -81,15 +96,20 @@ export async function POST(req: Request) {
       email,
       amountCents,
       reference,
-      callbackUrl: `${site}/billing/callback?plan=${planId}`,
+      callbackUrl: `${site}/billing/callback?plan=${planId}&period=${period}`,
       metadata: {
         userId: session.user.id,
         planId,
+        period,
         role,
         purpose: "membership",
-        durationDays: plan.durationDays,
+        durationDays: periodPricing.durationDays,
         custom_fields: [
-          { display_name: "Plan", variable_name: "plan", value: plan.name },
+          {
+            display_name: "Plan",
+            variable_name: "plan",
+            value: `${plan.name} · ${periodPricing.label}`,
+          },
           {
             display_name: "User",
             variable_name: "user_id",
@@ -97,7 +117,6 @@ export async function POST(req: Request) {
           },
         ],
       },
-      // Apple Pay shows when enabled in Paystack Dashboard → Preferences
       channels: ["card", "apple_pay", "bank", "eft", "qr", "bank_transfer"],
     });
 

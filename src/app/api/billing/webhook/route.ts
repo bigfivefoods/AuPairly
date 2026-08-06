@@ -21,9 +21,12 @@ import {
   verifyPaystackSignature,
 } from "@/lib/paystack";
 import {
+  durationDaysFor,
+  isBillingPeriod,
   isPaidPlanId,
   normalizePlanId,
   planFor,
+  type BillingPeriod,
   type PlanId,
 } from "@/lib/plans";
 
@@ -85,16 +88,22 @@ async function handleChargeSuccess(data: any) {
   const planId = coercePlan(meta.planId);
 
   if (purpose === "membership" && userId && planId && isPaidPlanId(planId)) {
+    const period: BillingPeriod = isBillingPeriod(
+      meta.period != null ? String(meta.period) : null
+    )
+      ? (String(meta.period) as BillingPeriod)
+      : "QUARTER";
+    const days = durationDaysFor(planId, period);
     const plan = planFor(planId);
     await activatePlan(userId, planId, {
-      days: plan.durationDays,
+      days,
       stripeSubscriptionId: data.reference,
     });
     await createNotification({
       userId,
       type: "BILLING",
       title: "Payment successful",
-      body: `Your ${plan.name} membership is active for ${plan.durationDays} days. Welcome to unlimited matching.`,
+      body: `Your ${plan.name} membership is active for ${days} days. Welcome to unlimited matching.`,
       href: "/billing",
     });
     return;
@@ -151,12 +160,17 @@ async function handleChargeSuccess(data: any) {
 async function handleSubscriptionActive(data: any) {
   const meta = normalizeMeta(data.metadata);
   const userId = meta.userId ? String(meta.userId) : null;
-  const planId = coercePlan(meta.planId) || "QUARTER";
+  const planId = coercePlan(meta.planId) || "PLUS";
   if (!userId || !isPaidPlanId(planId)) return;
 
-  const plan = planFor(planId);
+  const period: BillingPeriod = isBillingPeriod(
+    meta.period != null ? String(meta.period) : null
+  )
+    ? (String(meta.period) as BillingPeriod)
+    : "QUARTER";
+  const days = durationDaysFor(planId, period);
   await activatePlan(userId, planId, {
-    days: plan.durationDays,
+    days,
     stripeSubscriptionId: data.subscription_code || data.id,
   });
   await prisma.user.updateMany({
@@ -213,5 +227,5 @@ function normalizeMeta(meta: unknown): Record<string, unknown> {
 function coercePlan(v: unknown): PlanId | null {
   if (v == null) return null;
   const id = normalizePlanId(String(v));
-  return isPaidPlanId(id) || id === "FREE" ? id : null;
+  return id === "FREE" || isPaidPlanId(id) ? id : null;
 }

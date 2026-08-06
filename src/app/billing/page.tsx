@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { getUserPlan } from "@/lib/entitlements";
-import { chargePriceFor, priceFor } from "@/lib/plans";
 import { Badge, Card, PageHeader } from "@/components/ui";
 import { format } from "date-fns";
 import { Crown, Sparkles } from "lucide-react";
@@ -12,25 +11,24 @@ export const metadata = { title: "Billing" };
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; plan?: string }>;
+  searchParams: Promise<{ success?: string; plan?: string; period?: string }>;
 }) {
   const user = await requireUser();
   const sp = await searchParams;
   const { planId, plan, subscription } = await getUserPlan(user.id);
-  const display = priceFor(plan, user.role);
-  const charge = chargePriceFor(plan, user.role);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Membership"
         title="Billing & plan"
-        description="Manage your AuPairly access — week, 3 months (R99/mo), or annual."
+        description="Free, Plus, or Premium — choose week, 3 months, or annual when you upgrade."
       />
 
       {sp.success && (
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          You&apos;re upgraded{sp.plan ? ` to ${sp.plan}` : ""}! Unlimited matching is active.
+          You&apos;re upgraded{sp.plan ? ` to ${sp.plan}` : ""}
+          {sp.period ? ` (${sp.period})` : ""}! Unlimited matching is active.
         </div>
       )}
 
@@ -43,25 +41,8 @@ export default async function BillingPage({
               <Badge variant={planId === "FREE" ? "default" : "success"}>{planId}</Badge>
             </div>
             <p className="mt-1 text-stone-500">{plan.tagline}</p>
-            <p className="mt-4 font-display text-3xl font-semibold">
-              {display === 0 ? "Free" : `R${display}`}
-              {display > 0 && plan.priceSuffix && (
-                <span className="text-base font-normal text-stone-400">
-                  {" "}
-                  {plan.priceSuffix}
-                </span>
-              )}
-            </p>
-            {plan.billingNote && (
-              <p className="mt-1 text-sm text-stone-500">{plan.billingNote}</p>
-            )}
-            {planId === "QUARTER" && (
-              <p className="mt-1 text-sm text-teal-800">
-                Period total: R{charge}
-              </p>
-            )}
             {subscription?.currentPeriodEnd && planId !== "FREE" && (
-              <p className="mt-2 text-sm text-stone-500">
+              <p className="mt-4 text-sm text-stone-500">
                 Access until {format(subscription.currentPeriodEnd, "MMM d, yyyy")}
                 {subscription.cancelAtPeriodEnd ? " (cancels at period end)" : ""}
               </p>
@@ -97,6 +78,10 @@ export default async function BillingPage({
             Featured listing:{" "}
             <strong>{plan.limits.featuredListing ? "Yes" : "No"}</strong>
           </li>
+          <li>
+            Partner seat:{" "}
+            <strong>{plan.limits.partnerSeat ? "Yes" : "Premium only"}</strong>
+          </li>
         </ul>
 
         <div className="mt-8 flex flex-wrap gap-3">
@@ -111,7 +96,7 @@ export default async function BillingPage({
 
       <p className="mt-6 text-center text-xs text-stone-400">
         Paystack activates when <code>PAYSTACK_SECRET_KEY</code> is set. Otherwise upgrades run
-        in demo mode for the plan duration. Apple Pay: enable in Paystack Dashboard → Preferences.
+        in demo mode for the selected period.
       </p>
     </div>
   );

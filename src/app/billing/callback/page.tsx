@@ -2,7 +2,7 @@
 
 /**
  * Paystack redirects here after checkout:
- *   /billing/callback?reference=...&trxref=...&plan=QUARTER
+ *   /billing/callback?reference=...&trxref=...&plan=PLUS&period=QUARTER
  *
  * We verify the transaction server-side, then send the user to the success page.
  */
@@ -19,7 +19,8 @@ function CallbackInner() {
 
   useEffect(() => {
     const reference = sp.get("reference") || sp.get("trxref") || "";
-    const plan = sp.get("plan") || "QUARTER";
+    const plan = sp.get("plan") || "PLUS";
+    const period = sp.get("period") || "QUARTER";
 
     if (!reference) {
       setError("Missing payment reference from Paystack.");
@@ -31,7 +32,7 @@ function CallbackInner() {
         const res = await fetch("/api/billing/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference, planId: plan }),
+          body: JSON.stringify({ reference, planId: plan, period }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -39,7 +40,7 @@ function CallbackInner() {
           return;
         }
         router.replace(
-          `/billing/success?plan=${encodeURIComponent(data.plan || plan)}&reference=${encodeURIComponent(reference)}`
+          `/billing/success?plan=${encodeURIComponent(data.plan || plan)}&period=${encodeURIComponent(data.period || period)}&reference=${encodeURIComponent(reference)}`
         );
       } catch {
         setError("Network error while verifying payment");
