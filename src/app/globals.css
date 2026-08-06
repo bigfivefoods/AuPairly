@@ -42,18 +42,28 @@
   border-color: var(--border);
 }
 
+html {
+  height: 100%;
+  /* Prevent horizontal scroll from full-bleed layouts */
+  overflow-x: clip;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-dm-sans), system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  min-width: 0;
+  /* Dynamic viewport for mobile browser chrome */
+  min-height: 100dvh;
 }
 
 /* PWA standalone: avoid rubber-band overscroll feel on iOS */
-html {
-  height: 100%;
-}
 @media (display-mode: standalone) {
   body {
     min-height: 100dvh;
@@ -61,14 +71,87 @@ html {
   }
 }
 
-/* Comfortable touch targets on small screens */
+/* Images & media never blow out layout */
+img,
+video,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Comfortable touch targets + iOS form zoom fix */
 @media (max-width: 768px) {
   .btn-primary,
-  .btn-secondary {
+  .btn-secondary,
+  .btn-accent {
     min-height: 2.75rem;
+    width: 100%;
+    max-width: 100%;
   }
-  .input-field {
-    font-size: 16px; /* prevent iOS zoom on focus */
+  /* Only full-width buttons in stacked CTA groups, not every icon button */
+  .btn-inline,
+  header .btn-primary,
+  header .btn-secondary,
+  header .btn-accent,
+  nav .btn-primary,
+  nav .btn-secondary {
+    width: auto;
+  }
+  .input-field,
+  input.input-field,
+  textarea.input-field,
+  select.input-field,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    font-size: 16px !important; /* prevent iOS zoom on focus */
+    max-width: 100%;
+  }
+  /* Stack multi-column form grids to single column on narrow phones */
+  .form-grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Horizontal scroll strips (categories, chips) */
+.scroll-x-touch {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-x-touch::-webkit-scrollbar {
+  display: none;
+}
+.scroll-x-touch > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Safe padding utility for fixed bottom UI above home indicator */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.pt-safe {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+/* Mobile main content: avoid content under sticky header + bottom nav */
+@media (max-width: 767px) {
+  .page-pad {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 }
 

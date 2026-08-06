@@ -57,7 +57,7 @@ export function MobileNav() {
               <Link
                 href={href}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] font-semibold transition active:scale-95",
+                  "flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1.5 text-[10px] font-semibold leading-tight transition active:scale-95",
                   active ? "text-teal-700" : "text-stone-500 hover:text-stone-700"
                 )}
               >
@@ -69,7 +69,7 @@ export function MobileNav() {
                 >
                   <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
                 </span>
-                {t(labelKey)}
+                <span className="max-w-full truncate px-0.5">{t(labelKey)}</span>
               </Link>
             </li>
           );

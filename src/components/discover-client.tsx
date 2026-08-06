@@ -129,12 +129,12 @@ export function DiscoverClient({
   }
 
   const filterBar = (
-    <div className="mb-4 flex flex-wrap gap-2">
+    <div className="scroll-x-touch mb-4 -mx-1 px-1 pb-1">
       <button
         type="button"
         onClick={() => setService("")}
         className={cn(
-          "rounded-full px-3 py-1 text-xs font-semibold border transition",
+          "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
           !service
             ? "border-teal-600 bg-teal-600 text-white"
             : "border-stone-200 bg-white text-stone-600 hover:border-teal-300"
@@ -148,7 +148,7 @@ export function DiscoverClient({
           type="button"
           onClick={() => setService(s.id)}
           className={cn(
-            "rounded-full px-3 py-1 text-xs font-semibold border transition",
+            "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
             service === s.id
               ? "border-teal-600 bg-teal-600 text-white"
               : "border-stone-200 bg-white text-stone-600 hover:border-teal-300"
@@ -282,7 +282,7 @@ export function DiscoverClient({
       {error && (
         <p className="mb-4 text-center text-sm text-red-600">{error}</p>
       )}
-      <div className="relative mx-auto h-[520px] w-full max-w-md">
+      <div className="relative mx-auto h-[min(70dvh,520px)] w-full max-w-md sm:h-[520px]">
         {/* Stack shadow cards */}
         {cards.slice(1, 3).map((c, i) => (
           <div
@@ -296,23 +296,28 @@ export function DiscoverClient({
         ))}
 
         <div className="absolute inset-0 z-20 flex flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl">
-          <div className="relative h-64 bg-gradient-to-br from-teal-100 via-orange-50 to-stone-100">
+          <div className="relative h-40 shrink-0 bg-gradient-to-br from-teal-100 via-orange-50 to-stone-100 sm:h-64">
             <div className="absolute inset-0 flex items-center justify-center">
-              <Avatar name={card.name} image={card.image} size="xl" className="!h-28 !w-28 !text-3xl !ring-4 !ring-white shadow-lg" />
+              <Avatar
+                name={card.name}
+                image={card.image}
+                size="xl"
+                className="!h-20 !w-20 !text-2xl !ring-4 !ring-white shadow-lg sm:!h-28 sm:!w-28 sm:!text-3xl"
+              />
             </div>
-            <div className="absolute left-3 top-3 flex gap-2">
+            <div className="absolute left-2 top-2 flex max-w-[70%] flex-wrap gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
               {card.isVerified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-600 px-2.5 py-0.5 text-xs font-semibold text-white">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Verified
+                <span className="inline-flex items-center gap-1 rounded-full bg-teal-600 px-2 py-0.5 text-[10px] font-semibold text-white sm:px-2.5 sm:text-xs">
+                  <BadgeCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Verified
                 </span>
               )}
               {card.isFeatured && (
-                <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white sm:px-2.5 sm:text-xs">
                   Featured
                 </span>
               )}
               {card.placementVerified && (
-                <span className="rounded-full bg-emerald-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+                <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-semibold text-white sm:px-2.5 sm:text-xs">
                   Placement verified
                 </span>
               )}

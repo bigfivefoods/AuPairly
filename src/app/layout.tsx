@@ -80,10 +80,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       dir={dir}
       className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-background text-foreground overscroll-none">
+      <body className="flex min-h-full min-w-0 flex-col bg-background text-foreground overscroll-none">
         <Providers locale={locale}>
           <Navbar />
-          <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+          <main className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0">
             {children}
           </main>
           <Footer />

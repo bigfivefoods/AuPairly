@@ -10,11 +10,11 @@ export function Button({
   variant?: "primary" | "secondary" | "accent" | "ghost" | "danger";
 }) {
   const styles = {
-    primary: "btn-primary",
-    secondary: "btn-secondary",
-    accent: "btn-accent",
-    ghost: "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-semibold text-stone-700 hover:bg-stone-100 transition",
-    danger: "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-semibold bg-red-600 text-white hover:bg-red-700 transition",
+    primary: "btn-primary btn-inline",
+    secondary: "btn-secondary btn-inline",
+    accent: "btn-accent btn-inline",
+    ghost: "btn-inline inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-semibold text-stone-700 hover:bg-stone-100 transition",
+    danger: "btn-inline inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-semibold bg-red-600 text-white hover:bg-red-700 transition",
   };
   return <button className={cn(styles[variant], className)} {...props} />;
 }
@@ -50,7 +50,12 @@ export function Select({ className, children, ...props }: React.SelectHTMLAttrib
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-2xl border border-stone-200/80 bg-white p-6 shadow-[var(--shadow)]", className)}>
+    <div
+      className={cn(
+        "rounded-2xl border border-stone-200/80 bg-white p-4 shadow-[var(--shadow)] sm:p-6",
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -198,17 +203,21 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
+    <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+      <div className="min-w-0">
         {eyebrow && (
-          <p className="mb-1 text-sm font-semibold uppercase tracking-wider text-teal-700">{eyebrow}</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-teal-700 sm:text-sm">
+            {eyebrow}
+          </p>
         )}
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-stone-900 sm:text-3xl md:text-4xl">
           {title}
         </h1>
-        {description && <p className="mt-2 max-w-2xl text-stone-500">{description}</p>}
+        {description && (
+          <p className="mt-2 max-w-2xl text-sm text-stone-500 sm:text-base">{description}</p>
+        )}
       </div>
-      {action}
+      {action && <div className="w-full shrink-0 sm:w-auto">{action}</div>}
     </div>
   );
 }

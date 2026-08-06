@@ -154,7 +154,7 @@ export default async function AuPairDetailPage({
         <ArrowLeft className="h-4 w-4" /> Back to au pairs
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="lg:col-span-2 space-y-6">
           <Card className="!p-0 overflow-hidden">
             <div className="h-36 bg-gradient-to-br from-teal-100 via-teal-50 to-orange-50" />

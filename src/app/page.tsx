@@ -50,20 +50,20 @@ export default async function HomePage() {
       />
 
       {/* Three services */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 sm:text-sm">
             {BRAND.tagline}
           </p>
-          <h2 className="mt-2 font-display text-3xl font-semibold text-stone-900 sm:text-4xl">
+          <h2 className="mt-2 font-display text-2xl font-semibold text-stone-900 sm:text-4xl">
             Four kinds of care. One AuPairly.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-stone-500">
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-stone-500 sm:text-base">
             Book or offer childcare, caregiving, house sitting, and pet sitting — on the same
             trusted marketplace.
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5">
           {SERVICE_LIST.map((s) => {
             const Icon =
               s.icon === "baby"

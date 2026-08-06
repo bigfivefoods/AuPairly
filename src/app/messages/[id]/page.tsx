@@ -68,22 +68,23 @@ export default async function ConversationPage({
   const shared = theirLangs.filter((l) => myLangs.has(l.toLowerCase()));
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-4 flex items-center gap-3">
+    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <div className="mb-3 flex min-w-0 items-center gap-2 sm:mb-4 sm:gap-3">
         <Link
           href="/messages"
-          className="rounded-full p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+          className="shrink-0 rounded-full p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+          aria-label="Back to messages"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <Avatar name={other.name} image={other.image} size="md" />
-        <div>
-          <p className="font-semibold text-stone-900">{other.name}</p>
-          <Badge>{other.role === "AUPAIR" ? "Au pair" : "Family"}</Badge>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-stone-900">{other.name}</p>
+          <Badge>{other.role === "AUPAIR" ? "Sitter" : "Host"}</Badge>
         </div>
         <Link
           href="/placements"
-          className="ml-auto text-xs font-semibold text-teal-700 hover:underline"
+          className="hidden shrink-0 text-xs font-semibold text-teal-700 hover:underline sm:inline"
         >
           Start placement →
         </Link>

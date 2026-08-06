@@ -110,7 +110,7 @@ export default async function FamilyDetailPage({
         <ArrowLeft className="h-4 w-4" /> Back to families
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="lg:col-span-2 space-y-6">
           <Card className="!p-0 overflow-hidden">
             <div className="h-36 bg-gradient-to-br from-orange-100 via-amber-50 to-teal-50" />

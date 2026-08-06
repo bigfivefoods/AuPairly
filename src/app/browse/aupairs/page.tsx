@@ -214,7 +214,7 @@ export default async function BrowseAupairsPage({
             />
             Live-in
           </label>
-          <button type="submit" className="btn-primary shrink-0">
+          <button type="submit" className="btn-primary btn-inline w-full shrink-0 sm:w-auto">
             Search
           </button>
         </div>

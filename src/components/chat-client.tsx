@@ -141,7 +141,7 @@ export function ChatClient({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[var(--shadow)]">
+    <div className="flex h-[min(70dvh,640px)] min-h-[22rem] flex-1 flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[var(--shadow)] sm:h-[min(72dvh,680px)] md:min-h-[28rem]">
       <div className="flex flex-wrap items-center gap-2 border-b border-stone-100 px-3 py-2">
         <button
           type="button"
@@ -253,14 +253,23 @@ export function ChatClient({
           </a>
         </div>
       )}
-      <form onSubmit={send} className="flex gap-2 border-t border-stone-100 p-3 sm:p-4">
+      <form
+        onSubmit={send}
+        className="flex items-end gap-2 border-t border-stone-100 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4"
+      >
         <input
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write a message…"
-          className="input-field flex-1"
+          className="input-field min-w-0 flex-1 !py-2.5 text-base"
+          enterKeyHint="send"
         />
-        <Button type="submit" disabled={loading || !body.trim()} className="shrink-0">
+        <Button
+          type="submit"
+          disabled={loading || !body.trim()}
+          className="btn-inline !min-h-11 !w-11 shrink-0 !rounded-full !px-0"
+          aria-label="Send"
+        >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </form>
