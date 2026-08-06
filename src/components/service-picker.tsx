@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ChipToggle, Label, Textarea } from "@/components/ui";
 import { useI18n } from "@/components/i18n-provider";
-import { serviceLabel } from "@/lib/i18n/dictionaries";
+import { serviceLabel } from "@/lib/i18n/service-label";
 
 const ICONS = {
   baby: Baby,

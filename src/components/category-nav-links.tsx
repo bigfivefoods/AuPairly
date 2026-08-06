@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { SERVICE_LIST, type ServiceId } from "@/lib/services";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/i18n-provider";
-import { serviceLabel } from "@/lib/i18n/dictionaries";
+import { serviceLabel } from "@/lib/i18n/service-label";
 
 /**
  * Category pills — desktop row or mobile horizontal scroll.

@@ -1006,17 +1006,6 @@ export function t(
   return s;
 }
 
-/** Service category labels from the active dictionary */
-export function serviceLabel(
-  dict: Dictionary,
-  id: "CHILDCARE" | "CAREGIVING" | "HOUSE_SITTING" | "PET_SITTING"
-): string {
-  const map = {
-    CHILDCARE: dict.service_childcare,
-    CAREGIVING: dict.service_caregiving,
-    HOUSE_SITTING: dict.service_house_sitting,
-    PET_SITTING: dict.service_pet_sitting,
-  } as const;
-  return map[id];
-}
+// serviceLabel lives in ./service-label.ts (separate module for reliable client bundling)
+export { serviceLabel } from "./service-label";
 

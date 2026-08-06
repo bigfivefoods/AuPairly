@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Globe, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/i18n-provider";
-import { serviceLabel } from "@/lib/i18n/dictionaries";
+import { serviceLabel } from "@/lib/i18n/service-label";
 import { SERVICE_LIST } from "@/lib/services";
 import { LOCALES, LOCALE_META, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
