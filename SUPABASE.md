@@ -74,6 +74,18 @@ Then redeploy.
 
 **Table Editor** should show tables like `User`, `AuPairProfile`, `FamilyProfile`, `Message`, etc. after migrate + seed.
 
+## API keys (public)
+
+Project **API** settings (not the same as Database URL):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://bpbxjzgzyfbpkujrfzks.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+These power `@supabase/supabase-js` helpers in `src/lib/supabase/`.  
+They **cannot** replace `DATABASE_URL` / `DIRECT_URL` for Prisma tables.
+
 ## Optional later
 
 - Supabase Storage for profile photos (today uploads use local/data-URL fallback)
