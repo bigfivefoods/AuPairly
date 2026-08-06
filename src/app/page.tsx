@@ -106,18 +106,22 @@ export default async function HomePage() {
             trusted marketplace.
           </p>
         </div>
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 lg:gap-6">
           {SERVICE_LIST.map((s) => {
             const Icon = s.icon === "baby" ? Baby : s.icon === "home" ? Home : PawPrint;
             return (
               <Link
                 key={s.id}
                 href={`/${s.slug}`}
-                className={`group rounded-3xl border-2 p-6 transition hover:shadow-lg ${s.bg}`}
+                className={`group flex h-full min-h-0 flex-col rounded-3xl border-2 p-5 sm:p-6 transition hover:shadow-lg ${s.bg}`}
               >
-                <Icon className={`h-8 w-8 ${s.color}`} />
-                <h3 className={`mt-4 font-display text-xl font-semibold ${s.color}`}>{s.name}</h3>
-                <p className="mt-2 text-sm text-stone-600 leading-relaxed">{s.description}</p>
+                <Icon className={`h-7 w-7 shrink-0 sm:h-8 sm:w-8 ${s.color}`} />
+                <h3 className={`mt-3 font-display text-lg font-semibold sm:mt-4 sm:text-xl ${s.color}`}>
+                  {s.name}
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-stone-600">
+                  {s.description}
+                </p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800 transition-all group-hover:gap-2">
                   Open {s.shortName.toLowerCase()} <ArrowRight className="h-4 w-4" />
                 </span>
