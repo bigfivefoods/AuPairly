@@ -1,9 +1,9 @@
 /**
- * Top 5 languages by total speakers (common global ranking).
- * English · Mandarin Chinese · Hindi · Spanish · French
+ * Top languages by total speakers (common global ranking).
+ * EN · ZH · HI · ES · FR · AR · BN · PT
  */
 
-export const LOCALES = ["en", "zh", "hi", "es", "fr"] as const;
+export const LOCALES = ["en", "zh", "hi", "es", "fr", "ar", "bn", "pt"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "en";
@@ -18,6 +18,9 @@ export const LOCALE_META: Record<
   hi: { name: "Hindi", nativeName: "हिन्दी", dir: "ltr", flag: "🇮🇳" },
   es: { name: "Spanish", nativeName: "Español", dir: "ltr", flag: "🇪🇸" },
   fr: { name: "French", nativeName: "Français", dir: "ltr", flag: "🇫🇷" },
+  ar: { name: "Arabic", nativeName: "العربية", dir: "rtl", flag: "🇸🇦" },
+  bn: { name: "Bengali", nativeName: "বাংলা", dir: "ltr", flag: "🇧🇩" },
+  pt: { name: "Portuguese", nativeName: "Português", dir: "ltr", flag: "🇧🇷" },
 };
 
 export function isLocale(v: unknown): v is Locale {
