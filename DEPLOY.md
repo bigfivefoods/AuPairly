@@ -1,94 +1,115 @@
 # Deploy AuPairly (Postgres + Vercel + aupairly.me)
 
-## 1. Database (Prisma Postgres)
+## Status
 
-A free **Prisma Postgres** instance was provisioned for this project.
+| Piece | Status |
+|-------|--------|
+| App code | ✅ GitHub: https://github.com/bigfivefoods/AuPairly |
+| Database | ✅ Prisma Postgres (claim to keep permanent) |
+| Vercel project | ✅ Created: **aupairly** (`prj_Xkd1WRxncxzJRvTp6FrY7s4l2VcG`) |
+| Production URL | https://aupairly-bigfivefoods-projects.vercel.app |
+| Full app on Vercel | ⚠️ Connect GitHub + set env (steps below) |
+| Domain www.aupairly.me | ⚠️ Add in Vercel Domains |
 
-**Important:** temporary DBs auto-delete unless claimed. Open the claim URL and attach it to your Prisma Data Platform account for a permanent database:
+---
 
-👉 **Claim permanent database:**  
-https://create-db.prisma.io/claim?projectID=proj_xn4un7x3sl8rsocpibmmskvg&utm_source=create-db&utm_medium=cli
+## 1. Claim permanent Postgres (do this first)
 
-After claiming, copy the production `DATABASE_URL` from the Prisma dashboard and set it in Vercel (and local `.env`).
+Temporary DBs auto-delete. **Claim now:**
 
-### Alternatives
+👉 https://create-db.prisma.io/claim?projectID=proj_xn4un7x3sl8rsocpibmmskvg&utm_source=create-db&utm_medium=cli
 
-- [Neon](https://neon.tech) free Postgres  
-- [Supabase](https://supabase.com)  
-- Vercel Marketplace → Neon / Prisma Postgres  
+Copy the production `DATABASE_URL` from the Prisma dashboard after claiming.
 
-```bash
-# Local
-export DATABASE_URL="postgresql://..."
-npx prisma migrate deploy
-npm run db:seed
-```
+---
 
-## 2. Vercel project
+## 2. Finish Vercel setup (5 minutes)
 
-```bash
-npx vercel login
-npx vercel link   # project name: aupairly
-```
+### A. Import GitHub repo into the existing project
 
-Set environment variables (Production + Preview):
+1. Open https://vercel.com/bigfivefoods-projects/aupairly/settings/git  
+2. Connect repository: **bigfivefoods/AuPairly** (branch `main`)  
+3. Or one-click re-import:  
+   https://vercel.com/new/clone?repository-url=https://github.com/bigfivefoods/AuPairly&project-name=aupairly&repository-name=AuPairly
+
+### B. Environment variables
+
+**Project → Settings → Environment Variables** (Production + Preview):
 
 | Name | Value |
 |------|--------|
-| `DATABASE_URL` | Postgres connection string |
-| `AUTH_SECRET` | `openssl rand -base64 32` |
-| `AUTH_URL` | `https://www.aupairly.me` (or your `*.vercel.app` URL until domain is live) |
+| `DATABASE_URL` | Postgres URL from step 1 |
+| `AUTH_SECRET` | run: `openssl rand -base64 32` |
+| `AUTH_URL` | `https://aupairly-bigfivefoods-projects.vercel.app` (update after custom domain) |
 | `NEXT_PUBLIC_SITE_URL` | same as `AUTH_URL` |
 | `NEXT_PUBLIC_SITE_NAME` | `AuPairly` |
-| `AUTO_VERIFY` | `true` (demo) or `false` (admin queue) |
+| `AUTO_VERIFY` | `true` for demo / `false` for admin queue |
 
-```bash
-npx vercel env add DATABASE_URL production
-# …repeat for each var
+### C. Redeploy
 
-npx vercel --prod
-npm run db:seed   # against production DATABASE_URL once
+**Deployments → Redeploy** latest, or push to `main`.
+
+Build command (already in `vercel.json`):
+
+```
+prisma generate && prisma migrate deploy && next build
 ```
 
-Build runs: `prisma generate && prisma migrate deploy && next build`.
+### D. Seed production data
 
-## 3. Custom domain www.aupairly.me
+```bash
+export DATABASE_URL="postgresql://..."   # production URL
+npm run db:seed
+```
 
-In **Vercel → Project → Settings → Domains**:
+Demo logins: `parent@demo.aupairly.me` / `demo1234` (also admin & aupair).
 
-1. Add `aupairly.me` and `www.aupairly.me`
-2. Prefer apex → www redirect (or reverse)
-3. At your DNS host, point:
+---
+
+## 3. Domain www.aupairly.me
+
+1. Vercel → Project **aupairly** → **Settings → Domains**  
+2. Add `aupairly.me` and `www.aupairly.me`  
+3. DNS at your registrar:
 
 | Type | Name | Value |
 |------|------|--------|
-| A | `@` | `76.76.21.21` (Vercel) |
+| A | `@` | `76.76.21.21` |
 | CNAME | `www` | `cname.vercel-dns.com` |
 
-Or use the exact records Vercel shows for your project.
+(Use the exact records Vercel shows if different.)
 
-Then set:
+4. Update env:
 
 ```
 AUTH_URL=https://www.aupairly.me
 NEXT_PUBLIC_SITE_URL=https://www.aupairly.me
 ```
 
-Redeploy production.
+5. Redeploy production.
 
-## 4. Post-deploy checklist
+---
 
-- [ ] Claim Prisma Postgres (link above)  
-- [ ] Open `https://www.aupairly.me` (or Vercel URL)  
-- [ ] Log in: `parent@demo.aupairly.me` / `demo1234`  
-- [ ] Upload a profile photo  
-- [ ] Set `AUTO_VERIFY=false` when ready for real admin review  
-- [ ] Optional: Resend for password-reset emails  
+## 4. CLI alternative (with token)
 
-## Demo accounts (after seed)
+```bash
+# https://vercel.com/account/tokens
+export VERCEL_TOKEN=...
+export VERCEL_SCOPE=bigfivefoods-projects
+./scripts/vercel-deploy.sh
+```
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@demo.aupairly.me | demo1234 |
-| Parent | parent@demo.aupairly.me | demo1234 |
-| Au pair | aupair@demo.aupairly.me | demo1234 |
+---
+
+## Local development (Postgres)
+
+```bash
+cp .env.example .env
+# set DATABASE_URL to your Postgres URL
+npm install
+npx prisma migrate deploy
+npm run db:seed
+npm run dev
+```
+
+Stack is **PostgreSQL only** (Prisma 7 + `@prisma/adapter-pg`).
