@@ -33,7 +33,7 @@ export function SiteNavbar({
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-stone-200/70 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]"
+      className="sticky top-0 z-[100] border-b border-stone-200/70 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]"
       data-locale={locale}
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">

@@ -45,7 +45,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(28,25,23,0.06)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-[90] border-t border-stone-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(28,25,23,0.06)] backdrop-blur-md md:hidden"
       aria-label={t("nav_home")}
       data-locale={locale}
     >
