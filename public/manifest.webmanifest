@@ -1,17 +1,60 @@
 {
   "name": "AuPairly",
   "short_name": "AuPairly",
-  "description": "Verified au pairs and host families — match, message, place.",
-  "start_url": "/",
+  "description": "Verified au pairs and host families worldwide — match, message, place.",
+  "start_url": "/dashboard?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#faf8f5",
   "theme_color": "#0f766e",
   "lang": "en",
+  "categories": ["lifestyle", "social"],
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Discover",
+      "short_name": "Discover",
+      "url": "/discover",
+      "description": "Swipe to match"
+    },
+    {
+      "name": "Messages",
+      "short_name": "Chat",
+      "url": "/messages",
+      "description": "Open conversations"
+    },
+    {
+      "name": "Browse",
+      "short_name": "Browse",
+      "url": "/browse/aupairs",
+      "description": "Search listings"
+    }
+  ],
+  "prefer_related_applications": false
 }

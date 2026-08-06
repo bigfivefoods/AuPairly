@@ -13,6 +13,7 @@ import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Avatar, Badge, Card, PageHeader, VerifiedBadge } from "@/components/ui";
 import { CompletenessCoach } from "@/components/completeness-coach";
+import { PushSettingsCard } from "@/components/pwa-provider";
 import { responseTimeLabel } from "@/lib/completeness";
 
 export const dynamic = "force-dynamic";
@@ -246,6 +247,12 @@ export default async function DashboardPage() {
               desc="Unlimited likes, messages & boosts"
             />
             <Action
+              href="/settings/notifications"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="App & push alerts"
+              desc="Install PWA · enable message notifications"
+            />
+            <Action
               href="/placements"
               icon={<Sparkles className="h-5 w-5" />}
               title="Placements"
@@ -308,6 +315,8 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
+        <div className="space-y-4">
+        <PushSettingsCard />
         <Card>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-teal-600" />
@@ -334,6 +343,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </Card>
+        </div>
       </div>
       </>
       )}

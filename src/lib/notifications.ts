@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendPushToUser } from "@/lib/push";
 
 export type NotificationType =
   | "MESSAGE"
@@ -16,8 +17,10 @@ export async function createNotification(opts: {
   body: string;
   href?: string;
   meta?: Record<string, unknown>;
+  /** When true (default), also attempt web push */
+  push?: boolean;
 }) {
-  return prisma.notification.create({
+  const row = await prisma.notification.create({
     data: {
       userId: opts.userId,
       type: opts.type,
@@ -27,6 +30,17 @@ export async function createNotification(opts: {
       meta: opts.meta ? JSON.stringify(opts.meta) : null,
     },
   });
+
+  if (opts.push !== false) {
+    void sendPushToUser(opts.userId, {
+      title: opts.title,
+      body: opts.body,
+      href: opts.href || "/dashboard",
+      tag: opts.type.toLowerCase(),
+    }).catch((e) => console.error("[push] notify", e));
+  }
+
+  return row;
 }
 
 export async function unreadNotificationCount(userId: string) {

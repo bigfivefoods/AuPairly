@@ -106,6 +106,7 @@ model User {
   applicationsReceived ApplicationPacket[] @relation("AppsReceived")
   interviewProposals  InterviewProposal[] @relation("InterviewFrom")
   boostEvents         BoostEvent[]
+  pushSubscriptions   PushSubscription[]
 }
 
 model AuPairProfile {
@@ -642,4 +643,19 @@ model BoostEvent {
   messages  Int      @default(0)
 
   @@index([userId, endsAt])
+}
+
+/// Web Push subscriptions (PWA notifications)
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

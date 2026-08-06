@@ -28,5 +28,6 @@ export const config = {
     "/saved-searches/:path*",
     "/applications/:path*",
     "/household/:path*",
+    "/settings/:path*",
   ],
 };
