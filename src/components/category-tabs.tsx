@@ -123,19 +123,4 @@ export function CategoryTabs({
   );
 }
 
-/** Compact nav pills for header */
-export function CategoryNavLinks({ className }: { className?: string }) {
-  return (
-    <div className={cn("flex flex-wrap items-center gap-0.5", className)}>
-      {SERVICE_LIST.map((s) => (
-        <Link
-          key={s.id}
-          href={`/${s.slug}`}
-          className="rounded-full px-2 py-1 text-xs font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-teal-800 lg:px-2.5"
-        >
-          {s.shortName}
-        </Link>
-      ))}
-    </div>
-  );
-}
+// CategoryNavLinks lives in category-nav-links.tsx (server component) to avoid SSR hydration issues.

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { Avatar } from "@/components/ui";
 import { NotificationBell } from "@/components/notification-bell";
-import { CategoryNavLinks } from "@/components/category-tabs";
+import { CategoryNavLinks } from "@/components/category-nav-links";
 import { BrandWordmark } from "@/components/brand-wordmark";
 import { Heart, MessageCircle, Menu } from "lucide-react";
 
@@ -119,7 +119,7 @@ export function Footer() {
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-sm font-bold text-white">
                 A
               </span>
-              <span className="font-display text-lg font-semibold">AuPairly</span>
+              <BrandWordmark className="text-lg font-semibold text-stone-900" />
             </div>
             <p className="mt-3 text-sm leading-relaxed text-stone-500">
               Trusted care for your family, loved ones, home &amp; pets — childcare, caregiving,
