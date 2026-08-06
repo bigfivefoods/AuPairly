@@ -6,12 +6,12 @@
 |------|--------|
 | GitHub → Vercel connected | ✅ Deploys on push to `main` |
 | Latest production deploy | ✅ Build READY |
-| Supabase DB + seed data | ✅ Working |
-| Vercel env vars (Supabase DB) | ⚠️ Must set → site currently **500** without them |
-| Domain `www.aupairly.me` | ⚠️ Added on project, **DNS not live** (domain not resolving) |
+| Supabase DB + seed data | ✅ Working (local / Codespace) |
+| Vercel env vars (Supabase DB) | ⚠️ **Still missing** → listings show “database not configured” |
+| Domain `www.aupairly.me` | ✅ Live |
 
-Live app URL (works after env vars):  
-https://aupairly-orcin.vercel.app  
+**Public site:** https://www.aupairly.me  
+**Vercel alias:** https://aupairly-orcin.vercel.app  
 
 ---
 
