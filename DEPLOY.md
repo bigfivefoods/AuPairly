@@ -1,4 +1,6 @@
-# Deploy AuPairly (Postgres + Vercel + aupairly.me)
+# Deploy AuPairly (Supabase + Vercel + aupairly.me)
+
+> **Database:** use **Supabase Postgres** (see [SUPABASE.md](./SUPABASE.md)). You do not need Prisma Postgres or Neon.
 
 ## Status
 

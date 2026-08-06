@@ -25,16 +25,20 @@ AuPairly is an Airbnb-style platform where:
 ## Tech stack
 
 - **Next.js 16** (App Router) + TypeScript + Tailwind CSS v4
-- **Prisma 7** + SQLite (local) — use Postgres on Vercel
+- **Prisma 7** + **Supabase Postgres** (preferred)
 - **Auth.js (next-auth v5)** credentials provider
 - **bcryptjs**, **Zod**, optional **Resend** for email
 
-## Quick start
+## Quick start (Supabase)
+
+1. Create a free project at [supabase.com](https://supabase.com/dashboard)  
+2. Copy **Transaction** + **Direct** connection strings (see [SUPABASE.md](./SUPABASE.md))
 
 ```bash
 npm install
-cp .env.example .env   # if needed
-npx prisma migrate dev
+cp .env.example .env
+# paste DATABASE_URL (pooler :6543) and DIRECT_URL (:5432) into .env
+npx prisma migrate deploy
 npm run db:seed
 npm run dev
 ```
@@ -87,7 +91,8 @@ See `.env.example`:
 
 | Variable | Purpose |
 |----------|---------|
-| `DATABASE_URL` | SQLite `file:./dev.db` or Postgres URL |
+| `DATABASE_URL` | Supabase **Transaction** pooler URL (port **6543**) |
+| `DIRECT_URL` | Supabase **Direct/Session** URL (port **5432**, for migrations) |
 | `AUTH_SECRET` | Auth.js secret (`openssl rand -base64 32`) |
 | `AUTH_URL` / `NEXT_PUBLIC_SITE_URL` | Site origin |
 | `AUTO_VERIFY` | `true` (demo auto-approve) or `false` (admin queue) |
@@ -96,7 +101,7 @@ See `.env.example`:
 
 ## Deploy to Vercel → aupairly.me
 
-**Full steps:** see **[DEPLOY.md](./DEPLOY.md)** (claim Postgres, connect GitHub, env vars, domain).
+**Database:** [SUPABASE.md](./SUPABASE.md) · **Deploy:** [DEPLOY.md](./DEPLOY.md)
 
 Quick links:
 
@@ -104,10 +109,10 @@ Quick links:
 |----------|-----|
 | GitHub | https://github.com/bigfivefoods/AuPairly |
 | Vercel project | https://vercel.com/bigfivefoods-projects/aupairly |
-| Claim Postgres | https://create-db.prisma.io/claim?projectID=proj_xn4un7x3sl8rsocpibmmskvg |
+| Supabase dashboard | https://supabase.com/dashboard |
 | One-click import | https://vercel.com/new/clone?repository-url=https://github.com/bigfivefoods/AuPairly&project-name=aupairly |
 
-Stack uses **PostgreSQL** (`@prisma/adapter-pg`). Build runs migrations automatically.
+Stack uses **Supabase PostgreSQL** via Prisma (`@prisma/adapter-pg`). Build runs migrations automatically.
 
 ### Photo storage note
 
@@ -124,7 +129,8 @@ Uploads go to `public/uploads/{userId}/` on disk. On Vercel’s ephemeral filesy
 - [x] PostgreSQL + Prisma adapter  
 - [x] Vercel project created (`aupairly`)  
 - [x] GitHub repo + deploy docs  
-- [ ] Claim permanent Postgres  
+- [ ] Create Supabase project + set `DATABASE_URL` / `DIRECT_URL`  
+- [ ] `prisma migrate deploy` + `db:seed`  
 - [ ] Connect GitHub → Vercel + set env + redeploy  
 - [ ] Attach www.aupairly.me (register or point DNS)  
 - [ ] Real KYC / Resend emails (optional next)  

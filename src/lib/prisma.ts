@@ -6,9 +6,13 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
+  // Prefer pooled Supabase URL in the app (port 6543). Fall back to DATABASE_URL / DIRECT_URL.
+  const connectionString =
+    process.env.DATABASE_URL || process.env.DIRECT_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL is not set");
+    throw new Error(
+      "DATABASE_URL is not set. Add your Supabase connection string to .env (see .env.example)."
+    );
   }
   const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
