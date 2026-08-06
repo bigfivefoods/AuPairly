@@ -5,12 +5,18 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { sendWelcomeEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notifications";
+import {
+  isPrivyConfigured,
+  verifyPrivyEmailAccess,
+} from "@/lib/privy";
 
 const schema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
   password: z.string().min(8).max(100),
   role: z.enum(["AUPAIR", "PARENT"]),
+  /** Privy access token after successful email OTP */
+  privyAccessToken: z.string().min(10).optional(),
 });
 
 export async function POST(req: Request) {
@@ -27,9 +33,48 @@ export async function POST(req: Request) {
     const data = schema.parse(body);
     const email = data.email.toLowerCase();
 
+    // Require Privy email verification in production (when configured)
+    const privyRequired =
+      isPrivyConfigured() && process.env.PRIVY_EMAIL_VERIFY_REQUIRED !== "false";
+
+    let privyUserId: string | null = null;
+
+    if (privyRequired) {
+      if (!data.privyAccessToken) {
+        return NextResponse.json(
+          {
+            error:
+              "Please verify your email with the one-time code before creating an account.",
+          },
+          { status: 400 }
+        );
+      }
+      try {
+        const verified = await verifyPrivyEmailAccess({
+          accessToken: data.privyAccessToken,
+          email,
+        });
+        privyUserId = verified.privyUserId;
+      } catch (e) {
+        console.error("[register] privy verify failed", e);
+        return NextResponse.json(
+          {
+            error:
+              e instanceof Error
+                ? e.message
+                : "Email verification failed. Request a new code and try again.",
+          },
+          { status: 401 }
+        );
+      }
+    }
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: "An account with this email already exists." }, { status: 400 });
+      return NextResponse.json(
+        { error: "An account with this email already exists." },
+        { status: 400 }
+      );
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
@@ -40,6 +85,7 @@ export async function POST(req: Request) {
         email,
         passwordHash,
         role: data.role,
+        emailVerified: privyUserId ? new Date() : null,
         ...(data.role === "AUPAIR"
           ? {
               aupairProfile: {
@@ -61,7 +107,7 @@ export async function POST(req: Request) {
               },
             }),
       },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, emailVerified: true },
     });
 
     await createNotification({
@@ -78,10 +124,16 @@ export async function POST(req: Request) {
       role: user.role,
     }).catch((e) => console.error("[email] welcome", e));
 
-    return NextResponse.json({ user }, { status: 201 });
+    return NextResponse.json(
+      { user, emailVerified: Boolean(user.emailVerified), privyUserId },
+      { status: 201 }
+    );
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: err.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+      return NextResponse.json(
+        { error: err.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
     }
     console.error(err);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });
