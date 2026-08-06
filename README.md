@@ -96,18 +96,18 @@ See `.env.example`:
 
 ## Deploy to Vercel → aupairly.me
 
-1. Import the repo into Vercel (or use CLI: `npx vercel`).
-2. `vercel.json` already sets framework + `prisma generate && next build`.
-3. **Production database:** use Postgres (Neon, Supabase, or Vercel Postgres).  
-   - Change `provider` in `prisma/schema.prisma` to `postgresql`  
-   - Install `@prisma/adapter-pg` + `pg` and update `src/lib/prisma.ts`  
-   - Set `DATABASE_URL` in Vercel project settings  
-   - Run migrations against prod: `npx prisma migrate deploy`
-4. Set env vars: `AUTH_SECRET`, `AUTH_URL=https://www.aupairly.me`, `NEXT_PUBLIC_SITE_URL`, `AUTO_VERIFY=false`.
-5. Attach domain **www.aupairly.me** in Vercel → Domains.
-6. Optional: `RESEND_API_KEY` for password-reset emails.
+**Full steps:** see **[DEPLOY.md](./DEPLOY.md)** (claim Postgres, connect GitHub, env vars, domain).
 
-> SQLite + `better-sqlite3` is for local demos. Serverless hosts need Postgres (or a persistent disk).
+Quick links:
+
+| Resource | URL |
+|----------|-----|
+| GitHub | https://github.com/bigfivefoods/AuPairly |
+| Vercel project | https://vercel.com/bigfivefoods-projects/aupairly |
+| Claim Postgres | https://create-db.prisma.io/claim?projectID=proj_xn4un7x3sl8rsocpibmmskvg |
+| One-click import | https://vercel.com/new/clone?repository-url=https://github.com/bigfivefoods/AuPairly&project-name=aupairly |
+
+Stack uses **PostgreSQL** (`@prisma/adapter-pg`). Build runs migrations automatically.
 
 ### Photo storage note
 
@@ -120,11 +120,14 @@ Uploads go to `public/uploads/{userId}/` on disk. On Vercel’s ephemeral filesy
 - [x] Reviews after messaging  
 - [x] Admin verification queue (`AUTO_VERIFY=false`)  
 - [x] Abuse reports  
-- [x] Rate limiting (register, upload, password, reviews)  
-- [x] Vercel config  
-- [ ] Postgres + Blob storage on production  
-- [ ] Real KYC (Persona / Stripe Identity)  
-- [ ] Email magic links  
+- [x] Rate limiting  
+- [x] PostgreSQL + Prisma adapter  
+- [x] Vercel project created (`aupairly`)  
+- [x] GitHub repo + deploy docs  
+- [ ] Claim permanent Postgres  
+- [ ] Connect GitHub → Vercel + set env + redeploy  
+- [ ] Attach www.aupairly.me (register or point DNS)  
+- [ ] Real KYC / Resend emails (optional next)  
 
 ## License
 
