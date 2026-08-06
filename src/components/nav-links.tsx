@@ -17,11 +17,8 @@ export function MainNavLinks({ className = "" }: { className?: string }) {
   return (
     <nav className={cn("items-center gap-1", className)}>
       {MAIN_LINKS.map(({ href, label }) => {
-        const active =
-          pathname === href ||
-          (href !== "/" && pathname.startsWith(href + "/")) ||
-          // Sitters browse without treating service landings as sitters
-          (href === "/browse/aupairs" && pathname.startsWith("/browse/aupairs"));
+        // Exact match or nested path (e.g. /browse/aupairs/xyz)
+        const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             key={href}
