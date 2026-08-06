@@ -10,6 +10,9 @@ cd "$(dirname "$0")/.."
 
 TEAM_SCOPE="${VERCEL_SCOPE:-bigfivefoods-projects}"
 PROJECT="${VERCEL_PROJECT:-aupairly}"
+# Confirmed production project
+export VERCEL_PROJECT_ID="${VERCEL_PROJECT_ID:-prj_Xkd1WRxncxzJRvTp6FrY7s4l2VcG}"
+export VERCEL_ORG_ID="${VERCEL_ORG_ID:-team_oGAZjNJBveFmWZpLsHDCVVhK}"
 TOKEN_FLAG=()
 if [[ -n "${VERCEL_TOKEN:-}" ]]; then
   TOKEN_FLAG=(--token "$VERCEL_TOKEN")

@@ -17,11 +17,15 @@
 
 ## Step 1 — Add environment variables on Vercel (required)
 
+**Project:** `aupairly` · **ID:** `prj_Xkd1WRxncxzJRvTp6FrY7s4l2VcG` · **Team:** `team_oGAZjNJBveFmWZpLsHDCVVhK`
+
 1. Open: https://vercel.com/bigfivefoods-projects/aupairly/settings/environment-variables  
 2. Add **each** key below for **Production** and **Preview**  
 3. Ensure they apply to **Build** and **Runtime**
 
 You can also open the local file **`vercel-env-to-paste.env`** (in your project root; not on GitHub) and copy values from there.
+
+Or with a token: `export VERCEL_TOKEN=… && ./scripts/set-vercel-env.sh`
 
 | Name | What it is |
 |------|------------|
