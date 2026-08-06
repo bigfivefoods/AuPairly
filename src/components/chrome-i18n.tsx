@@ -82,6 +82,16 @@ export function FooterI18n() {
                 </Link>
               </li>
               <li>
+                <Link href="/terms" className="hover:text-teal-700">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/disclaimer" className="hover:text-teal-700">
+                  Disclaimer &amp; liability
+                </Link>
+              </li>
+              <li>
                 <Link href="/privacy" className="hover:text-teal-700">
                   {t("footer_privacy")}
                 </Link>

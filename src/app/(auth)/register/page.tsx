@@ -18,9 +18,14 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!acceptTerms) {
+      setError("Please accept the Terms of Service and Platform Disclaimer to continue.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -134,10 +139,44 @@ function RegisterForm() {
             placeholder="At least 8 characters"
           />
         </div>
+        <label className="flex items-start gap-2.5 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            checked={acceptTerms}
+            onChange={(e) => setAcceptTerms(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 rounded border-stone-300 text-teal-600"
+            required
+          />
+          <span>
+            I agree to the{" "}
+            <Link href="/terms" className="font-semibold text-teal-700 hover:underline" target="_blank">
+              Terms of Service
+            </Link>
+            ,{" "}
+            <Link
+              href="/disclaimer"
+              className="font-semibold text-teal-700 hover:underline"
+              target="_blank"
+            >
+              Platform Disclaimer
+            </Link>
+            , and{" "}
+            <Link href="/privacy" className="font-semibold text-teal-700 hover:underline" target="_blank">
+              Privacy Policy
+            </Link>
+            . I understand AuPairly is a marketplace only and is not liable for how users use the
+            site or for arrangements between members.
+          </span>
+        </label>
         {error && (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         )}
-        <Button type="submit" disabled={loading} className="w-full" variant={role === "AUPAIR" ? "accent" : "primary"}>
+        <Button
+          type="submit"
+          disabled={loading || !acceptTerms}
+          className="w-full"
+          variant={role === "AUPAIR" ? "accent" : "primary"}
+        >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           Create {role === "PARENT" ? "parent" : "au pair"} account
         </Button>

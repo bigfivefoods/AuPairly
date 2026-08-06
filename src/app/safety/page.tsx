@@ -28,6 +28,23 @@ export default function SafetyPage() {
         description="Every category on AuPairly — childcare, caregiving, house sitting, and pet sitting — starts with identity confidence, not just a nice bio."
       />
 
+      <Card className="mb-8 border-stone-300 bg-stone-50">
+        <p className="text-sm font-semibold text-stone-900">Legal notice</p>
+        <p className="mt-2 text-sm leading-relaxed text-stone-600">
+          AuPairly is a marketplace platform only. We do not employ users, supervise placements,
+          or guarantee safety or outcomes. You use the site and deal with other members at your
+          own risk. See our{" "}
+          <Link href="/terms" className="font-semibold text-teal-700 hover:underline">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="/disclaimer" className="font-semibold text-teal-700 hover:underline">
+            Platform Disclaimer
+          </Link>{" "}
+          for full limitation of liability and indemnities.
+        </p>
+      </Card>
+
       <div className="grid gap-6 sm:grid-cols-2">
         {[
           {
