@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input, Label, PageHeader, Textarea, Badge } from "@/components/ui";
+import { ContactUs } from "@/components/contact-us";
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<
@@ -44,11 +45,20 @@ export default function SupportPage() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <PageHeader
         eyebrow="Help"
-        title="Priority support"
-        description="Plus & Premium members can open tickets. Free users — upgrade for faster help."
+        title="Contact us & support"
+        description="Email or WhatsApp anytime. Plus & Premium members can also open in-app tickets."
       />
+
+      <ContactUs className="mb-8" />
+
       <Card>
-        <form onSubmit={submit} className="space-y-3">
+        <h3 className="font-display text-lg font-semibold text-stone-900">
+          In-app support ticket
+        </h3>
+        <p className="mt-1 text-sm text-stone-500">
+          Priority tickets for Plus &amp; Premium. Free users can still email or WhatsApp us above.
+        </p>
+        <form onSubmit={submit} className="mt-4 space-y-3">
           <div>
             <Label>Subject</Label>
             <Input value={subject} onChange={(e) => setSubject(e.target.value)} required />

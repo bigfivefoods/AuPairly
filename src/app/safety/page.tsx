@@ -130,8 +130,11 @@ export default function SafetyPage() {
               you to leave the platform immediately or send money, stop and report.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
+              <Link href="/contact" className="btn-secondary text-sm">
+                Contact us
+              </Link>
               <Link href="/support" className="btn-secondary text-sm">
-                Contact support
+                Support tickets
               </Link>
               <Link href="/verification" className="btn-primary text-sm">
                 Get verified

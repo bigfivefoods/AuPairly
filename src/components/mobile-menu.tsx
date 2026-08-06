@@ -63,6 +63,7 @@ export function MobileMenu({
     { href: "/pricing", label: t("nav_pricing") },
     { href: "/how-it-works", label: t("footer_how") },
     { href: "/safety", label: t("footer_safety") },
+    { href: "/contact", label: "Contact us" },
   ];
 
   const drawer =

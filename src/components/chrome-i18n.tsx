@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart } from "lucide-react";
 import { BrandWordmark } from "@/components/brand-wordmark";
 import { useI18n } from "@/components/i18n-provider";
+import { ContactUs } from "@/components/contact-us";
 
 export function NavbarAuthLabels({
   part,
@@ -111,6 +112,11 @@ export function FooterI18n() {
                 </Link>
               </li>
               <li>
+                <Link href="/contact" className="hover:text-teal-700">
+                  Contact us
+                </Link>
+              </li>
+              <li>
                 <Link href="/support" className="hover:text-teal-700">
                   {t("footer_support")}
                 </Link>
@@ -121,6 +127,9 @@ export function FooterI18n() {
                 </Link>
               </li>
             </ul>
+            <div className="mt-5">
+              <ContactUs compact />
+            </div>
           </div>
         </div>
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-stone-100 pt-6 text-sm text-stone-400 sm:flex-row">

@@ -20,4 +20,10 @@ export const BRAND = {
   ogTitle: "AuPairly — Trusted care for your family, loved ones, home & pets",
   /** What the tagline covers (for marketing copy) */
   covers: ["Children", "Elderly / people needing care", "Homes", "Pets"] as const,
+  /** Public contact */
+  email: "hello@aupairly.me",
+  emailHref: "mailto:hello@aupairly.me",
+  whatsapp: "+27 82 581 4215",
+  whatsappE164: "27825814215",
+  whatsappHref: "https://wa.me/27825814215",
 } as const;

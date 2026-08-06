@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { PageHeader, Card } from "@/components/ui";
+import { BRAND } from "@/lib/brand";
 
 export const metadata = { title: "Privacy (POPIA)" };
 
@@ -12,8 +14,24 @@ export default function PrivacyPage() {
       />
       <Card className="space-y-4 text-sm leading-relaxed text-stone-600">
         <p>
-          <strong>Responsible party:</strong> AuPairly (aupairly.me). Contact via your account support
-          ticket or the email on your invoice / registration.
+          <strong>Responsible party:</strong> AuPairly ({BRAND.domain}). Contact us at{" "}
+          <a href={BRAND.emailHref} className="font-semibold text-teal-700 hover:underline">
+            {BRAND.email}
+          </a>
+          {" · "}
+          <a
+            href={BRAND.whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-teal-700 hover:underline"
+          >
+            WhatsApp {BRAND.whatsapp}
+          </a>
+          {" · "}
+          <Link href="/contact" className="font-semibold text-teal-700 hover:underline">
+            Contact page
+          </Link>
+          .
         </p>
         <p>
           <strong>What we collect:</strong> account details, profile content, verification documents
@@ -35,7 +53,11 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong>Security:</strong> passwords hashed, HTTPS, role-based admin access, document vault
-          links controlled by you. Report incidents via Priority support (Plus/Premium).
+          links controlled by you. Report incidents via{" "}
+          <Link href="/contact" className="font-semibold text-teal-700 hover:underline">
+            Contact us
+          </Link>{" "}
+          or Priority support (Plus/Premium).
         </p>
         <p className="text-xs text-stone-400">
           This summary is not formal legal advice. Update with counsel before processing large volumes
