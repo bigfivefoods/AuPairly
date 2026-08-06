@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Badge, Button, Card } from "@/components/ui";
-import { PLACEMENT_LABELS } from "@/lib/safety";
+import { PLACEMENT_LABELS } from "@/lib/placement-constants";
 
 type PlacementRow = {
   id: string;

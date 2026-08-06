@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Badge, Button, Card, Input, Label, Textarea } from "@/components/ui";
-import { PLACEMENT_LABELS, PLACEMENT_STATUSES } from "@/lib/safety";
+import { PLACEMENT_LABELS, PLACEMENT_STATUSES } from "@/lib/placement-constants";
 
 const STEPS = ["INTERESTED", "INTERVIEW", "TRIAL", "PLACED", "COMPLETED"] as const;
 
