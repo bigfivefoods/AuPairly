@@ -194,13 +194,19 @@ export default async function DashboardPage() {
 
       {/* Simple invite / growth */}
       <Card className="mb-8 border-teal-100 bg-gradient-to-r from-teal-50/80 to-white">
-        <h3 className="font-display text-lg font-semibold text-stone-900">Invite someone</h3>
+        <h3 className="font-display text-lg font-semibold text-stone-900">Invite someone to AuPairly</h3>
         <p className="mt-1 text-sm text-stone-500">
           Share AuPairly with a host or sitter. More local supply = better matches for everyone.
         </p>
-        <p className="mt-3 break-all rounded-xl bg-white px-3 py-2 font-mono text-xs text-teal-800 border border-teal-100">
-          {(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me").replace(/\/$/, "")}
+        <p className="mt-3 break-all rounded-xl border border-teal-100 bg-white px-3 py-2 font-mono text-xs text-teal-800">
+          {(
+            process.env.NEXT_PUBLIC_SITE_URL || "https://aupairly-orcin.vercel.app"
+          ).replace(/\/$/, "")}
           /register?ref={user.id.slice(0, 8)}
+        </p>
+        <p className="mt-2 text-xs text-stone-400">
+          Suggested share text: “Join me on AuPairly — trusted care for family, loved ones, home
+          &amp; pets.”
         </p>
       </Card>
 

@@ -33,13 +33,18 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.AUTH_URL ||
+  "https://aupairly-orcin.vercel.app";
+
 export const metadata: Metadata = {
   title: {
     default: BRAND.ogTitle,
     template: `%s · ${BRAND.name}`,
   },
   description: `${BRAND.tagline} ${BRAND.description}`,
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"),
+  metadataBase: new URL(siteUrl),
   manifest: "/manifest.webmanifest",
   applicationName: BRAND.name,
   appleWebApp: {
@@ -61,9 +66,33 @@ export const metadata: Metadata = {
   openGraph: {
     title: BRAND.ogTitle,
     description: BRAND.tagline,
-    url: "https://www.aupairly.me",
-    siteName: BRAND.name,
+    url: siteUrl,
+    siteName: "AuPairly",
     type: "website",
+    locale: "en_US",
+    images: [
+      {
+        // Static PNG always shows the AuPairly name (dynamic route also available)
+        url: "/og-share.png",
+        width: 1200,
+        height: 630,
+        alt: "AuPairly — Trusted care for your family, loved ones, home & pets",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BRAND.ogTitle,
+    description: BRAND.tagline,
+    site: "@aupairly",
+    images: [
+      {
+        url: "/og-share.png",
+        width: 1200,
+        height: 630,
+        alt: "AuPairly — Trusted care for your family, loved ones, home & pets",
+      },
+    ],
   },
   other: {
     "mobile-web-app-capable": "yes",
