@@ -1,11 +1,11 @@
 # AuPairly
 
-**The trusted marketplace for verified au pairs and host families** — built for [www.aupairly.me](https://www.aupairly.me).
+**Trusted care for your family, home & pets.** — [www.aupairly.me](https://www.aupairly.me)
 
-AuPairly is a dual-sided commercial marketplace for verified au pairs and host families:
+Same brand name, broader positioning: one marketplace for **childcare / au pairing**, **house sitting**, and **pet sitting**.
 
-- **Au pairs** register, build rich profiles, complete identity verification, and get discovered by families
-- **Parents** list their household, set expectations, verify themselves, and message candidates
+- **Sitters** offer one or more services, verify, and get discovered
+- **Hosts** list what they need (family care, home, pets), verify, and message candidates
 - Both sides **swipe, match, message, review**, and **upgrade** when free-tier limits run out
 
 ## Commercial model (freemium)

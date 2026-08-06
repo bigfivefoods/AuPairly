@@ -39,7 +39,7 @@ function LoginForm() {
     <Card className="w-full max-w-md">
       <div className="mb-8 text-center">
         <h1 className="font-display text-3xl font-semibold text-stone-900">Welcome back</h1>
-        <p className="mt-2 text-stone-500">Log in to your AuPairly account</p>
+        <p className="mt-2 text-stone-500">Trusted care for your family, home &amp; pets.</p>
       </div>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>

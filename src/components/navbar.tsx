@@ -123,7 +123,8 @@ export function Footer() {
               <span className="font-display text-lg font-semibold">AuPairly</span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-stone-500">
-              The trusted marketplace connecting verified au pairs with wonderful families worldwide.
+              Trusted care for your family, home &amp; pets — childcare, house sitting &amp; pet
+              sitting on one marketplace.
             </p>
           </div>
           <div>
@@ -154,7 +155,7 @@ export function Footer() {
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-stone-100 pt-6 text-sm text-stone-400 sm:flex-row">
           <p>© {new Date().getFullYear()} AuPairly. Made with care for families & au pairs.</p>
           <p className="flex items-center gap-1">
-            <Heart className="h-3.5 w-3.5 text-rose-400" /> Trusted connections worldwide
+            <Heart className="h-3.5 w-3.5 text-rose-400" /> Trusted care · family, home &amp; pets
           </p>
         </div>
       </div>

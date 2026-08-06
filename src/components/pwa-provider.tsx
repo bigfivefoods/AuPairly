@@ -153,7 +153,7 @@ export function PwaProvider() {
             <div className="flex-1">
               <p className="text-sm font-semibold text-stone-900">Install AuPairly</p>
               <p className="mt-0.5 text-xs text-stone-500">
-                Home screen app · faster open · works offline for key pages
+                Family, home & pets · faster open · works offline
               </p>
               <div className="mt-3 flex gap-2">
                 <button

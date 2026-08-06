@@ -57,7 +57,7 @@ function RegisterForm() {
       <div className="mb-8 text-center">
         <h1 className="font-display text-3xl font-semibold text-stone-900">Join AuPairly</h1>
         <p className="mt-2 text-stone-500">
-          One marketplace for childcare, house sitting &amp; pet sitting
+          Trusted care for your family, home &amp; pets.
         </p>
       </div>
 

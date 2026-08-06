@@ -16,6 +16,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
 import { SERVICE_LIST } from "@/lib/services";
+import { BRAND } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -52,16 +53,16 @@ export default async function HomePage() {
             <div className="mx-auto max-w-3xl text-center">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-teal-50 backdrop-blur">
                 <Sparkles className="h-4 w-4 text-amber-300" />
-                One marketplace · three services · worldwide
+                {BRAND.name} · family · home · pets
               </div>
               <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Childcare, house sitting
-                <span className="block text-teal-200">&amp; pet sitting</span>
+                Trusted care for your
+                <span className="block text-teal-200">family, home &amp; pets.</span>
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-teal-100/90">
-                <strong className="font-semibold text-white">AuPairly.me</strong> is the single
-                trusted marketplace for au pairs &amp; childcare, house sitters, and pet sitters —
-                and the hosts who need them. Verify, match, message, and place with confidence.
+                <strong className="font-semibold text-white">{BRAND.domain}</strong> keeps the
+                AuPairly name you know — now for childcare &amp; au pairing, house sitting, and
+                pet sitting. One account. Verified people. Match, message, and place with confidence.
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link href="/register?role=PARENT" className="btn-accent text-base !px-8 !py-3.5">
@@ -95,14 +96,14 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">
-            Everything on AuPairly.me
+            {BRAND.tagline}
           </p>
           <h2 className="mt-2 font-display text-3xl font-semibold text-stone-900 sm:text-4xl">
-            Three services. One account.
+            Three kinds of care. One AuPairly.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-stone-500">
-            Book or offer any combination — childcare / au pairing, house sitting, and pet sitting —
-            without leaving the platform.
+            Book or offer childcare / au pairing, house sitting, and pet sitting — on the same
+            trusted marketplace.
           </p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -301,11 +302,12 @@ export default async function HomePage() {
         <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-stone-900 to-teal-950 px-8 py-14 text-center sm:px-14">
           <HeartHandshake className="mx-auto h-10 w-10 text-teal-300" />
           <h2 className="mt-5 font-display text-3xl font-semibold text-white sm:text-4xl">
-            Built on trust, not just profiles
+            {BRAND.tagline}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-stone-300">
-            Every member can complete multi-step verification — ID, selfie match, background
-            check, and references — so you always know who you&apos;re talking to.
+            Built on trust, not just profiles. Every member can complete multi-step verification —
+            ID, selfie match, background check, and references — so you always know who you&apos;re
+            talking to.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/safety" className="btn-secondary">

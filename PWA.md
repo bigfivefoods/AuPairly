@@ -1,5 +1,7 @@
 # AuPairly PWA & push
 
+**Positioning:** Trusted care for your family, home & pets.
+
 ## What you get
 
 - Installable app (home screen) via Web App Manifest

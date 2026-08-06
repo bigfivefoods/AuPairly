@@ -24,11 +24,11 @@ export default async function PricingPage() {
       <div className="text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-1.5 text-sm font-semibold text-teal-800">
           <Sparkles className="h-4 w-4" />
-          Freemium matching · verified trust
+          Trusted care for your family, home &amp; pets
         </div>
         <PageHeader
           title="Plans that grow with your match"
-          description="Start free. Upgrade when you're ready for unlimited messages, Discover swipes, and featured visibility — the commercial engine of AuPairly."
+          description="Start free for childcare, house sitting, and pet sitting. Upgrade when you're ready for unlimited messages, Discover, and featured visibility."
         />
       </div>
 

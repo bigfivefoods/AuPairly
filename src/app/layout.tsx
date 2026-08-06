@@ -4,6 +4,7 @@ import { Navbar, Footer } from "@/components/navbar";
 import { Providers } from "@/components/providers";
 import { MobileNav } from "@/components/mobile-nav";
 import { PwaProvider } from "@/components/pwa-provider";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -32,17 +33,16 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "AuPairly — Childcare, house sitting & pet sitting",
-    template: "%s · AuPairly",
+    default: BRAND.ogTitle,
+    template: `%s · ${BRAND.name}`,
   },
-  description:
-    "AuPairly.me is the single marketplace for verified childcare / au pairing, house sitting, and pet sitting. Match, message, and book with confidence worldwide.",
+  description: `${BRAND.tagline} ${BRAND.description}`,
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"),
   manifest: "/manifest.webmanifest",
-  applicationName: "AuPairly",
+  applicationName: BRAND.name,
   appleWebApp: {
     capable: true,
-    title: "AuPairly",
+    title: BRAND.name,
     statusBarStyle: "default",
   },
   formatDetection: {
@@ -57,11 +57,10 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/icon-192.png", sizes: "192x192" }],
   },
   openGraph: {
-    title: "AuPairly — Childcare, house sitting & pet sitting",
-    description:
-      "One marketplace for au pairs, house sitters, and pet sitters — and the hosts who need them.",
+    title: BRAND.ogTitle,
+    description: BRAND.tagline,
     url: "https://www.aupairly.me",
-    siteName: "AuPairly",
+    siteName: BRAND.name,
     type: "website",
   },
   other: {
