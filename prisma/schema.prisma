@@ -195,6 +195,8 @@ model FamilyProfile {
   drivingRequired Boolean       @default(false)
   /// Lifestyle / home preview captions (photos JSON already holds URLs)
   lifestyleNotes  String?
+  /// Recurring au pair schedule: days, hours, weekly/alternating pattern (JSON)
+  scheduleJson    String?
 
   coverImage      String?
   photos          String        @default("[]")

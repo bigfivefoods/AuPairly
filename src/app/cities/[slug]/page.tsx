@@ -159,6 +159,7 @@ export default async function CityLandingPage({
                 startDate={f.startDate}
                 weeklyHours={f.weeklyHours}
                 languages={f.languages}
+                scheduleJson={f.scheduleJson}
               />
             ))}
           </div>

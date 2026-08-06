@@ -104,6 +104,7 @@ export default async function EditProfilePage() {
     schoolArea: profile?.schoolArea ?? "",
     drivingRequired: profile?.drivingRequired ?? false,
     lifestyleNotes: profile?.lifestyleNotes ?? "",
+    scheduleJson: profile?.scheduleJson ?? null,
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
   };
 

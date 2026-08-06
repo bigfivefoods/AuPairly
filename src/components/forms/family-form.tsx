@@ -19,6 +19,13 @@ import {
 } from "@/lib/utils";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
+import { ScheduleEditor } from "@/components/schedule-editor";
+import {
+  computeWeeklyHours,
+  parseSchedule,
+  serializeSchedule,
+  type RecurringSchedule,
+} from "@/lib/schedule";
 
 type Initial = {
   name: string;
@@ -49,6 +56,7 @@ type Initial = {
   schoolArea: string;
   drivingRequired: boolean;
   lifestyleNotes: string;
+  scheduleJson?: string | null;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -57,6 +65,9 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
   const [form, setForm] = useState(initial);
   const [image, setImage] = useState(initial.image || "");
   const [ageInput, setAgeInput] = useState("");
+  const [schedule, setSchedule] = useState<RecurringSchedule>(() =>
+    parseSchedule(initial.scheduleJson)
+  );
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -86,10 +97,22 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
     setError("");
     setMessage("");
     try {
+      const computedHours = computeWeeklyHours(schedule);
+      const hasScheduleDays = schedule.days.some((d) => d.enabled);
+      const weeklyHours =
+        hasScheduleDays && computedHours > 0
+          ? String(Math.round(computedHours))
+          : form.weeklyHours;
+
       const res = await fetch("/api/profiles/family", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, status: status ?? form.status }),
+        body: JSON.stringify({
+          ...form,
+          weeklyHours,
+          scheduleJson: serializeSchedule(schedule),
+          status: status ?? form.status,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -98,6 +121,7 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
       }
       setMessage(status === "ACTIVE" ? "Listing published!" : "Saved successfully.");
       if (status) setForm((f) => ({ ...f, status }));
+      if (hasScheduleDays) setForm((f) => ({ ...f, weeklyHours }));
       router.refresh();
     } catch {
       setError("Something went wrong");
@@ -268,8 +292,16 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
             <Input type="number" value={form.durationMonths} onChange={(e) => set("durationMonths", e.target.value)} />
           </div>
           <div>
-            <Label>Hours per week</Label>
-            <Input type="number" value={form.weeklyHours} onChange={(e) => set("weeklyHours", e.target.value)} />
+            <Label>Hours per week (override)</Label>
+            <Input
+              type="number"
+              value={form.weeklyHours}
+              onChange={(e) => set("weeklyHours", e.target.value)}
+              placeholder="Auto from schedule if set"
+            />
+            <p className="mt-1 text-[11px] text-stone-400">
+              Filled automatically from the recurring schedule when days are enabled.
+            </p>
           </div>
           <div>
             <Label>Pocket money (R/wk)</Label>
@@ -319,6 +351,17 @@ export function FamilyProfileForm({ initial }: { initial: Initial }) {
             placeholder="Morning routines, neighbourhood feel, what weekends look like…"
           />
         </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <h2 className="font-display text-lg font-semibold">Recurring schedule</h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Tell au pairs which days and hours you need every week (or alternating weeks).
+            This shows on your public listing.
+          </p>
+        </div>
+        <ScheduleEditor value={schedule} onChange={setSchedule} />
       </Card>
 
       {message && (

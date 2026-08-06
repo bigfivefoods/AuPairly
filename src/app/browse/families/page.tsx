@@ -120,6 +120,7 @@ export default async function BrowseFamiliesPage({
                 startDate={f.startDate}
                 weeklyHours={f.weeklyHours}
                 languages={f.languages}
+                scheduleJson={f.scheduleJson}
               />
             ))}
           </div>

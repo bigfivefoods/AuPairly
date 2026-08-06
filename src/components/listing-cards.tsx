@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MapPin, Calendar, Clock, Baby, Languages } from "lucide-react";
 import { Avatar, Badge, Stars, VerifiedBadge } from "@/components/ui";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
+import { parseSchedule, WEEKDAYS } from "@/lib/schedule";
 import { format } from "date-fns";
 
 type AuPairCardProps = {
@@ -94,10 +95,16 @@ type FamilyCardProps = {
   startDate?: Date | string | null;
   weeklyHours?: number | null;
   languages: string;
+  scheduleJson?: string | null;
 };
 
 export function FamilyCard(p: FamilyCardProps) {
   const ages = parseJsonArray(p.childrenAges);
+  const schedule = parseSchedule(p.scheduleJson);
+  const activeDays = schedule.days
+    .filter((d) => d.enabled)
+    .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
+    .filter(Boolean);
   return (
     <Link
       href={`/browse/families/${p.id}`}
@@ -145,6 +152,11 @@ export function FamilyCard(p: FamilyCardProps) {
             <span className="inline-flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
               {p.weeklyHours}h / week
+            </span>
+          )}
+          {activeDays.length > 0 && (
+            <span className="inline-flex items-center gap-1 text-teal-700">
+              {activeDays.join(" · ")}
             </span>
           )}
         </div>

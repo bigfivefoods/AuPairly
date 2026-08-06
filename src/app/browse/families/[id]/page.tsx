@@ -21,6 +21,7 @@ import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
+import { ScheduleDisplay } from "@/components/schedule-display";
 import { format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -168,6 +169,19 @@ export default async function FamilyDetailPage({
             </Card>
           )}
 
+          <Card>
+            <h2 className="font-display text-xl font-semibold">Recurring schedule</h2>
+            <p className="mt-1 text-sm text-stone-500">
+              Typical days and hours the family needs an au pair.
+            </p>
+            <div className="mt-4">
+              <ScheduleDisplay
+                scheduleJson={profile.scheduleJson}
+                weeklyHoursFallback={profile.weeklyHours}
+              />
+            </div>
+          </Card>
+
           {(duties.length > 0 || offers.length > 0) && (
             <Card>
               <div className="grid gap-6 sm:grid-cols-2">
@@ -254,7 +268,7 @@ export default async function FamilyDetailPage({
                 <Row icon={<Clock className="h-4 w-4" />} label="Hours / week" value={`${profile.weeklyHours}h`} />
               )}
               {profile.pocketMoney != null && (
-                <Row label="Pocket money" value={`$${profile.pocketMoney}/wk`} />
+                <Row label="Pocket money" value={`R${profile.pocketMoney}/wk`} />
               )}
               <Row label="Arrangement" value={profile.liveIn ? "Live-in" : "Live-out"} />
               <Row

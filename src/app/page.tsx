@@ -240,6 +240,7 @@ export default async function HomePage() {
                   startDate={f.startDate}
                   weeklyHours={f.weeklyHours}
                   languages={f.languages}
+                  scheduleJson={f.scheduleJson}
                 />
               ))}
             </div>
