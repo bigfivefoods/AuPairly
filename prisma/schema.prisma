@@ -343,17 +343,37 @@ model Favorite {
   @@unique([userId, targetType, targetId])
 }
 
+/// Airbnb-style mutual reviews: category scores + double-blind publish
 model Review {
   id         String   @id @default(cuid())
   authorId   String
   author     User     @relation("ReviewsGiven", fields: [authorId], references: [id], onDelete: Cascade)
   targetId   String
   target     User     @relation("ReviewsReceived", fields: [targetId], references: [id], onDelete: Cascade)
+  /// Overall 1–5 (required)
   rating     Int
+  /// Category scores 1–5 (Airbnb-style)
+  communication Int?
+  reliability   Int?
+  respect       Int?
+  recommend     Boolean @default(true)
   comment    String?
+  /// Never shown to the other party — platform only
+  privateNote String?
+  /// Public reply from the reviewed party
+  response    String?
+  respondedAt DateTime?
+  /// When this review becomes public (both submitted or 14-day window)
+  publishedAt DateTime?
+  /// MESSAGE | PLACEMENT | MATCH
+  context     String   @default("MESSAGE")
+  placementId String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([authorId, targetId])
+  @@index([targetId, publishedAt])
+  @@index([authorId, createdAt])
 }
 
 model PasswordResetToken {

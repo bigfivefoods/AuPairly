@@ -3,21 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-
-const MAIN_LINKS = [
-  { href: "/discover", label: "Discover" },
-  { href: "/browse/aupairs", label: "Sitters" },
-  { href: "/browse/families", label: "Hosts" },
-  { href: "/pricing", label: "Pricing" },
-] as const;
+import { useI18n } from "@/components/i18n-provider";
 
 export function MainNavLinks({ className = "" }: { className?: string }) {
   const pathname = usePathname() || "";
+  const { t } = useI18n();
+
+  const MAIN_LINKS = [
+    { href: "/discover", label: t("nav_discover") },
+    { href: "/browse/aupairs", label: t("nav_sitters") },
+    { href: "/browse/families", label: t("nav_hosts") },
+    { href: "/pricing", label: t("nav_pricing") },
+  ] as const;
 
   return (
     <nav className={cn("items-center gap-1", className)}>
       {MAIN_LINKS.map(({ href, label }) => {
-        // Exact match or nested path (e.g. /browse/aupairs/xyz)
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link

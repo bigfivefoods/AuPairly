@@ -33,6 +33,7 @@ export const authConfig = {
         "/settings",
         "/connect",
         "/agency",
+        "/reviews",
       ];
       const isProtected = protectedPaths.some((p) => path.startsWith(p));
       if (isProtected) return !!auth?.user;

@@ -7,7 +7,6 @@ import {
   Globe2,
   HeartHandshake,
   ArrowRight,
-  Sparkles,
   Users,
   Home,
   Baby,
@@ -17,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
 import { SERVICE_LIST } from "@/lib/services";
 import { BRAND } from "@/lib/brand";
+import { HomeHeroI18n } from "@/components/home-hero-i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -41,58 +41,13 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900" />
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-orange-400 blur-3xl" />
-          <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-teal-400 blur-3xl" />
-        </div>
-        <div className="grain relative">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-teal-50 backdrop-blur">
-                <Sparkles className="h-4 w-4 text-amber-300" />
-                {BRAND.name} · family · home · pets
-              </div>
-              <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Trusted care for your
-                <span className="block text-teal-200">
-                  family, loved ones, home &amp; pets.
-                </span>
-              </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-teal-100/90">
-                <strong className="font-semibold text-white">{BRAND.domain}</strong> — childcare,
-                caregiving, house sitting, and pet sitting under one trusted brand. One account.
-                Verified people. Match, message, and place with confidence.
-              </p>
-              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link href="/register?role=PARENT" className="btn-accent text-base !px-8 !py-3.5">
-                  I need help
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/register?role=AUPAIR"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-8 py-3.5 text-base font-semibold text-white backdrop-blur transition hover:bg-white/20"
-                >
-                  I offer services
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-sm font-semibold text-teal-100 transition hover:bg-white/10"
-                >
-                  See plans
-                </Link>
-              </div>
-              <div className="mt-14 grid grid-cols-3 gap-4 border-t border-white/10 pt-10 text-center">
-                <Stat value={stats.aupairs || "50+"} label="Sitters" />
-                <Stat value={stats.families || "40+"} label="Hosts" />
-                <Stat value={stats.verified || "90%"} label="Verified" suffix={typeof stats.verified === "number" && stats.verified > 0 ? "" : ""} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeHeroI18n
+        stats={{
+          aupairs: stats.aupairs || "50+",
+          families: stats.families || "40+",
+          verified: stats.verified || "90%",
+        }}
+      />
 
       {/* Three services */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

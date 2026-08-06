@@ -25,6 +25,7 @@ import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { responseTimeLabel } from "@/lib/completeness";
 import { ScheduleDisplay } from "@/components/schedule-display";
 import { format } from "date-fns";
+import { isReviewPublic } from "@/lib/reviews";
 
 export const dynamic = "force-dynamic";
 
@@ -271,14 +272,42 @@ export default async function AuPairDetailPage({
             targetId={profile.userId}
             targetName={profile.user.name}
             canReview={canReview}
-            existingRating={myReview?.rating}
-            initialReviews={reviews.map((r) => ({
-              id: r.id,
-              rating: r.rating,
-              comment: r.comment,
-              createdAt: r.createdAt.toISOString(),
-              author: r.author,
-            }))}
+            existing={
+              myReview
+                ? {
+                    rating: myReview.rating,
+                    communication: myReview.communication,
+                    reliability: myReview.reliability,
+                    respect: myReview.respect,
+                    recommend: myReview.recommend,
+                    comment: myReview.comment,
+                  }
+                : null
+            }
+            initialReviews={reviews.map((r) => {
+              const pub = isReviewPublic(r);
+              const isAuthor = session?.user?.id === r.authorId;
+              const isTarget = session?.user?.id === r.targetId;
+              const reveal = pub || isAuthor;
+              return {
+                id: r.id,
+                rating: reveal ? r.rating : null,
+                communication: reveal ? r.communication : null,
+                reliability: reveal ? r.reliability : null,
+                respect: reveal ? r.respect : null,
+                recommend: reveal ? r.recommend : null,
+                comment: reveal ? r.comment : null,
+                response: r.response,
+                respondedAt: r.respondedAt?.toISOString() ?? null,
+                publishedAt: r.publishedAt?.toISOString() ?? null,
+                createdAt: r.createdAt.toISOString(),
+                isPublic: pub,
+                isAuthor,
+                isTarget,
+                hiddenReason: !reveal && isTarget ? "AWAITING_MUTUAL" : null,
+                author: r.author,
+              };
+            })}
           />
 
           <Card>

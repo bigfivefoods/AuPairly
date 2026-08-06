@@ -5,6 +5,8 @@ import { Providers } from "@/components/providers";
 import { MobileNav } from "@/components/mobile-nav";
 import { PwaProvider } from "@/components/pwa-provider";
 import { BRAND } from "@/lib/brand";
+import { getRequestLocale } from "@/lib/i18n/server";
+import { LOCALE_META } from "@/lib/i18n/config";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -68,11 +70,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getRequestLocale();
+  const dir = LOCALE_META[locale].dir;
+
   return (
-    <html lang="en" className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      dir={dir}
+      className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col bg-background text-foreground overscroll-none">
-        <Providers>
+        <Providers locale={locale}>
           <Navbar />
           <main className="flex-1 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
             {children}

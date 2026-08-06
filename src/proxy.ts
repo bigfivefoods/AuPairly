@@ -35,5 +35,7 @@ export const config = {
     "/settings/:path*",
     "/onboarding/:path*",
     "/onboarding",
+    "/reviews/:path*",
+    "/reviews",
   ],
 };
