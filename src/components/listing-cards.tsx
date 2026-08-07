@@ -13,6 +13,8 @@ type AuPairCardProps = {
   id: string;
   name: string;
   image?: string | null;
+  /** Cover / lifestyle photo when available */
+  coverImage?: string | null;
   headline?: string | null;
   city?: string | null;
   region?: string | null;
@@ -32,6 +34,7 @@ type AuPairCardProps = {
   services?: string | null;
   safetyScore?: number | null;
   placementVerified?: boolean;
+  responseLabel?: string | null;
 };
 
 export function AuPairCard(p: AuPairCardProps) {
@@ -47,14 +50,39 @@ export function AuPairCard(p: AuPairCardProps) {
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
     .filter(Boolean);
+  const hero = p.coverImage || p.image;
+
   return (
     <Link
       href={`/browse/aupairs/${p.id}`}
       className="card-hover group flex flex-col overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[var(--shadow)]"
     >
-      <div className="relative h-40 bg-gradient-to-br from-teal-100 via-teal-50 to-orange-50">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Avatar name={p.name} image={p.image} size="xl" className="!ring-4 !ring-white/80 shadow-lg" />
+      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-teal-100 via-teal-50 to-orange-50">
+        {hero ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          />
+        ) : null}
+        <div
+          className={
+            hero
+              ? "absolute inset-0 bg-gradient-to-t from-stone-900/50 via-stone-900/10 to-transparent"
+              : "absolute inset-0 flex items-center justify-center"
+          }
+        >
+          <Avatar
+            name={p.name}
+            image={p.image}
+            size="xl"
+            className={
+              hero
+                ? "absolute bottom-3 left-3 !h-14 !w-14 !ring-2 !ring-white shadow-lg"
+                : "!ring-4 !ring-white/80 shadow-lg"
+            }
+          />
         </div>
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
           {p.isVerified && <VerifiedBadge />}
@@ -102,8 +130,15 @@ export function AuPairCard(p: AuPairCardProps) {
             <span className="text-teal-700">{activeDays.join(" · ")}</span>
           )}
         </div>
+        {p.responseLabel && (
+          <p className="mt-2 text-[11px] font-medium text-teal-700">{p.responseLabel}</p>
+        )}
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
-          <span className="text-stone-500">{p.experienceYears}+ yrs experience</span>
+          <span className="text-stone-500">
+            {p.experienceYears > 0
+              ? `${p.experienceYears}+ yrs experience`
+              : "Experience open"}
+          </span>
           {p.pocketMoneyMin ? (
             <span className="font-semibold text-teal-700">
               {formatWeeklyStipend(p.pocketMoneyMin)}

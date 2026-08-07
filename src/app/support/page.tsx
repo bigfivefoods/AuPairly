@@ -2,8 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Card, Input, Label, PageHeader, Textarea, Badge } from "@/components/ui";
+import {
+  Button,
+  Card,
+  Input,
+  Label,
+  PageHeader,
+  Textarea,
+  Badge,
+  Select,
+} from "@/components/ui";
 import { ContactUs } from "@/components/contact-us";
+
+const FREE_CATEGORIES = [
+  { value: "SAFETY", label: "Safety concern (free)" },
+  { value: "ABUSE", label: "Abuse / harassment (free)" },
+  { value: "ACCOUNT_ACCESS", label: "Account access (free)" },
+  { value: "REPORT", label: "Report a listing (free)" },
+  { value: "GENERAL", label: "General / product help (Plus+)" },
+] as const;
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState<
@@ -11,7 +28,9 @@ export default function SupportPage() {
   >([]);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [category, setCategory] = useState<string>("SAFETY");
   const [error, setError] = useState("");
+  const [okMsg, setOkMsg] = useState("");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/support");
@@ -26,10 +45,11 @@ export default function SupportPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setOkMsg("");
     const res = await fetch("/api/support", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subject, body }),
+      body: JSON.stringify({ subject, body, category }),
     });
     const d = await res.json();
     if (!res.ok) {
@@ -38,6 +58,7 @@ export default function SupportPage() {
     }
     setSubject("");
     setBody("");
+    setOkMsg("Ticket submitted — we’ll reply as soon as we can.");
     load();
   }
 
@@ -46,7 +67,7 @@ export default function SupportPage() {
       <PageHeader
         eyebrow="Help"
         title="Contact us & support"
-        description="Email or WhatsApp anytime. Plus & Premium members can also open in-app tickets."
+        description="Email or WhatsApp anytime. Safety, abuse, and account issues are free for every plan."
       />
 
       <ContactUs className="mb-8" />
@@ -56,9 +77,24 @@ export default function SupportPage() {
           In-app support ticket
         </h3>
         <p className="mt-1 text-sm text-stone-500">
-          Priority tickets for Plus &amp; Premium. Free users can still email or WhatsApp us above.
+          Free accounts can open tickets for safety, abuse, account access, and reports.
+          Priority product help is included on Plus &amp; Premium.
         </p>
         <form onSubmit={submit} className="mt-4 space-y-3">
+          <div>
+            <Label>Category</Label>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
+              {FREE_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </Select>
+          </div>
           <div>
             <Label>Subject</Label>
             <Input value={subject} onChange={(e) => setSubject(e.target.value)} required />
@@ -67,10 +103,11 @@ export default function SupportPage() {
             <Label>Message</Label>
             <Textarea value={body} onChange={(e) => setBody(e.target.value)} required />
           </div>
+          {okMsg && <p className="text-sm text-emerald-700">{okMsg}</p>}
           {error && (
             <p className="text-sm text-amber-800">
               {error}{" "}
-              {error.includes("Upgrade") && (
+              {(error.includes("Upgrade") || error.includes("Plus")) && (
                 <Link href="/pricing" className="font-semibold underline">
                   View plans
                 </Link>

@@ -2,9 +2,12 @@
 
 import { SessionProvider } from "next-auth/react";
 import { I18nProvider } from "@/components/i18n-provider";
-import { PrivyProvider } from "@/components/privy-provider";
 import type { Locale } from "@/lib/i18n/config";
 
+/**
+ * Global providers only. Privy loads solely on /register (see register/layout)
+ * so marketplace pages stay lighter.
+ */
 export function Providers({
   children,
   locale,
@@ -14,9 +17,7 @@ export function Providers({
 }) {
   return (
     <SessionProvider>
-      <PrivyProvider>
-        <I18nProvider initialLocale={locale}>{children}</I18nProvider>
-      </PrivyProvider>
+      <I18nProvider initialLocale={locale}>{children}</I18nProvider>
     </SessionProvider>
   );
 }

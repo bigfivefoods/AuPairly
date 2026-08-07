@@ -36,7 +36,7 @@ export function CompletenessCoach({ input }: { input: CompletenessInput }) {
         </div>
       </div>
       <p className="mt-2 text-sm text-stone-600">
-        Next actions that most improve matches & trust:
+        Finish these to unlock more matches, trust badges, and messages:
       </p>
       <ul className="mt-3 space-y-2">
         {c.nextThree.length === 0 ? (

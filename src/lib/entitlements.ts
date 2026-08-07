@@ -214,6 +214,29 @@ async function bumpCounter(userId: string, action: string, periodKey: string) {
   return row.count;
 }
 
+/**
+ * Atomically consume one unit if under limit.
+ * Uses increment-then-check; rolls back if over (closes classic TOCTOU race).
+ */
+async function tryConsumeUnderLimit(
+  userId: string,
+  action: string,
+  periodKey: string,
+  limit: number
+): Promise<{ ok: true; count: number } | { ok: false; count: number }> {
+  const next = await bumpCounter(userId, action, periodKey);
+  if (next > limit) {
+    await prisma.usageCounter.update({
+      where: {
+        userId_action_dayKey: { userId, action, dayKey: periodKey },
+      },
+      data: { count: { decrement: 1 } },
+    });
+    return { ok: false, count: next - 1 };
+  }
+  return { ok: true, count: next };
+}
+
 async function getCounter(userId: string, action: string, periodKey: string) {
   const row = await prisma.usageCounter.findUnique({
     where: {
@@ -265,32 +288,43 @@ export async function checkAndConsume(
     return { ok: true, remaining: null, plan };
   }
 
-  const used = await getCounter(userId, action, periodKey);
-  if (used >= limit) {
-    const actionLabel =
-      action === "MESSAGE"
-        ? "daily messages"
-        : action === "INTEREST"
-          ? "weekly interests"
-          : action === "SWIPE"
-            ? "daily Discover swipes"
-            : "monthly boosts";
+  const actionLabel =
+    action === "MESSAGE"
+      ? "daily messages"
+      : action === "INTEREST"
+        ? "weekly interests"
+        : action === "SWIPE"
+          ? "daily Discover swipes"
+          : "monthly boosts";
+
+  if (!consume) {
+    const used = await getCounter(userId, action, periodKey);
+    if (used >= limit) {
+      return {
+        ok: false,
+        reason: `You've used ${used}/${limit} ${actionLabel} on the ${plan.name} plan. Upgrade with Paystack for unlimited matching.`,
+        upgradeRequired: true,
+        limit,
+        used,
+        plan,
+      };
+    }
+    return { ok: true, remaining: Math.max(0, limit - used), plan };
+  }
+
+  const result = await tryConsumeUnderLimit(userId, action, periodKey, limit);
+  if (!result.ok) {
     return {
       ok: false,
-      reason: `You've used ${used}/${limit} ${actionLabel} on the ${plan.name} plan. Upgrade with Paystack for unlimited matching.`,
+      reason: `You've used ${result.count}/${limit} ${actionLabel} on the ${plan.name} plan. Upgrade with Paystack for unlimited matching.`,
       upgradeRequired: true,
       limit,
-      used,
+      used: result.count,
       plan,
     };
   }
 
-  if (consume) {
-    const next = await bumpCounter(userId, action, periodKey);
-    return { ok: true, remaining: Math.max(0, limit - next), plan };
-  }
-
-  return { ok: true, remaining: Math.max(0, limit - used), plan };
+  return { ok: true, remaining: Math.max(0, limit - result.count), plan };
 }
 
 export async function activatePlan(

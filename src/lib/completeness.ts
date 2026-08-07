@@ -72,6 +72,17 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
 
   const push = (a: CompletenessAction) => actions.push(a);
 
+  if (input.role === "AUPAIR" && !input.city) {
+    push({
+      id: "city-connect",
+      label: "Add your city for AuPair Connect",
+      detail: "Meet other sitters nearby — especially if you're abroad.",
+      href: "/profile/edit",
+      points: 8,
+      done: false,
+    });
+  }
+
   push({
     id: "photo",
     label: "Add a clear profile photo",

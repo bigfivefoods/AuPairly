@@ -11,7 +11,8 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+/** Public marketing — revalidate periodically (was force-dynamic). */
+export const revalidate = 300;
 
 export const metadata: Metadata = buildPageMetadata({
   title: BRAND.ogTitle,

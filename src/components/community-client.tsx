@@ -147,8 +147,14 @@ export function CommunityClient({
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <PageHeader
+        eyebrow="Community"
         title="AuPair Connect"
-        description="Meet other sitters in your area — make friends while you're abroad. This is peer community, not host matching."
+        description="Meet other sitters in your area — make friends while you're abroad. Peer community only (not host matching)."
+        action={
+          <Link href="/profile/edit" className="btn-secondary text-sm">
+            Edit connect profile
+          </Link>
+        }
       />
 
       <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-teal-100 bg-gradient-to-r from-teal-50 to-orange-50 px-4 py-3 text-sm text-teal-900">
