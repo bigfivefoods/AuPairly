@@ -63,6 +63,33 @@ export function getSiteUrl(): string {
   ).replace(/\/$/, "");
 }
 
+/**
+ * Public origin for OAuth callbacks (Facebook, etc.).
+ * Prefers the live request host (www.aupairly.me) over a mis-set env
+ * so Meta App Domains always match what the browser used.
+ */
+export function getRequestSiteUrl(req?: Request | null): string {
+  if (req) {
+    const xfHost = req.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+    const host = xfHost || req.headers.get("host")?.trim() || "";
+    // Skip internal / empty hosts
+    if (
+      host &&
+      !host.startsWith("0.0.0.0") &&
+      !host.startsWith("127.0.0.1")
+    ) {
+      const xfProto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+      const proto =
+        xfProto ||
+        (host.includes("localhost") || host.startsWith("127.")
+          ? "http"
+          : "https");
+      return `${proto}://${host}`.replace(/\/$/, "");
+    }
+  }
+  return getSiteUrl();
+}
+
 /** Default settlement currency for SA. */
 export function paystackCurrency(): string {
   return (process.env.PAYSTACK_CURRENCY || "ZAR").toUpperCase();
