@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * AuPairly brand logo (wordmark + heart mark).
- * Source assets in /public/logo-*.png — keep teal site theme in icons.
+ * Source assets in /public/logo-*.png — colours:
+ * Au + heart = gold from logo-source.jpg; Pairly = site --primary-dark (#0f766e).
  */
 export function BrandLogo({
   className,
@@ -20,8 +21,8 @@ export function BrandLogo({
       <Image
         src="/logo-transparent.png"
         alt="AuPairly"
-        width={280}
-        height={123}
+        width={869}
+        height={387}
         className={cn("h-auto w-[11rem] sm:w-[14rem]", className)}
         priority={priority}
       />
@@ -32,8 +33,8 @@ export function BrandLogo({
     <Image
       src="/logo-nav.png"
       alt="AuPairly"
-      width={182}
-      height={80}
+      width={200}
+      height={79}
       className={cn(
         "h-8 w-auto sm:h-9 object-contain object-left",
         className
