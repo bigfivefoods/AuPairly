@@ -17,7 +17,7 @@ export function MainNavLinks({ className = "" }: { className?: string }) {
   ] as const;
 
   return (
-    <nav className={cn("items-center gap-1", className)}>
+    <nav className={cn("flex items-center gap-0.5 lg:gap-1", className)}>
       {MAIN_LINKS.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         return (
@@ -26,7 +26,7 @@ export function MainNavLinks({ className = "" }: { className?: string }) {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-full px-3 py-1.5 text-sm font-medium transition",
+              "shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition lg:px-3",
               active
                 ? "bg-teal-600 text-white shadow-sm"
                 : "text-stone-600 hover:bg-white hover:text-teal-700"
