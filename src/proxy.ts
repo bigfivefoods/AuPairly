@@ -23,6 +23,8 @@ export const config = {
     "/connect/:path*",
     "/placements/:path*",
     "/trust/:path*",
+    // /references (manage) only — submit/[token] stays public for referees
+    "/references",
     "/documents/:path*",
     "/boost/:path*",
     "/support/:path*",

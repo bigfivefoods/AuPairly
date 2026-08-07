@@ -44,11 +44,46 @@ export async function POST(req: Request) {
   });
 
   const link = `${getSiteUrl()}/references/submit/${token}`;
-  // Email would go via Resend if configured — return link for demo
+
+  // Best-effort email to referee
+  let emailed = false;
+  try {
+    const { sendEmail } = await import("@/lib/email");
+    const subjectName = session.user.name || "An AuPairly member";
+    const first = subjectName.split(" ")[0];
+    const result = await sendEmail({
+      to: refereeEmail,
+      subject: `${first} asked for a short reference on AuPairly`,
+      text: `Hi${refereeName ? ` ${refereeName}` : ""},
+
+${subjectName} asked you to leave a short professional reference on AuPairly (trusted care for family, loved ones, home & pets).
+
+It takes about 2 minutes — no account needed:
+${link}
+
+Thank you,
+The AuPairly team
+`,
+      html: `<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1c1917">
+        <p style="font-size:18px;font-weight:700">Au<span style="color:#0d9488">Pair</span>ly</p>
+        <p style="line-height:1.6;color:#44403c">Hi${refereeName ? ` ${refereeName}` : ""},</p>
+        <p style="line-height:1.6;color:#44403c"><strong>${subjectName}</strong> asked you to leave a short professional reference. No account needed — about 2 minutes.</p>
+        <p style="margin-top:20px"><a href="${link}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">Leave a reference</a></p>
+        <p style="margin-top:16px;font-size:12px;color:#78716c">If the button doesn’t work, paste this link:<br/>${link}</p>
+      </div>`,
+    });
+    emailed = Boolean(result.delivered);
+  } catch (e) {
+    console.error("[references] email referee", e);
+  }
+
   return NextResponse.json({
     reference: ref,
     submitUrl: link,
-    message: "Share this link with your referee (email delivery when Resend is configured).",
+    emailed,
+    message: emailed
+      ? "Invite emailed to your referee. You can also share the link."
+      : "Share this link with your referee (email sent when Resend is configured).",
   });
 }
 
