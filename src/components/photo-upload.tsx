@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Camera, Loader2 } from "lucide-react";
 import { Avatar, Button } from "@/components/ui";
 
@@ -19,6 +20,12 @@ export function PhotoUpload({
   const [preview, setPreview] = useState(currentImage || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { update: updateSession } = useSession();
+
+  // Keep preview in sync when parent reloads profile data after save
+  useEffect(() => {
+    setPreview(currentImage || "");
+  }, [currentImage]);
 
   async function onFile(file: File | null) {
     if (!file) return;
@@ -36,6 +43,15 @@ export function PhotoUpload({
       }
       setPreview(data.url);
       onUploaded?.(data.url);
+
+      // Push photo into the Auth.js session so navbar/dashboard show it immediately
+      if (kind === "avatar" && data.url) {
+        try {
+          await updateSession?.({ image: data.url });
+        } catch {
+          // Session update is best-effort; page refresh still works
+        }
+      }
     } catch {
       setError("Upload failed");
     } finally {

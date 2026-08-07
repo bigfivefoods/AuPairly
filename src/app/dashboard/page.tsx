@@ -74,7 +74,7 @@ export default async function DashboardPage() {
       />
 
       <div className="mb-8 flex flex-wrap items-center gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-[var(--shadow)]">
-        <Avatar name={user.name} image={user.image} size="lg" />
+        <Avatar name={user.name} image={meUser?.image || user.image} size="lg" />
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-xl font-semibold">{user.name}</h2>

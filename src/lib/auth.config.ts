@@ -54,12 +54,25 @@ export const authConfig = {
       if (isProtected) return !!auth?.user;
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id!;
         if ("role" in user && user.role) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (token as any).role = user.role;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (token as any).image = user.image ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (token as any).imageSynced = true;
+      }
+      if (trigger === "update" && session && typeof session === "object") {
+        const s = session as { image?: string | null };
+        if ("image" in s) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (token as any).image = s.image ?? null;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (token as any).imageSynced = true;
         }
       }
       return token;
@@ -69,6 +82,8 @@ export const authConfig = {
         session.user.id = token.id as string;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).role = (token as any).role;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        session.user.image = ((token as any).image as string | null | undefined) ?? null;
       }
       return session;
     },
