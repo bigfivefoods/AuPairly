@@ -36,8 +36,11 @@ import {
   getSiteUrl,
   initializeTransaction,
   isPaystackConfigured,
+  isPaystackLive,
   makeReference,
   paystackErrorResponse,
+  paystackLiveRequiredError,
+  paystackMode,
   verifyTransaction,
 } from "@/lib/paystack";
 import { formatZar, recordPayment } from "@/lib/payments";
@@ -143,6 +146,8 @@ export async function GET(req: Request) {
   const fee = resolveVerifyNowFee(planId);
   const paystackRequired =
     isPaystackConfigured() && !fee.free && fee.feeCents > 0;
+  const psMode = paystackMode();
+  const liveBlock = paystackLiveRequiredError();
 
   return NextResponse.json({
     providers: kycProvidersStatus(),
@@ -157,6 +162,13 @@ export async function GET(req: Request) {
       planId: fee.planId,
       paystackRequired,
       configured: isVerifyNowConfigured(),
+    },
+    paystack: {
+      configured: isPaystackConfigured(),
+      mode: psMode,
+      live: isPaystackLive(),
+      /** When set, production is blocking test-key checkouts */
+      liveRequiredError: liveBlock,
     },
     didit: {
       configured: isDiditConfigured(),
@@ -258,6 +270,19 @@ async function ensureVerifyNowPayment(
       meta: { demo: true, planId, idLast4: idNumber.slice(-4) },
     });
     return { ok: true, reference: ref, demo: true, feeCents: 0 };
+  }
+
+  // Production must use live Paystack keys for real money
+  const liveBlock = paystackLiveRequiredError();
+  if (liveBlock) {
+    return NextResponse.json(
+      {
+        error: liveBlock,
+        code: "PAYSTACK_TEST_MODE",
+        paystackMode: paystackMode(),
+      },
+      { status: 503 }
+    );
   }
 
   if (!email) {

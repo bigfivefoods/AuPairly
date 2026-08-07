@@ -115,6 +115,12 @@ export function VerificationClient({
     live: false,
     mode: "off",
   });
+  const [paystackInfo, setPaystackInfo] = useState<{
+    configured?: boolean;
+    mode?: string;
+    live?: boolean;
+    liveRequiredError?: string | null;
+  }>({});
   const resumePaidRef = useRef(false);
 
   const PENDING_KYC_KEY = "aupairly_pending_kyc";
@@ -210,6 +216,14 @@ export function VerificationClient({
             configured: Boolean(d.verifynow.configured ?? d.providers?.verifynow),
             live: Boolean(d.verifynow.live),
             mode: d.verifynow.mode || "off",
+          });
+        }
+        if (d.paystack) {
+          setPaystackInfo({
+            configured: Boolean(d.paystack.configured),
+            mode: d.paystack.mode || "off",
+            live: Boolean(d.paystack.live),
+            liveRequiredError: d.paystack.liveRequiredError || null,
           });
         }
         if (d.diditSync?.outcome === "VERIFIED") {
@@ -492,6 +506,14 @@ export function VerificationClient({
                 : kycFee.configured || providers.verifynow
                   ? `● ${kycFee.mode || "sandbox"}`
                   : "○ not configured"}{" "}
+              · Paystack{" "}
+              {paystackInfo.live
+                ? "● live payments"
+                : paystackInfo.mode === "test"
+                  ? "○ TEST mode (no real charges)"
+                  : paystackInfo.configured
+                    ? `● ${paystackInfo.mode}`
+                    : "○ not configured"}{" "}
               · Didit {providers.didit ? "● live" : "○ not configured"} · Meta/Facebook{" "}
               {providers.facebook ? "● app configured" : "○ not configured"}
               {kycFee.planId ? ` · plan ${kycFee.planId}` : ""}
@@ -504,8 +526,22 @@ export function VerificationClient({
             {!kycFee.configured && (
               <p className="mt-2 text-xs text-amber-800">
                 VerifyNow is not live yet. Add <code className="rounded bg-amber-100 px-1">VERIFYNOW_API_KEY</code>{" "}
-                and <code className="rounded bg-amber-100 px-1">VERIFYNOW_MODE=production</code> on Vercel, then
-                redeploy.
+                (<code className="rounded bg-amber-100 px-1">vn_live_…</code>) on Vercel, then redeploy.
+              </p>
+            )}
+            {paystackInfo.mode === "test" && kycFee.paystackRequired && (
+              <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                <strong>Paystack is in TEST mode</strong> (<code>sk_test_</code> /{" "}
+                <code>pk_test_</code>). Checkouts will not take real money. For live R
+                {((kycFee.feeCents || 1000) / 100).toFixed(0)} charges, set{" "}
+                <code className="rounded bg-amber-100 px-1">PAYSTACK_SECRET_KEY=sk_live_…</code> and{" "}
+                <code className="rounded bg-amber-100 px-1">
+                  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_live_…
+                </code>{" "}
+                in Vercel Production, then redeploy.
+                {paystackInfo.liveRequiredError ? (
+                  <span className="mt-1 block font-medium">{paystackInfo.liveRequiredError}</span>
+                ) : null}
               </p>
             )}
           </div>

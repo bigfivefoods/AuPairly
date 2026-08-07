@@ -55,6 +55,43 @@ export function isPaystackConfigured(): boolean {
   );
 }
 
+/** test = Paystack sandbox (no real money); live = real charges */
+export function paystackMode(): "test" | "live" | "off" {
+  if (!isPaystackConfigured()) return "off";
+  const sk = (process.env.PAYSTACK_SECRET_KEY || "").trim();
+  const pk = (process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "").trim();
+  // Either key in test mode → treat as test (safest)
+  if (sk.startsWith("sk_test_") || pk.startsWith("pk_test_")) return "test";
+  if (sk.startsWith("sk_live_") && pk.startsWith("pk_live_")) return "live";
+  // Mixed or unknown prefix — prefer test so we never claim live incorrectly
+  if (sk.includes("test") || pk.includes("test")) return "test";
+  if (sk.startsWith("sk_live_") || pk.startsWith("pk_live_")) return "live";
+  return "test";
+}
+
+export function isPaystackLive(): boolean {
+  return paystackMode() === "live";
+}
+
+/**
+ * On Vercel production, refuse test keys unless PAYSTACK_ALLOW_TEST=true.
+ * Prevents “payments work” while only sandbox money moves.
+ */
+export function paystackLiveRequiredError(): string | null {
+  if (paystackMode() !== "test") return null;
+  const onVercelProd =
+    process.env.VERCEL_ENV === "production" ||
+    (process.env.VERCEL === "1" && process.env.NODE_ENV === "production");
+  if (!onVercelProd) return null;
+  if (process.env.PAYSTACK_ALLOW_TEST === "true") return null;
+  return (
+    "Paystack is still in TEST mode (sk_test_/pk_test_). " +
+    "Real card charges need LIVE keys from https://dashboard.paystack.com/#/settings/developers — " +
+    "set PAYSTACK_SECRET_KEY=sk_live_… and NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_live_… on Vercel Production, then redeploy. " +
+    "To allow test checkout on production temporarily, set PAYSTACK_ALLOW_TEST=true."
+  );
+}
+
 export function getSiteUrl(): string {
   return (
     process.env.NEXT_PUBLIC_SITE_URL ||
