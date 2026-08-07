@@ -379,7 +379,7 @@ export function AppShell({
               </div>
             )}
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
               <SideNavLinks user={user} path={path} expanded={expanded} />
             </div>
 
@@ -453,7 +453,7 @@ export function AppShell({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto pb-4">
               <SideNavLinks
                 user={user}
                 path={path}
