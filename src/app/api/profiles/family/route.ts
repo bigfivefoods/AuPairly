@@ -175,5 +175,16 @@ export async function PUT(req: Request) {
     });
   }
 
+  if (profile.status === "ACTIVE" && profile.city) {
+    void import("@/lib/waitlist-notify")
+      .then(({ notifyWaitlistForCity }) =>
+        notifyWaitlistForCity({
+          city: profile.city!,
+          rolePublished: "PARENT",
+        })
+      )
+      .catch((e) => console.error("[waitlist-notify family]", e));
+  }
+
   return NextResponse.json({ profile });
 }

@@ -37,14 +37,16 @@ export function InviteCard({
   return (
     <Card className="mb-8 border-2 border-teal-200 bg-gradient-to-r from-teal-50 to-white shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-        Grow your city · free
+        Grow your city · free · 3-day feature reward
       </p>
       <h3 className="mt-1 font-display text-lg font-semibold text-stone-900">
         Invite 3 people near you
       </h3>
       <p className="mt-1 text-sm text-stone-500">
-        AuPairly works when both hosts and sitters join. Share your link — more local people =
-        better matches for everyone (and you get credit as referrer).
+        AuPairly works when both hosts and sitters join. Share your link — more locals =
+        better matches. When someone joins with your link, your listing gets a{" "}
+        <strong className="font-semibold text-teal-800">3-day Featured boost</strong>{" "}
+        automatically.
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
         <p className="min-w-0 flex-1 break-all rounded-xl border border-teal-100 bg-white px-3 py-2 font-mono text-xs text-teal-800">

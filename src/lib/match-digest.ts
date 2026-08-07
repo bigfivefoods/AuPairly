@@ -91,14 +91,39 @@ export async function getTopMatchesForUser(
 
   if (user.role === "PARENT" && user.familyProfile) {
     const me = profileFromFamily(user.familyProfile);
-    const profiles = await prisma.auPairProfile.findMany({
-      where: {
-        status: "ACTIVE",
-        userId: { notIn: [...exclude] },
-      },
+    const city = user.familyProfile.city?.trim() || null;
+    const country = user.familyProfile.country?.trim() || null;
+    // Prefer local candidates, then fill from wider set
+    const localWhere = {
+      status: "ACTIVE" as const,
+      userId: { notIn: [...exclude] },
+      ...(city
+        ? { city: { contains: city, mode: "insensitive" as const } }
+        : country
+          ? { country: { equals: country, mode: "insensitive" as const } }
+          : {}),
+    };
+    let profiles = await prisma.auPairProfile.findMany({
+      where: localWhere,
       include: { user: { select: { id: true, name: true } } },
       take: 60,
     });
+    if (profiles.length < 12 && (city || country)) {
+      const extra = await prisma.auPairProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          userId: {
+            notIn: [...exclude, ...profiles.map((p) => p.userId)],
+          },
+          ...(country && city
+            ? { country: { equals: country, mode: "insensitive" } }
+            : {}),
+        },
+        include: { user: { select: { id: true, name: true } } },
+        take: 60 - profiles.length,
+      });
+      profiles = [...profiles, ...extra];
+    }
     return profiles
       .map((p) => {
         const compat = computeCompatibility(me, profileFromAupair(p));
@@ -120,14 +145,38 @@ export async function getTopMatchesForUser(
 
   if (user.role === "AUPAIR" && user.aupairProfile) {
     const me = profileFromAupair(user.aupairProfile);
-    const profiles = await prisma.familyProfile.findMany({
-      where: {
-        status: "ACTIVE",
-        userId: { notIn: [...exclude] },
-      },
+    const city = user.aupairProfile.city?.trim() || null;
+    const country = user.aupairProfile.country?.trim() || null;
+    const localWhere = {
+      status: "ACTIVE" as const,
+      userId: { notIn: [...exclude] },
+      ...(city
+        ? { city: { contains: city, mode: "insensitive" as const } }
+        : country
+          ? { country: { equals: country, mode: "insensitive" as const } }
+          : {}),
+    };
+    let profiles = await prisma.familyProfile.findMany({
+      where: localWhere,
       include: { user: { select: { id: true, name: true } } },
       take: 60,
     });
+    if (profiles.length < 12 && (city || country)) {
+      const extra = await prisma.familyProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          userId: {
+            notIn: [...exclude, ...profiles.map((p) => p.userId)],
+          },
+          ...(country && city
+            ? { country: { equals: country, mode: "insensitive" } }
+            : {}),
+        },
+        include: { user: { select: { id: true, name: true } } },
+        take: 60 - profiles.length,
+      });
+      profiles = [...profiles, ...extra];
+    }
     return profiles
       .map((p) => {
         const compat = computeCompatibility(me, profileFromFamily(p));
