@@ -50,3 +50,11 @@ next-env.d.ts
 
 /src/generated/prisma
 vercel-env-to-paste.env
+
+# Local secret paste files (never commit)
+RESEND_API_KEY.local.txt
+*.secret.txt
+
+# Local paste files with secrets — never commit
+COPY_ME_*.txt
+RESEND_API_KEY.local.txt
