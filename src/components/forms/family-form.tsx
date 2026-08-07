@@ -69,6 +69,9 @@ type Initial = {
   services?: string | ServiceId[] | null;
   petTypes?: string[];
   houseSittingNotes?: string;
+  /** Comma-separated or free text for multi care locations */
+  preferredAreas?: string;
+  isUrgent?: boolean;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -354,6 +357,26 @@ export function FamilyProfileForm({
             placeholder="e.g. Park Slope, Sandton, Paddington"
           />
         </div>
+        <div>
+          <Label>Other areas where you need care (optional)</Label>
+          <p className="mb-2 text-xs text-stone-500">
+            Comma-separated cities or neighborhoods if care is needed in more than one place.
+          </p>
+          <Input
+            value={form.preferredAreas || ""}
+            onChange={(e) => set("preferredAreas", e.target.value)}
+            placeholder="e.g. Stellenbosch, Camps Bay, Umhlanga"
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            checked={Boolean(form.isUrgent)}
+            onChange={(e) => set("isUrgent", e.target.checked)}
+            className="h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          Mark as urgent need (shown as a badge to sitters)
+        </label>
       </Card>
 
       </ProfileSection>

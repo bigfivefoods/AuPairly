@@ -71,6 +71,20 @@ export async function PUT(req: Request) {
       petTypes: toJsonArray(body.petTypes ?? []),
       houseSittingNotes: body.houseSittingNotes || null,
       careFocus: toJsonArray(body.careFocus ?? []),
+      preferredAreas: Array.isArray(body.preferredAreas)
+        ? toJsonArray(body.preferredAreas)
+        : typeof body.preferredAreas === "string"
+          ? toJsonArray(
+              body.preferredAreas
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            )
+          : "[]",
+      isUrgent: Boolean(body.isUrgent),
+      urgentUntil: body.isUrgent
+        ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        : null,
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -121,6 +135,26 @@ export async function PUT(req: Request) {
       houseSittingNotes:
         body.houseSittingNotes !== undefined ? body.houseSittingNotes || null : undefined,
       careFocus: body.careFocus ? toJsonArray(body.careFocus) : undefined,
+      preferredAreas:
+        body.preferredAreas !== undefined
+          ? Array.isArray(body.preferredAreas)
+            ? toJsonArray(body.preferredAreas)
+            : typeof body.preferredAreas === "string"
+              ? toJsonArray(
+                  body.preferredAreas
+                    .split(",")
+                    .map((s: string) => s.trim())
+                    .filter(Boolean)
+                )
+              : "[]"
+          : undefined,
+      isUrgent: body.isUrgent !== undefined ? Boolean(body.isUrgent) : undefined,
+      urgentUntil:
+        body.isUrgent !== undefined
+          ? body.isUrgent
+            ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+            : null
+          : undefined,
       status: body.status,
     },
   });

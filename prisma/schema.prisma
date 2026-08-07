@@ -73,6 +73,9 @@ model User {
   interestsReceived Interest[]  @relation("InterestsReceived")
   peerConnectsSent     PeerConnect[] @relation("PeerConnectSent")
   peerConnectsReceived PeerConnect[] @relation("PeerConnectReceived")
+  blocksInitiated      UserBlock[]   @relation("BlocksFrom")
+  blocksReceived       UserBlock[]   @relation("BlocksTo")
+  cityHangouts         CityHangout[]
   notifications     Notification[]
   subscription      Subscription?
   swipes            Swipe[]    @relation("SwipesFrom")
@@ -105,6 +108,8 @@ model User {
   referredById        String?
   referredBy          User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
   referrals           User[]   @relation("UserReferrals")
+  /// Referral reward already applied for the inviter (one-time per invitee)
+  referralRewardGranted Boolean @default(false)
 
   placementsAsParent  Placement[] @relation("PlacementParent")
   placementsAsAupair  Placement[] @relation("PlacementAupair")
@@ -279,6 +284,11 @@ model FamilyProfile {
   reviewCount     Int           @default(0)
   boostViews      Int           @default(0)
   boostLikes      Int           @default(0)
+  /// Host: urgent need badge (paid or manual)
+  isUrgent        Boolean       @default(false)
+  urgentUntil     DateTime?
+  /// Cities/areas where care is needed (JSON string array) — multi-location
+  preferredAreas  String        @default("[]")
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -289,6 +299,35 @@ model FamilyProfile {
   @@index([city])
   @@index([services])
   @@index([status, services])
+  @@index([isUrgent, status])
+}
+
+/// Block / mute another user (messages, discover, connect)
+model UserBlock {
+  id         String   @id @default(cuid())
+  blockerId  String
+  blocker    User     @relation("BlocksFrom", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId  String
+  blocked    User     @relation("BlocksTo", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+/// AuPair Connect — lightweight city hangout / tip posts
+model CityHangout {
+  id        String   @id @default(cuid())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  city      String
+  country   String?
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([city, country, createdAt])
+  @@index([authorId])
 }
 
 /// Catalog of marketplace categories (seeded; stable IDs)

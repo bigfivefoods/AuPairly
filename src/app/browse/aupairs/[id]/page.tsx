@@ -22,6 +22,8 @@ import { StartPlacementButton } from "@/components/start-placement-button";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { PeerConnectButton } from "@/components/peer-connect-button";
 import { ShareButtons } from "@/components/share-buttons";
+import { BlockUserButton } from "@/components/block-user-button";
+import { TrustStrip } from "@/components/trust-strip";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { JsonLd } from "@/components/json-ld";
@@ -286,29 +288,14 @@ export default async function AuPairDetailPage({
                       {profile.isVerified && <VerifiedBadge />}
                     </div>
                     <p className="mt-1 text-stone-500">{profile.headline}</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {profile.isVerified && (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
-                          Verified
-                        </span>
-                      )}
-                      {replyLabel && (
-                        <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800">
-                          {replyLabel}
-                        </span>
-                      )}
-                      {typeof profile.user.safetyScore === "number" &&
-                        profile.user.safetyScore >= 60 && (
-                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-700">
-                            Safety {profile.user.safetyScore}
-                          </span>
-                        )}
-                      {profile.rating > 0 && (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
-                          {profile.rating.toFixed(1)} · {profile.reviewCount} reviews
-                        </span>
-                      )}
-                    </div>
+                    <TrustStrip
+                      className="mt-2"
+                      isVerified={profile.isVerified}
+                      responseLabel={replyLabel}
+                      safetyScore={profile.user.safetyScore}
+                      rating={profile.rating}
+                      reviewCount={profile.reviewCount}
+                    />
                     {profile.workRights && (
                       <p className="mt-1 text-xs text-stone-500">
                         Work rights: {profile.workRights}
@@ -601,7 +588,8 @@ export default async function AuPairDetailPage({
               />
             </div>
             {session?.user && !isOwn && (
-              <div className="mt-4 border-t border-stone-100 pt-4">
+              <div className="mt-4 space-y-2 border-t border-stone-100 pt-4">
+                <BlockUserButton userId={profile.userId} name={profile.user.name} />
                 <ReportButton targetId={profile.userId} />
               </div>
             )}

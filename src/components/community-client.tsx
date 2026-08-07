@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { AuPairCard } from "@/components/listing-cards";
 import { PeerConnectButton } from "@/components/peer-connect-button";
+import { HangoutsPanel } from "@/components/hangouts-panel";
 import { EmptyState, PageHeader, Input, Button } from "@/components/ui";
 import { proximityLabel, type PeerProximity } from "@/lib/community";
 import { cn } from "@/lib/utils";
@@ -382,6 +383,11 @@ export function CommunityClient({
           )}
         </div>
       )}
+
+      <HangoutsPanel
+        defaultCity={meLocation.city}
+        defaultCountry={meLocation.country}
+      />
     </div>
   );
 }

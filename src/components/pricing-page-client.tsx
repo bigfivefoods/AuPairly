@@ -34,6 +34,44 @@ export function PricingPageClient({
 
       <PricingCards role={role} currentPlan={currentPlan} isLoggedIn={isLoggedIn} />
 
+      <div className="mt-12 overflow-x-auto rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <table className="w-full min-w-[32rem] text-left text-sm">
+          <thead className="border-b border-stone-100 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Feature</th>
+              <th className="px-4 py-3 font-semibold">Free</th>
+              <th className="px-4 py-3 font-semibold">Plus</th>
+              <th className="px-4 py-3 font-semibold">Premium</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-stone-100 text-stone-700">
+            {[
+              ["Marketplace browse", "Yes", "Yes", "Yes"],
+              ["AuPair Connect (sitter friends)", "Yes", "Yes", "Yes"],
+              ["Messages / day (host matching)", "5", "Higher", "Unlimited"],
+              ["Interests / week", "3", "Higher", "Unlimited"],
+              ["Discover swipes / day", "20", "Higher", "Unlimited"],
+              ["Profile boosts", "—", "Included", "More / month"],
+              ["See who liked you", "—", "Yes", "Yes"],
+              ["Featured listing", "—", "Yes", "Yes"],
+              ["Safety / abuse support tickets", "Free", "Free", "Free"],
+              ["Priority product support", "—", "Yes", "Yes"],
+            ].map(([feature, free, plus, prem]) => (
+              <tr key={feature}>
+                <td className="px-4 py-2.5 font-medium text-stone-900">{feature}</td>
+                <td className="px-4 py-2.5">{free}</td>
+                <td className="px-4 py-2.5">{plus}</td>
+                <td className="px-4 py-2.5">{prem}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="border-t border-stone-100 px-4 py-3 text-xs text-stone-500">
+          Peer sitters chat (AuPair Connect) stays generous so community isn&apos;t paywalled.
+          Marketplace host↔sitter messaging is the main Free cap. Prices in ZAR via Paystack.
+        </p>
+      </div>
+
       <div className="mt-16 grid gap-6 sm:grid-cols-3">
         {[
           {

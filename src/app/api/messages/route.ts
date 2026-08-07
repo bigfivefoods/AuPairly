@@ -86,6 +86,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Recipient not found" }, { status: 404 });
   }
 
+  const { isBlockedEitherWay } = await import("@/lib/blocks");
+  if (await isBlockedEitherWay(session.user.id, recipientId)) {
+    return NextResponse.json(
+      { error: "You can’t message this user (blocked)." },
+      { status: 403 }
+    );
+  }
+
   // Peer (sitter↔sitter) chats stay freer for AuPair Connect community
   const peer = await isPeerConversation(session.user.id, recipientId);
   if (!peer) {

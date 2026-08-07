@@ -36,7 +36,18 @@ export function ReportButton({ targetId }: { targetId: string }) {
   }
 
   if (done) {
-    return <p className="text-xs text-stone-500">Report received — thank you.</p>;
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+        <p className="font-semibold">Report received — thank you.</p>
+        <p className="mt-0.5 text-emerald-800/90">
+          Our team reviews safety reports as a priority. You can also email{" "}
+          <a href="mailto:hello@aupairly.me" className="font-semibold underline">
+            hello@aupairly.me
+          </a>{" "}
+          or open a free Safety ticket under Support.
+        </p>
+      </div>
+    );
   }
 
   return (

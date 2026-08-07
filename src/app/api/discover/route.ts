@@ -67,6 +67,14 @@ export async function GET(req: Request) {
   const exclude = new Set(swiped.map((s) => s.toUserId));
   exclude.add(me.id);
 
+  try {
+    const { blockedUserIdsFor } = await import("@/lib/blocks");
+    const blocked = await blockedUserIdsFor(me.id);
+    for (const id of blocked) exclude.add(id);
+  } catch {
+    /* blocks table may not exist yet on first deploy */
+  }
+
   const { plan } = await getUserPlan(me.id);
   const excludeIds = [...exclude];
 
