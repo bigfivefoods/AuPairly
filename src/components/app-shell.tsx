@@ -74,6 +74,13 @@ function iconFor(href: string) {
   return ICONS[href] || ChevronRight;
 }
 
+/**
+ * Shared logo + sidebar column width so the wordmark and rail line up.
+ * Sized to the nav logo (h-8/h-9) + horizontal padding for side links.
+ */
+export const APP_SIDEBAR_WIDTH_CLASS = "w-[11.5rem]";
+export const APP_SIDEBAR_OFFSET_CLASS = "lg:left-[11.5rem]";
+
 function SideNavLinks({
   user,
   path,
@@ -86,13 +93,13 @@ function SideNavLinks({
   compact?: boolean;
 }) {
   return (
-    <div className={cn("flex flex-1 flex-col gap-5", compact ? "px-2" : "px-3")}>
+    <div className={cn("flex flex-1 flex-col gap-4", compact ? "px-1.5" : "px-2")}>
       {APP_NAV_GROUPS.map((group) => {
         const items = group.items.filter((i) => navItemVisible(i, user.role));
         if (!items.length) return null;
         return (
           <div key={group.id}>
-            <p className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-teal-200/70">
+            <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-teal-200/70">
               {group.label}
             </p>
             <ul className="space-y-0.5">
@@ -102,6 +109,7 @@ function SideNavLinks({
                   item={item}
                   active={isNavActive(path, item)}
                   onNavigate={onNavigate}
+                  compact={compact}
                 />
               ))}
             </ul>
@@ -116,10 +124,12 @@ function SideLink({
   item,
   active,
   onNavigate,
+  compact = false,
 }: {
   item: AppNavItem;
   active: boolean;
   onNavigate?: () => void;
+  compact?: boolean;
 }) {
   const Icon = iconFor(item.href);
   return (
@@ -127,8 +137,10 @@ function SideLink({
       <Link
         href={item.href}
         onClick={onNavigate}
+        title={item.label}
         className={cn(
-          "group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium transition",
+          "group flex items-center rounded-xl font-medium transition",
+          compact ? "gap-2 px-2 py-1.5 text-[13px]" : "gap-2.5 px-2.5 py-2 text-sm",
           active
             ? "bg-white text-teal-900 shadow-sm"
             : "text-white/85 hover:bg-white/10 hover:text-white"
@@ -136,13 +148,14 @@ function SideLink({
       >
         <span
           className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition",
+            "flex shrink-0 items-center justify-center rounded-lg transition",
+            compact ? "h-7 w-7" : "h-8 w-8",
             active ? "bg-teal-100 text-teal-800" : "bg-white/10 text-white/90"
           )}
         >
-          <Icon className="h-4 w-4" strokeWidth={active ? 2.4 : 2} />
+          <Icon className={cn(compact ? "h-3.5 w-3.5" : "h-4 w-4")} strokeWidth={active ? 2.4 : 2} />
         </span>
-        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+        <span className="min-w-0 flex-1 truncate leading-tight">{item.label}</span>
         {item.badge === "admin" && (
           <span className="rounded-full bg-amber-300/90 px-1.5 py-0.5 text-[10px] font-bold text-amber-950">
             Admin
@@ -185,72 +198,96 @@ export function AppShell({
 
   return (
     <div className="flex min-h-full min-w-0 flex-1 flex-col bg-[#faf8f5]">
-      {/* Top bar */}
+      {/* Top bar — logo sits in a cell the same width as the side rail */}
       <header className="sticky top-0 z-[100] border-b border-stone-200/80 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
-        <div className="flex h-14 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4 lg:px-5">
-          <button
-            type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-stone-600 hover:bg-white lg:hidden"
-            onClick={() => setDrawerOpen(true)}
-            aria-label="Open menu"
+        <div className="flex h-14 items-stretch sm:h-16">
+          {/* Logo column = sidebar width (desktop) */}
+          <div
+            className={cn(
+              "hidden shrink-0 items-center border-r border-stone-200/70 px-3 lg:flex",
+              APP_SIDEBAR_WIDTH_CLASS
+            )}
           >
-            <Menu className="h-5 w-5" />
-          </button>
-
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 shrink-0 items-center"
-            aria-label="Dashboard"
-          >
-            <BrandLogo className="max-w-[9rem] sm:max-w-[10.5rem]" priority />
-          </Link>
-
-          <div className="mx-auto hidden max-w-md flex-1 px-4 md:block">
             <Link
-              href="/discover"
-              className="flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3.5 py-2 text-sm text-stone-500 shadow-sm transition hover:border-teal-300 hover:text-teal-800"
+              href="/dashboard"
+              className="flex min-w-0 items-center"
+              aria-label="Dashboard"
             >
-              <Compass className="h-4 w-4 shrink-0 text-teal-600" />
-              <span className="truncate">Discover matches & listings…</span>
+              <BrandLogo className="max-w-full" priority />
             </Link>
           </div>
 
-          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
-            <div className="hidden sm:block">
-              <LanguageSwitcher />
+          {/* Mobile / tablet: menu + logo in the main strip */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-white lg:hidden"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            <Link
+              href="/dashboard"
+              className="flex min-w-0 shrink-0 items-center lg:hidden"
+              aria-label="Dashboard"
+            >
+              <BrandLogo className="max-w-[9rem] sm:max-w-[10.5rem]" priority />
+            </Link>
+
+            <div className="mx-auto hidden max-w-md flex-1 px-2 md:block lg:px-4">
+              <Link
+                href="/discover"
+                className="flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3.5 py-2 text-sm text-stone-500 shadow-sm transition hover:border-teal-300 hover:text-teal-800"
+              >
+                <Compass className="h-4 w-4 shrink-0 text-teal-600" />
+                <span className="truncate">Discover matches & listings…</span>
+              </Link>
             </div>
-            <NotificationBell />
-            <Link
-              href="/messages"
-              className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
-              aria-label="Messages"
-              title="Messages"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/account"
-              className="ml-0.5 flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2.5 shadow-sm transition hover:border-teal-300"
-            >
-              <UserAvatar name={user.name} image={user.image} size="sm" />
-              <span className="hidden max-w-[6rem] truncate text-sm font-semibold text-stone-800 sm:inline">
-                {first}
-              </span>
-            </Link>
+
+            <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
+              <div className="hidden sm:block">
+                <LanguageSwitcher />
+              </div>
+              <NotificationBell />
+              <Link
+                href="/messages"
+                className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
+                aria-label="Messages"
+                title="Messages"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/account"
+                className="ml-0.5 flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2.5 shadow-sm transition hover:border-teal-300"
+              >
+                <UserAvatar name={user.name} image={user.image} size="sm" />
+                <span className="hidden max-w-[6rem] truncate text-sm font-semibold text-stone-800 sm:inline">
+                  {first}
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="flex min-h-0 min-w-0 flex-1">
-        {/* Desktop side nav */}
-        <aside className="sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] hidden h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] w-60 shrink-0 flex-col overflow-hidden bg-gradient-to-b from-teal-800 via-teal-700 to-teal-900 text-white sm:top-[calc(4rem+env(safe-area-inset-top,0px))] sm:h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] lg:flex xl:w-64">
+        {/* Desktop side nav — same width as logo column above */}
+        <aside
+          className={cn(
+            "sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] hidden h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] shrink-0 flex-col overflow-hidden bg-gradient-to-b from-teal-800 via-teal-700 to-teal-900 text-white sm:top-[calc(4rem+env(safe-area-inset-top,0px))] sm:h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] lg:flex",
+            APP_SIDEBAR_WIDTH_CLASS
+          )}
+        >
           <div className="pointer-events-none absolute -right-10 top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-8 h-48 w-48 rounded-full bg-orange-400/15 blur-3xl" />
 
-          <div className="relative flex min-h-0 flex-1 flex-col py-4">
-            <div className="mb-3 px-4">
+          <div className="relative flex min-h-0 flex-1 flex-col py-3">
+            <div className="mb-2 px-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-200/80">
-                Your workspace
+                Workspace
               </p>
               <p className="mt-0.5 truncate text-sm font-semibold text-white">
                 {user.name}
@@ -266,20 +303,20 @@ export function AppShell({
               </p>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3">
-              <SideNavLinks user={user} path={path} />
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
+              <SideNavLinks user={user} path={path} compact />
             </div>
 
-            <div className="relative border-t border-white/10 px-3 pt-3">
+            <div className="relative border-t border-white/10 px-2 pt-2">
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+                  className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
                     <LogOut className="h-4 w-4" />
                   </span>
-                  Sign out
+                  <span className="truncate">Sign out</span>
                 </button>
               </form>
             </div>
@@ -287,9 +324,7 @@ export function AppShell({
         </aside>
 
         {/* Main content */}
-        <div className="min-w-0 flex-1">
-          {children}
-        </div>
+        <div className="min-w-0 flex-1">{children}</div>
       </div>
 
       {/* Mobile drawer */}
@@ -343,6 +378,3 @@ export function AppShell({
   );
 }
 
-/** Sidebar width class used by full-bleed children (profile editor) */
-export const APP_SIDEBAR_OFFSET_CLASS =
-  "lg:left-60 xl:left-64";
