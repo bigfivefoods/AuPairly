@@ -56,19 +56,24 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
+    // Cache-bust query forces browsers off the old Next/Vercel default triangle.
+    // PNG + SVG first (modern browsers); classic .ico last for legacy.
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon-32.png?v=lite2", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png?v=lite2", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon.svg?v=lite2", type: "image/svg+xml" },
+      { url: "/icon.png?v=lite2", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon-192.png?v=lite2", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.ico?v=lite2", sizes: "any" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      {
+        url: "/apple-touch-icon.png?v=lite2",
+        sizes: "180x180",
+        type: "image/png",
+      },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon-32.png?v=lite2",
   },
   openGraph: {
     title: BRAND.ogTitle,
