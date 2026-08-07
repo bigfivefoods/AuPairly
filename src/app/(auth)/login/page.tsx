@@ -3,15 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { Loader2 } from "lucide-react";
-import { Suspense } from "react";
 
 function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -21,18 +16,21 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Always land on the personal dashboard after a successful login.
     const res = await signIn("credentials", {
       email,
       password,
       redirect: false,
+      callbackUrl: "/dashboard",
     });
-    setLoading(false);
     if (res?.error) {
+      setLoading(false);
       setError("Invalid email or password.");
       return;
     }
-    router.push(callbackUrl);
-    router.refresh();
+    // Full navigation so the session cookie is applied before the dashboard loads
+    // (client router.push can race the cookie and bounce users away).
+    window.location.assign("/dashboard");
   }
 
   return (
@@ -99,9 +97,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-12">
-      <Suspense>
-        <LoginForm />
-      </Suspense>
+      <LoginForm />
     </div>
   );
 }

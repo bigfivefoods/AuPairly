@@ -26,6 +26,25 @@ export const authConfig = {
   },
   providers: [],
   callbacks: {
+    // After Auth.js sign-in, always send people to the dashboard by default
+    redirect({ url, baseUrl }) {
+      try {
+        const target = new URL(url, baseUrl);
+        // Same-origin only
+        if (target.origin !== new URL(baseUrl).origin) return `${baseUrl}/dashboard`;
+        // Auth pages → dashboard
+        if (target.pathname.startsWith("/login") || target.pathname.startsWith("/register")) {
+          return `${baseUrl}/dashboard`;
+        }
+        // Relative app paths are fine; empty/home → dashboard
+        if (target.pathname === "/" || target.pathname === "") {
+          return `${baseUrl}/dashboard`;
+        }
+        return target.toString();
+      } catch {
+        return `${baseUrl}/dashboard`;
+      }
+    },
     authorized({ auth, request }) {
       const path = request.nextUrl.pathname;
       const protectedPaths = [

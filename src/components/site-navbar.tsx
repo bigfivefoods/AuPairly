@@ -129,7 +129,7 @@ export function SiteNavbar({
           ) : (
             <>
               <Link
-                href="/login"
+                href="/login?callbackUrl=/dashboard"
                 className="hidden text-sm font-semibold text-stone-700 hover:text-teal-700 sm:inline"
               >
                 {t("nav_login")}
