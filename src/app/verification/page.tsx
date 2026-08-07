@@ -8,22 +8,26 @@ export const metadata = { title: "Verification" };
 
 export default async function VerificationPage() {
   const user = await requireUser();
-  const verifications = await prisma.verification.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const profile =
+  const [verifications, dbUser, profile] = await Promise.all([
+    prisma.verification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { facebookId: true },
+    }),
     user.role === "AUPAIR"
-      ? await prisma.auPairProfile.findUnique({ where: { userId: user.id } })
-      : await prisma.familyProfile.findUnique({ where: { userId: user.id } });
+      ? prisma.auPairProfile.findUnique({ where: { userId: user.id } })
+      : prisma.familyProfile.findUnique({ where: { userId: user.id } }),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Trust center"
         title="Verify your identity"
-        description="Complete these checks to earn a Verified badge. Verified members get more visibility and trust."
+        description="South Africa: automated SA ID + face match via VerifyNow. International: Didit when configured, or document upload. Optional Facebook import for name/photo only."
       />
       <VerificationClient
         initial={verifications.map((v) => ({
@@ -34,6 +38,7 @@ export default async function VerificationPage() {
           createdAt: v.createdAt.toISOString(),
         }))}
         isFullyVerified={profile?.isVerified ?? false}
+        facebookLinked={Boolean(dbUser?.facebookId)}
       />
     </div>
   );
