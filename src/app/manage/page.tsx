@@ -335,6 +335,10 @@ export default async function ManagePage() {
           <Shield className="h-4 w-4" />
           Verification &amp; reports
         </Link>
+        <a href="/api/admin/export/users" className="btn-secondary">
+          <Users className="h-4 w-4" />
+          Export users CSV
+        </a>
         <Link href="/api/health" className="btn-secondary" target="_blank">
           <Activity className="h-4 w-4" />
           Health JSON

@@ -37,7 +37,19 @@ type AuPairCardProps = {
   safetyScore?: number | null;
   placementVerified?: boolean;
   responseLabel?: string | null;
+  /** ISO date or Date — show “Active recently” if within 7 days */
+  lastActiveAt?: Date | string | null;
 };
+
+function isActiveRecently(lastActiveAt?: Date | string | null): boolean {
+  if (!lastActiveAt) return false;
+  const t =
+    lastActiveAt instanceof Date
+      ? lastActiveAt.getTime()
+      : new Date(lastActiveAt).getTime();
+  if (Number.isNaN(t)) return false;
+  return Date.now() - t < 7 * 86400000;
+}
 
 export function AuPairCard(p: AuPairCardProps) {
   const langs = parseJsonArray(p.languages).slice(0, 3);
@@ -110,6 +122,12 @@ export function AuPairCard(p: AuPairCardProps) {
         )}
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
           {p.isVerified && <VerifiedBadge />}
+          {isActiveRecently(p.lastActiveAt) && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-teal-600/95 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+              <Clock className="h-3 w-3" />
+              Active
+            </span>
+          )}
           {trust && trust !== "Verified" && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
               <Shield className="h-3 w-3" />
@@ -154,8 +172,19 @@ export function AuPairCard(p: AuPairCardProps) {
             <span className="text-teal-700">{activeDays.join(" · ")}</span>
           )}
         </div>
-        {p.responseLabel && (
-          <p className="mt-2 text-[11px] font-medium text-teal-700">{p.responseLabel}</p>
+        {(p.responseLabel || isActiveRecently(p.lastActiveAt)) && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {p.responseLabel && (
+              <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800">
+                {p.responseLabel}
+              </span>
+            )}
+            {isActiveRecently(p.lastActiveAt) && (
+              <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                Online this week
+              </span>
+            )}
+          </div>
         )}
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
           <span className="text-stone-500">
@@ -202,6 +231,8 @@ type FamilyCardProps = {
   languages: string;
   scheduleJson?: string | null;
   services?: string | null;
+  responseLabel?: string | null;
+  lastActiveAt?: Date | string | null;
 };
 
 export function FamilyCard(p: FamilyCardProps) {
@@ -275,6 +306,12 @@ export function FamilyCard(p: FamilyCardProps) {
             </span>
           )}
           {p.isVerified && <VerifiedBadge />}
+          {isActiveRecently(p.lastActiveAt) && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-teal-600/95 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+              <Clock className="h-3 w-3" />
+              Active
+            </span>
+          )}
           {trust && trust !== "Verified" && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
               <Shield className="h-3 w-3" />
@@ -326,6 +363,20 @@ export function FamilyCard(p: FamilyCardProps) {
             </span>
           )}
         </div>
+        {(p.responseLabel || isActiveRecently(p.lastActiveAt)) && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {p.responseLabel && (
+              <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800">
+                {p.responseLabel}
+              </span>
+            )}
+            {isActiveRecently(p.lastActiveAt) && (
+              <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600">
+                Online this week
+              </span>
+            )}
+          </div>
+        )}
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
           <span className="text-stone-500">Seeking help</span>
           {p.pocketMoney ? (

@@ -483,8 +483,9 @@ export default async function DashboardPage({
         </Card>
       </div>
 
-      <ReviewPromptCard />
+      {/* Growth before payments matter: invite always high on hub */}
       <InviteCard userId={user.id} userName={user.name} />
+      <ReviewPromptCard />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
