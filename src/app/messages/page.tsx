@@ -24,6 +24,7 @@ export default async function MessagesPage() {
       },
     },
     orderBy: { lastMessageAt: "desc" },
+    take: 50,
   });
 
   return (
@@ -31,21 +32,32 @@ export default async function MessagesPage() {
       <PageHeader
         eyebrow="Inbox"
         title="Messages"
-        description="Chat securely with families and au pairs."
+        description="Chat securely with hosts, sitters, and friends from AuPair Connect."
       />
 
       {conversations.length === 0 ? (
         <EmptyState
           icon={<MessageCircle className="h-7 w-7" />}
           title="No conversations yet"
-          description="Browse the marketplace and send a message to start matching."
+          description={
+            user.role === "AUPAIR"
+              ? "Message hosts from Discover, or say hi to sitters nearby on AuPair Connect."
+              : "Browse sitters and send a message when you find a good match."
+          }
           action={
-            <Link
-              href={user.role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
-              className="btn-primary"
-            >
-              Browse matches
-            </Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link
+                href={user.role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
+                className="btn-primary"
+              >
+                Browse marketplace
+              </Link>
+              {user.role === "AUPAIR" && (
+                <Link href="/community" className="btn-secondary">
+                  AuPair Connect
+                </Link>
+              )}
+            </div>
           }
         />
       ) : (
@@ -63,7 +75,7 @@ export default async function MessagesPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate font-semibold text-stone-900">{other.name}</p>
-                    <Badge>{other.role === "AUPAIR" ? "Au pair" : "Family"}</Badge>
+                    <Badge>{other.role === "AUPAIR" ? "Sitter" : "Host"}</Badge>
                   </div>
                   <p className="mt-0.5 truncate text-sm text-stone-500">
                     {last?.body || "No messages yet"}

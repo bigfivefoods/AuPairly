@@ -12,8 +12,23 @@ import {
   type PlanId,
 } from "@/lib/plans";
 
-/** Explicit demo upgrade (no payment) for local / pitch demos */
+/**
+ * Explicit demo upgrade (no payment) — local / pitch demos only.
+ * Disabled in production unless ALLOW_DEMO_BILLING=true (never on Vercel production by default).
+ */
 export async function POST(req: Request) {
+  const allowDemo =
+    process.env.ALLOW_DEMO_BILLING === "true" &&
+    process.env.VERCEL_ENV !== "production" &&
+    process.env.NODE_ENV !== "production";
+
+  if (!allowDemo) {
+    return NextResponse.json(
+      { error: "Demo billing is disabled. Use Paystack checkout." },
+      { status: 403 }
+    );
+  }
+
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -57,8 +57,24 @@ export async function POST(req: Request) {
 
   const site = getSiteUrl();
 
-  // Demo mode when Paystack is not configured
+  // Demo free-upgrade only outside production when explicitly enabled
   if (!isPaystackConfigured()) {
+    const allowDemo =
+      process.env.ALLOW_DEMO_BILLING === "true" &&
+      process.env.VERCEL_ENV !== "production" &&
+      process.env.NODE_ENV !== "production";
+
+    if (!allowDemo) {
+      return NextResponse.json(
+        {
+          error:
+            "Payments are not configured. Please try again later or contact support.",
+          upgradeUrl: "/support",
+        },
+        { status: 503 }
+      );
+    }
+
     await activatePlan(session.user.id, planId, {
       days: periodPricing.durationDays,
     });

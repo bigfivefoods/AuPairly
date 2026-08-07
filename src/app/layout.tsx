@@ -148,6 +148,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${dmSans.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="flex min-h-full min-w-0 flex-col bg-background text-foreground overscroll-none">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[300] focus:rounded-full focus:bg-teal-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        >
+          Skip to content
+        </a>
         <Providers locale={locale}>
           <AppChrome>{children}</AppChrome>
           <PwaProvider />

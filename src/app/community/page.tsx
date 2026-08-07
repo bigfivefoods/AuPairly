@@ -61,6 +61,7 @@ export default async function CommunityPage() {
           region: profile?.region,
           country: profile?.country,
         }}
+        openToPeerConnect={profile?.openToPeerConnect !== false}
       />
     </Suspense>
   );

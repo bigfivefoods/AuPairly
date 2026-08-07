@@ -113,6 +113,7 @@ export default async function BrowseFamiliesPage({
       },
       include: { user: { select: { name: true, image: true } } },
       orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
+      take: 48,
     });
   } catch (e) {
     console.error("[browse/families] load failed", e);

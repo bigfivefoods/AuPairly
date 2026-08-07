@@ -17,28 +17,37 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const body = await req.json();
+  const subject = String(body.subject || "").trim().slice(0, 200);
+  const text = String(body.body || "").trim().slice(0, 5000);
+  const category = String(body.category || "GENERAL").toUpperCase();
+  if (!subject || !text) {
+    return NextResponse.json({ error: "subject and body required" }, { status: 400 });
+  }
+
+  // Free users can open safety/account tickets; priority topics stay paid
+  const freeAllowed = new Set(["SAFETY", "ABUSE", "ACCOUNT_ACCESS", "REPORT"]);
   const { planId } = await getUserPlan(session.user.id);
-  if (planId === "FREE" && session.user.role !== "ADMIN") {
+  if (
+    planId === "FREE" &&
+    session.user.role !== "ADMIN" &&
+    !freeAllowed.has(category)
+  ) {
     return NextResponse.json(
       {
-        error: "Priority support is for Plus/Premium members. Upgrade to open a ticket.",
+        error:
+          "Priority support is for Plus/Premium. Free accounts can still report safety or account issues — pick category Safety / Abuse / Account.",
         upgradeRequired: true,
+        freeCategories: [...freeAllowed],
       },
       { status: 402 }
     );
   }
 
-  const body = await req.json();
-  const subject = String(body.subject || "").trim();
-  const text = String(body.body || "").trim();
-  if (!subject || !text) {
-    return NextResponse.json({ error: "subject and body required" }, { status: 400 });
-  }
-
   const ticket = await prisma.supportTicket.create({
     data: {
       userId: session.user.id,
-      subject,
+      subject: freeAllowed.has(category) ? `[${category}] ${subject}` : subject,
       body: text,
     },
   });

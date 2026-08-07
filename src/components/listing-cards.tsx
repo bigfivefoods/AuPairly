@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MapPin, Calendar, Clock, Baby, Languages, Shield } from "lucide-react";
 import { Avatar, Badge, Stars, VerifiedBadge } from "@/components/ui";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
+import { formatWeeklyStipend } from "@/lib/money";
 import { parseSchedule, WEEKDAYS } from "@/lib/schedule";
 import { parseServices } from "@/lib/services";
 import { ServiceBadges } from "@/components/service-picker";
@@ -104,7 +105,9 @@ export function AuPairCard(p: AuPairCardProps) {
         <div className="mt-auto flex items-center justify-between border-t border-stone-100 pt-4 mt-4 text-sm">
           <span className="text-stone-500">{p.experienceYears}+ yrs experience</span>
           {p.pocketMoneyMin ? (
-            <span className="font-semibold text-teal-700">from R{p.pocketMoneyMin}/wk</span>
+            <span className="font-semibold text-teal-700">
+              {formatWeeklyStipend(p.pocketMoneyMin)}
+            </span>
           ) : (
             <span className="text-stone-400">Open to discuss</span>
           )}
