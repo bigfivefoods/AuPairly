@@ -52,7 +52,17 @@ export default async function BrowseFamiliesPage({
   let families: Awaited<
     ReturnType<
       typeof prisma.familyProfile.findMany<{
-        include: { user: { select: { name: true; image: true } } };
+        include: {
+          user: {
+            select: {
+              name: true;
+              image: true;
+              avgResponseMinutes: true;
+              safetyScore: true;
+              lastActiveAt: true;
+            };
+          };
+        };
       }>
     >
   > = [];
@@ -114,7 +124,17 @@ export default async function BrowseFamiliesPage({
             }
           : {}),
       },
-      include: { user: { select: { name: true, image: true } } },
+      include: {
+        user: {
+          select: {
+            name: true,
+            image: true,
+            avgResponseMinutes: true,
+            safetyScore: true,
+            lastActiveAt: true,
+          },
+        },
+      },
       orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
       take: 48,
     });
@@ -225,16 +245,24 @@ export default async function BrowseFamiliesPage({
       {families.length === 0 ? (
         <EmptyState
           icon={<Home className="h-7 w-7" />}
-          title="No hosts found"
+          title="No hosts found yet"
           description={
             dbOk
-              ? "Try a wider continent or country, or clear service / location filters."
+              ? "Be first in this area — post a free host listing, or invite a family. Widen filters to see more."
               : "Database is temporarily unavailable — page still works, listings will appear once configured."
           }
           action={
-            <Link href="/browse/families" className="btn-secondary">
-              Clear filters
-            </Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link href="/register?role=PARENT" className="btn-primary">
+                List as a host
+              </Link>
+              <Link href="/register?role=AUPAIR" className="btn-secondary">
+                I offer care
+              </Link>
+              <Link href="/browse/families" className="btn-secondary">
+                Clear filters
+              </Link>
+            </div>
           }
         />
       ) : (
@@ -266,6 +294,13 @@ export default async function BrowseFamiliesPage({
                 languages={f.languages}
                 scheduleJson={f.scheduleJson}
                 services={f.services}
+                safetyScore={f.user.safetyScore}
+                lastActiveAt={f.user.lastActiveAt}
+                responseLabel={
+                  f.user.avgResponseMinutes != null
+                    ? `Usually replies in ~${Math.max(1, Math.round(f.user.avgResponseMinutes))}m`
+                    : null
+                }
               />
             ))}
           </div>

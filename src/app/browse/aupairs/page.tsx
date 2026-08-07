@@ -65,6 +65,7 @@ export default async function BrowseAupairsPage({
               image: true;
               avgResponseMinutes: true;
               safetyScore: true;
+              lastActiveAt: true;
             };
           };
         };
@@ -140,6 +141,7 @@ export default async function BrowseAupairsPage({
             image: true,
             avgResponseMinutes: true,
             safetyScore: true,
+            lastActiveAt: true,
           },
         },
       },
@@ -296,16 +298,24 @@ export default async function BrowseAupairsPage({
       {aupairs.length === 0 ? (
         <EmptyState
           icon={<Users className="h-7 w-7" />}
-          title="No sitters found"
+          title="No sitters found yet"
           description={
             dbOk
-              ? "Try a wider continent or country, or clear service / location filters."
+              ? "Be an early member — list yourself free, or invite a sitter. Clear filters to widen the search."
               : "Database is temporarily unavailable — page still works, listings will appear once configured."
           }
           action={
-            <Link href="/browse/aupairs" className="btn-secondary">
-              Clear filters
-            </Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link href="/register?role=AUPAIR" className="btn-primary">
+                List as a sitter
+              </Link>
+              <Link href="/register?role=PARENT" className="btn-secondary">
+                I need care
+              </Link>
+              <Link href="/browse/aupairs" className="btn-secondary">
+                Clear filters
+              </Link>
+            </div>
           }
         />
       ) : (
@@ -340,6 +350,7 @@ export default async function BrowseAupairsPage({
                 scheduleJson={a.scheduleJson}
                 services={a.services}
                 safetyScore={a.user.safetyScore}
+                lastActiveAt={a.user.lastActiveAt}
                 responseLabel={
                   a.user.avgResponseMinutes != null
                     ? `Usually replies in ~${Math.max(1, Math.round(a.user.avgResponseMinutes))}m`
