@@ -28,6 +28,8 @@ import {
   X,
   LogOut,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
@@ -46,6 +48,13 @@ type ShellUser = {
   image?: string | null;
   role?: string;
 };
+
+const SIDEBAR_STORAGE_KEY = "aupairly_sidebar_expanded";
+
+/** Expanded width aligns with AuPairly wordmark column */
+export const APP_SIDEBAR_EXPANDED = "11.5rem";
+/** Collapsed icon rail */
+export const APP_SIDEBAR_COLLAPSED = "4.25rem";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -74,34 +83,39 @@ function iconFor(href: string) {
   return ICONS[href] || ChevronRight;
 }
 
-/**
- * Shared logo + sidebar column width so the wordmark and rail line up.
- * Sized to the nav logo (h-8/h-9) + horizontal padding for side links.
- */
-export const APP_SIDEBAR_WIDTH_CLASS = "w-[11.5rem]";
-export const APP_SIDEBAR_OFFSET_CLASS = "lg:left-[11.5rem]";
-
 function SideNavLinks({
   user,
   path,
   onNavigate,
-  compact = false,
+  expanded,
 }: {
   user: ShellUser;
   path: string;
   onNavigate?: () => void;
-  compact?: boolean;
+  expanded: boolean;
 }) {
   return (
-    <div className={cn("flex flex-1 flex-col gap-4", compact ? "px-1.5" : "px-2")}>
+    <div
+      className={cn(
+        "flex flex-1 flex-col gap-4",
+        expanded ? "px-1.5" : "px-1"
+      )}
+    >
       {APP_NAV_GROUPS.map((group) => {
         const items = group.items.filter((i) => navItemVisible(i, user.role));
         if (!items.length) return null;
         return (
           <div key={group.id}>
-            <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-teal-200/70">
-              {group.label}
-            </p>
+            {expanded ? (
+              <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-teal-200/70">
+                {group.label}
+              </p>
+            ) : (
+              <div
+                className="mx-auto mb-1 h-px w-6 bg-white/15"
+                aria-hidden
+              />
+            )}
             <ul className="space-y-0.5">
               {items.map((item) => (
                 <SideLink
@@ -109,7 +123,7 @@ function SideNavLinks({
                   item={item}
                   active={isNavActive(path, item)}
                   onNavigate={onNavigate}
-                  compact={compact}
+                  expanded={expanded}
                 />
               ))}
             </ul>
@@ -124,12 +138,12 @@ function SideLink({
   item,
   active,
   onNavigate,
-  compact = false,
+  expanded,
 }: {
   item: AppNavItem;
   active: boolean;
   onNavigate?: () => void;
-  compact?: boolean;
+  expanded: boolean;
 }) {
   const Icon = iconFor(item.href);
   return (
@@ -140,7 +154,9 @@ function SideLink({
         title={item.label}
         className={cn(
           "group flex items-center rounded-xl font-medium transition",
-          compact ? "gap-2 px-2 py-1.5 text-[13px]" : "gap-2.5 px-2.5 py-2 text-sm",
+          expanded
+            ? "gap-2 px-2 py-1.5 text-[13px]"
+            : "justify-center px-1 py-2",
           active
             ? "bg-white text-teal-900 shadow-sm"
             : "text-white/85 hover:bg-white/10 hover:text-white"
@@ -149,17 +165,26 @@ function SideLink({
         <span
           className={cn(
             "flex shrink-0 items-center justify-center rounded-lg transition",
-            compact ? "h-7 w-7" : "h-8 w-8",
+            expanded ? "h-7 w-7" : "h-9 w-9",
             active ? "bg-teal-100 text-teal-800" : "bg-white/10 text-white/90"
           )}
         >
-          <Icon className={cn(compact ? "h-3.5 w-3.5" : "h-4 w-4")} strokeWidth={active ? 2.4 : 2} />
+          <Icon
+            className={cn(expanded ? "h-3.5 w-3.5" : "h-4 w-4")}
+            strokeWidth={active ? 2.4 : 2}
+          />
         </span>
-        <span className="min-w-0 flex-1 truncate leading-tight">{item.label}</span>
-        {item.badge === "admin" && (
-          <span className="rounded-full bg-amber-300/90 px-1.5 py-0.5 text-[10px] font-bold text-amber-950">
-            Admin
-          </span>
+        {expanded && (
+          <>
+            <span className="min-w-0 flex-1 truncate leading-tight">
+              {item.label}
+            </span>
+            {item.badge === "admin" && (
+              <span className="rounded-full bg-amber-300/90 px-1.5 py-0.5 text-[10px] font-bold text-amber-950">
+                Admin
+              </span>
+            )}
+          </>
         )}
       </Link>
     </li>
@@ -167,7 +192,7 @@ function SideLink({
 }
 
 /**
- * Authenticated app chrome: sticky top bar + teal side nav (desktop) / drawer (mobile).
+ * Authenticated app chrome: sticky top bar + expandable teal side nav.
  */
 export function AppShell({
   user,
@@ -180,10 +205,32 @@ export function AppShell({
 }) {
   const path = usePathname() || "";
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setDrawerOpen(false);
   }, [path]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      if (raw === "0") setExpanded(false);
+      else if (raw === "1") setExpanded(true);
+    } catch {
+      /* ignore */
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, expanded ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [expanded, hydrated]);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -195,29 +242,47 @@ export function AppShell({
   }, [drawerOpen]);
 
   const first = user.name.split(" ")[0] || "You";
+  const sidebarW = expanded ? APP_SIDEBAR_EXPANDED : APP_SIDEBAR_COLLAPSED;
+
+  function toggleExpanded() {
+    setExpanded((v) => !v);
+  }
 
   return (
-    <div className="flex min-h-full min-w-0 flex-1 flex-col bg-[#faf8f5]">
-      {/* Top bar — logo sits in a cell the same width as the side rail */}
+    <div
+      className="flex min-h-full min-w-0 flex-1 flex-col bg-[#faf8f5]"
+      style={
+        {
+          // Used by full-bleed editors (profile/onboarding) for left offset
+          ["--app-sidebar-w" as string]: sidebarW,
+        } as React.CSSProperties
+      }
+    >
+      {/* Top bar — logo cell width tracks sidebar expanded/collapsed */}
       <header className="sticky top-0 z-[100] border-b border-stone-200/80 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
         <div className="flex h-14 items-stretch sm:h-16">
-          {/* Logo column = sidebar width (desktop) */}
           <div
             className={cn(
-              "hidden shrink-0 items-center border-r border-stone-200/70 px-3 lg:flex",
-              APP_SIDEBAR_WIDTH_CLASS
+              "hidden shrink-0 items-center border-r border-stone-200/70 transition-[width] duration-200 ease-out lg:flex",
+              expanded ? "justify-start px-3" : "justify-center px-1.5"
             )}
+            style={{ width: sidebarW }}
           >
             <Link
               href="/dashboard"
               className="flex min-w-0 items-center"
               aria-label="Dashboard"
             >
-              <BrandLogo className="max-w-full" priority />
+              {expanded ? (
+                <BrandLogo className="max-w-full" priority />
+              ) : (
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-teal-800 text-sm font-bold text-white shadow-sm">
+                  A
+                </span>
+              )}
             </Link>
           </div>
 
-          {/* Mobile / tablet: menu + logo in the main strip */}
           <div className="flex min-w-0 flex-1 items-center gap-2 px-3 sm:gap-3 sm:px-4">
             <button
               type="button"
@@ -274,60 +339,95 @@ export function AppShell({
       </header>
 
       <div className="flex min-h-0 min-w-0 flex-1">
-        {/* Desktop side nav — same width as logo column above */}
         <aside
           className={cn(
-            "sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] hidden h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] shrink-0 flex-col overflow-hidden bg-gradient-to-b from-teal-800 via-teal-700 to-teal-900 text-white sm:top-[calc(4rem+env(safe-area-inset-top,0px))] sm:h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] lg:flex",
-            APP_SIDEBAR_WIDTH_CLASS
+            "sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] hidden h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] shrink-0 flex-col overflow-hidden bg-gradient-to-b from-teal-800 via-teal-700 to-teal-900 text-white transition-[width] duration-200 ease-out sm:top-[calc(4rem+env(safe-area-inset-top,0px))] sm:h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] lg:flex"
           )}
+          style={{ width: sidebarW }}
+          aria-label="Main navigation"
         >
           <div className="pointer-events-none absolute -right-10 top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-8 h-48 w-48 rounded-full bg-orange-400/15 blur-3xl" />
 
           <div className="relative flex min-h-0 flex-1 flex-col py-3">
-            <div className="mb-2 px-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-200/80">
-                Workspace
-              </p>
-              <p className="mt-0.5 truncate text-sm font-semibold text-white">
-                {user.name}
-              </p>
-              <p className="truncate text-xs text-teal-100/75">
-                {user.role === "PARENT"
-                  ? "Host account"
-                  : user.role === "AUPAIR"
-                    ? "Sitter account"
-                    : user.role === "ADMIN"
-                      ? "Admin"
-                      : "Member"}
-              </p>
-            </div>
+            {expanded ? (
+              <div className="mb-2 px-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-200/80">
+                  Workspace
+                </p>
+                <p className="mt-0.5 truncate text-sm font-semibold text-white">
+                  {user.name}
+                </p>
+                <p className="truncate text-xs text-teal-100/75">
+                  {user.role === "PARENT"
+                    ? "Host account"
+                    : user.role === "AUPAIR"
+                      ? "Sitter account"
+                      : user.role === "ADMIN"
+                        ? "Admin"
+                        : "Member"}
+                </p>
+              </div>
+            ) : (
+              <div className="mb-2 flex justify-center px-1">
+                <UserAvatar
+                  name={user.name}
+                  image={user.image}
+                  size="sm"
+                  className="!h-9 !w-9 ring-2 ring-white/20"
+                />
+              </div>
+            )}
 
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2">
-              <SideNavLinks user={user} path={path} compact />
+              <SideNavLinks user={user} path={path} expanded={expanded} />
             </div>
 
-            <div className="relative border-t border-white/10 px-2 pt-2">
+            <div className="relative space-y-1 border-t border-white/10 px-1.5 pt-2">
+              <button
+                type="button"
+                onClick={toggleExpanded}
+                className={cn(
+                  "flex w-full items-center rounded-xl text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white",
+                  expanded ? "gap-2 px-2 py-2" : "justify-center px-1 py-2"
+                )}
+                title={expanded ? "Collapse sidebar" : "Expand sidebar"}
+                aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+                aria-expanded={expanded}
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                  {expanded ? (
+                    <ChevronsLeft className="h-4 w-4" />
+                  ) : (
+                    <ChevronsRight className="h-4 w-4" />
+                  )}
+                </span>
+                {expanded && <span className="truncate">Collapse</span>}
+              </button>
+
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
+                  title="Sign out"
+                  className={cn(
+                    "flex w-full items-center rounded-xl text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white",
+                    expanded ? "gap-2 px-2 py-2" : "justify-center px-1 py-2"
+                  )}
                 >
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
                     <LogOut className="h-4 w-4" />
                   </span>
-                  <span className="truncate">Sign out</span>
+                  {expanded && <span className="truncate">Sign out</span>}
                 </button>
               </form>
             </div>
           </div>
         </aside>
 
-        {/* Main content */}
         <div className="min-w-0 flex-1">{children}</div>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — always full labels */}
       {drawerOpen && (
         <div className="fixed inset-0 z-[200] lg:hidden" role="dialog" aria-modal>
           <button
@@ -357,6 +457,7 @@ export function AppShell({
               <SideNavLinks
                 user={user}
                 path={path}
+                expanded
                 onNavigate={() => setDrawerOpen(false)}
               />
             </div>
@@ -378,3 +479,6 @@ export function AppShell({
   );
 }
 
+/** Fallback offset when CSS var not present */
+export const APP_SIDEBAR_OFFSET_CLASS =
+  "lg:left-[var(--app-sidebar-w,11.5rem)]";
