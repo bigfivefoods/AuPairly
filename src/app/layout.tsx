@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
-import { Navbar, Footer } from "@/components/navbar";
 import { Providers } from "@/components/providers";
-import { MobileNav } from "@/components/mobile-nav";
+import { AppChrome } from "@/components/app-chrome";
 import { PwaProvider } from "@/components/pwa-provider";
 import { BRAND } from "@/lib/brand";
 import { getRequestLocale } from "@/lib/i18n/server";
@@ -125,12 +124,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full min-w-0 flex-col bg-background text-foreground overscroll-none">
         <Providers locale={locale}>
-          <Navbar />
-          <main className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0">
-            {children}
-          </main>
-          <Footer />
-          <MobileNav />
+          <AppChrome>{children}</AppChrome>
           <PwaProvider />
         </Providers>
       </body>
