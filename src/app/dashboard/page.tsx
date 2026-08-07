@@ -19,8 +19,11 @@ import { CompletenessCoach } from "@/components/completeness-coach";
 import { PushSettingsCard } from "@/components/pwa-provider";
 import { InviteCard } from "@/components/invite-card";
 import { ReviewPromptCard } from "@/components/review-prompt-card";
+import { NearYouRail } from "@/components/near-you-rail";
+import { SafetyMeetChecklist } from "@/components/safety-meet-checklist";
 import { responseTimeLabel } from "@/lib/completeness";
 import { buildPageMetadata } from "@/lib/seo";
+import { checkAndConsume } from "@/lib/entitlements";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPageMetadata({
@@ -75,6 +78,76 @@ export default async function DashboardPage({
   const verifySteps = ["ID", "SELFIE", "REFERENCES", "BACKGROUND"] as const;
   const verifyProgress = verifySteps.filter((t) => verifiedTypes.has(t)).length;
   const responseLabel = responseTimeLabel(meUser?.avgResponseMinutes);
+  const hasPhoto = Boolean(meUser?.image || user.image);
+
+  // Near-you rail + free usage remaining
+  const city = profile?.city || "";
+  let nearYou: {
+    id: string;
+    href: string;
+    name: string;
+    image?: string | null;
+    headline?: string | null;
+    city?: string | null;
+    isVerified?: boolean;
+    badge?: string;
+  }[] = [];
+  let msgUsage: { used: number; limit: number } | null = null;
+  try {
+    const usage = await checkAndConsume(user.id, "MESSAGE", { consume: false });
+    if (usage.ok && usage.remaining != null && usage.plan.limits.messagesPerDay > 0) {
+      msgUsage = {
+        used: usage.plan.limits.messagesPerDay - usage.remaining,
+        limit: usage.plan.limits.messagesPerDay,
+      };
+    } else if (!usage.ok) {
+      msgUsage = { used: usage.used, limit: usage.limit };
+    }
+
+    if (city && user.role === "PARENT") {
+      const rows = await prisma.auPairProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          city: { contains: city, mode: "insensitive" },
+        },
+        include: { user: { select: { name: true, image: true } } },
+        orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
+        take: 8,
+      });
+      nearYou = rows.map((r) => ({
+        id: r.id,
+        href: `/browse/aupairs/${r.id}`,
+        name: r.user.name,
+        image: r.user.image,
+        headline: r.headline,
+        city: r.city,
+        isVerified: r.isVerified,
+        badge: r.isFeatured ? "Featured" : undefined,
+      }));
+    } else if (city && user.role === "AUPAIR") {
+      const rows = await prisma.familyProfile.findMany({
+        where: {
+          status: "ACTIVE",
+          city: { contains: city, mode: "insensitive" },
+        },
+        include: { user: { select: { name: true, image: true } } },
+        orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
+        take: 8,
+      });
+      nearYou = rows.map((r) => ({
+        id: r.id,
+        href: `/browse/families/${r.id}`,
+        name: r.familyName || r.user.name,
+        image: r.user.image,
+        headline: r.headline,
+        city: r.city,
+        isVerified: r.isVerified,
+        badge: r.isUrgent ? "Urgent" : undefined,
+      }));
+    }
+  } catch {
+    /* non-fatal */
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -268,13 +341,25 @@ export default async function DashboardPage({
         </Card>
       </div>
 
-      {/* Checklist */}
-      <div className="mb-10 grid gap-4 sm:grid-cols-3">
+      {/* Activation checklist */}
+      <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <ChecklistCard
-          done={Boolean(profile?.bio && profile?.headline)}
-          title="Complete profile"
-          desc="Add bio, location, and details"
-          href="/profile/edit"
+          done={hasPhoto}
+          title="Add photo"
+          desc="Clear face photo = more messages"
+          href="/onboarding"
+        />
+        <ChecklistCard
+          done={Boolean(profile?.city && profile?.country)}
+          title="Set city"
+          desc="Required for local matches"
+          href="/onboarding"
+        />
+        <ChecklistCard
+          done={listingStatus === "ACTIVE"}
+          title="Publish listing"
+          desc="Go live on the marketplace"
+          href={listingStatus === "ACTIVE" ? "/discover" : "/onboarding"}
         />
         <ChecklistCard
           done={isVerified}
@@ -282,12 +367,56 @@ export default async function DashboardPage({
           desc={`${verifyProgress}/${verifySteps.length} checks complete`}
           href="/verification"
         />
-        <ChecklistCard
-          done={listingStatus === "ACTIVE"}
-          title="Publish listing"
-          desc="Go live on the marketplace"
-          href="/profile/edit"
-        />
+      </div>
+
+      {msgUsage && msgUsage.used >= Math.max(1, msgUsage.limit - 1) && (
+        <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-semibold">
+            {msgUsage.used}/{msgUsage.limit} free messages used today
+          </p>
+          <p className="mt-1 text-amber-900/90">
+            Unlock unlimited matching from R99 / 2 weeks.
+          </p>
+          <Link href="/pricing" className="mt-2 inline-flex text-sm font-bold text-teal-800 underline">
+            View Plus plans →
+          </Link>
+        </div>
+      )}
+
+      <NearYouRail
+        title={
+          city
+            ? user.role === "PARENT"
+              ? `Sitters near ${city}`
+              : `Hosts near ${city}`
+            : "Matches near you"
+        }
+        subtitle={
+          city
+            ? "Verified and new listings first"
+            : "Add your city in setup to see local people"
+        }
+        items={nearYou}
+        emptyHref={user.role === "PARENT" ? "/browse/aupairs" : "/browse/families"}
+        emptyLabel={
+          city
+            ? `No live listings in ${city} yet — browse all or invite friends.`
+            : "Set your city to unlock local matches."
+        }
+      />
+
+      <div className="mb-8 grid gap-4 lg:grid-cols-2">
+        <SafetyMeetChecklist />
+        <Card>
+          <h3 className="font-display text-lg font-semibold">Boost visibility</h3>
+          <p className="mt-1 text-sm text-stone-500">
+            R49 for 7 days at the top of Discover &amp; search — great after you publish.
+          </p>
+          <Link href="/boost" className="btn-secondary mt-4 inline-flex">
+            <Sparkles className="h-4 w-4" />
+            Get a boost
+          </Link>
+        </Card>
       </div>
 
       <ReviewPromptCard />

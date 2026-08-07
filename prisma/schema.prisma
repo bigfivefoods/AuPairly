@@ -141,6 +141,10 @@ model User {
   kycVerifiedAt       DateTime?
   /// ISO country that drove the KYC path (ZA → VerifyNow, else international)
   kycCountry          String?
+
+  /// Admin moderation — blocks login/messaging when set
+  suspendedAt         DateTime?
+  suspendReason       String?
 }
 
 model AuPairProfile {
@@ -832,6 +836,20 @@ model PaymentTransaction {
 
   @@index([userId, paidAt])
   @@index([userId, kind])
+}
+
+/// City launch waitlist (email capture when local supply is thin)
+model CityWaitlist {
+  id        String   @id @default(cuid())
+  email     String
+  city      String
+  slug      String?
+  role      String? // PARENT | AUPAIR | BOTH
+  createdAt DateTime @default(now())
+
+  @@unique([email, city])
+  @@index([slug])
+  @@index([createdAt])
 }
 
 /// Web Push subscriptions (PWA notifications)

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { HomeHeroI18n } from "@/components/home-hero-i18n";
 import { HomeBodyI18n } from "@/components/home-body-i18n";
+import { HomepageReviews } from "@/components/homepage-reviews";
 import { JsonLd } from "@/components/json-ld";
 import { BRAND } from "@/lib/brand";
 import {
@@ -58,12 +59,20 @@ export default async function HomePage() {
     families: 0,
     verified: 0,
   };
+  let reviews: {
+    id: string;
+    rating: number;
+    body: string;
+    fromName: string;
+    createdAt: string;
+  }[] = [];
 
   try {
-    [featuredAupairs, featuredFamilies, stats] = await Promise.all([
+    [featuredAupairs, featuredFamilies, stats, reviews] = await Promise.all([
       getFeaturedAupairs(),
       getFeaturedFamilies(),
       getStats(),
+      getPublicReviews(),
     ]);
   } catch {
     // DB may be empty before seed
@@ -89,8 +98,33 @@ export default async function HomePage() {
         featuredAupairs={featuredAupairs}
         featuredFamilies={featuredFamilies}
       />
+      <HomepageReviews reviews={reviews} />
     </div>
   );
+}
+
+async function getPublicReviews() {
+  const rows = await prisma.review.findMany({
+    where: {
+      publishedAt: { not: null },
+      comment: { not: null },
+    },
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    take: 12,
+    include: {
+      author: { select: { name: true } },
+    },
+  });
+  return rows
+    .filter((r) => r.comment && r.comment.trim().length > 12)
+    .slice(0, 6)
+    .map((r) => ({
+      id: r.id,
+      rating: r.rating ?? 5,
+      body: r.comment!.slice(0, 280),
+      fromName: r.author?.name?.split(" ")[0] || "Member",
+      createdAt: (r.publishedAt || r.createdAt).toISOString(),
+    }));
 }
 
 async function getFeaturedAupairs() {

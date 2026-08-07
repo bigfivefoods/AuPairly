@@ -11,6 +11,8 @@ import { continentName } from "@/lib/locations";
 import { serviceFromParam, SERVICES } from "@/lib/services";
 import { profileIdsForService } from "@/lib/service-tags";
 import { buildPageMetadata } from "@/lib/seo";
+import { SaveSearchButton } from "@/components/save-search-button";
+import { auth } from "@/lib/auth";
 
 export const revalidate = 60;
 
@@ -38,6 +40,7 @@ export default async function BrowseFamiliesPage({
   searchParams: SearchParams;
 }) {
   const sp = await searchParams;
+  const session = await auth();
   const q = sp.q?.trim() || "";
   const continent = sp.continent?.trim() || "";
   const country = sp.country?.trim() || "";
@@ -147,7 +150,7 @@ export default async function BrowseFamiliesPage({
         </Suspense>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-3 text-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-3 text-sm">
         <Link href="/map?type=families" className="font-semibold text-teal-700 hover:underline">
           Browse on map →
         </Link>
@@ -159,6 +162,23 @@ export default async function BrowseFamiliesPage({
             {SERVICES[service].shortName} landing page →
           </Link>
         )}
+        <SaveSearchButton
+          isLoggedIn={Boolean(session?.user)}
+          name={
+            city
+              ? `Hosts in ${city}`
+              : service
+                ? `${SERVICES[service].shortName} hosts`
+                : "Host search"
+          }
+          filters={{
+            target: "families",
+            ...(city ? { city } : {}),
+            ...(country ? { country } : {}),
+            ...(verifiedOnly ? { verified: "1" } : {}),
+            ...(service ? { service } : {}),
+          }}
+        />
       </div>
 
       <form className="mb-8 space-y-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">

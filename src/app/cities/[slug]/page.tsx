@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
 import { PageHeader } from "@/components/ui";
+import { CityWaitlistForm } from "@/components/city-waitlist-form";
 import { cityFromSlug, SA_CITIES } from "@/lib/sa-cities";
 
 export const dynamic = "force-dynamic";
@@ -120,6 +121,12 @@ export default async function CityLandingPage({
         ))}
       </div>
 
+      {(aupairsLocal.length === 0 || familiesLocal.length === 0) && (
+        <div className="mb-10">
+          <CityWaitlistForm city={city.name} slug={city.slug} />
+        </div>
+      )}
+
       <section className="mb-12">
         <div className="mb-4 flex items-end justify-between">
           <h2 className="font-display text-xl font-semibold">Au pairs near {city.name}</h2>
@@ -128,7 +135,10 @@ export default async function CityLandingPage({
           </Link>
         </div>
         {(aupairsLocal.length ? aupairsLocal : aupairs).length === 0 ? (
-          <p className="text-sm text-stone-500">No active au pairs listed yet — check back soon.</p>
+          <p className="text-sm text-stone-500">
+            No active sitters listed in {city.name} yet — join the waitlist above or check nearby
+            cities.
+          </p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {(aupairsLocal.length ? aupairsLocal : aupairs).map((a) => (

@@ -6,6 +6,8 @@ import { Calendar, Loader2, Send, ShieldAlert, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { icebreakers, safetyWarningForMessage } from "@/lib/icebreakers";
+import { SoftPaywall } from "@/components/soft-paywall";
+import { SafetyMeetChecklist } from "@/components/safety-meet-checklist";
 
 type Msg = {
   id: string;
@@ -13,6 +15,7 @@ type Msg = {
   senderId: string;
   senderName: string;
   createdAt: string;
+  status?: string;
 };
 
 export function ChatClient({
@@ -36,7 +39,9 @@ export function ChatClient({
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
   const [paywall, setPaywall] = useState("");
+  const [paywallMeta, setPaywallMeta] = useState<{ used?: number; limit?: number }>({});
   const [safetyTip, setSafetyTip] = useState<string | null>(null);
+  const [readReceipts] = useState(true);
   const [showInterview, setShowInterview] = useState(false);
   const [interviewAt, setInterviewAt] = useState("");
   const [meetingUrl, setMeetingUrl] = useState("");
@@ -63,6 +68,7 @@ export function ChatClient({
     if (!body.trim() || loading) return;
     setLoading(true);
     setPaywall("");
+    setPaywallMeta({});
     try {
       const res = await fetch(`/api/messages/${conversationId}`, {
         method: "POST",
@@ -72,6 +78,7 @@ export function ChatClient({
       const data = await res.json();
       if (res.status === 402) {
         setPaywall(data.error || "Daily message limit reached. Upgrade for unlimited chat.");
+        setPaywallMeta({ used: data.used, limit: data.limit });
         return;
       }
       if (res.ok && data.message) {
@@ -83,6 +90,7 @@ export function ChatClient({
             senderId: data.message.senderId,
             senderName: data.message.sender?.name || "You",
             createdAt: data.message.createdAt,
+            status: data.message.status || "SENT",
           },
         ]);
         setBody("");
@@ -231,6 +239,11 @@ export function ChatClient({
                   )}
                 >
                   {format(new Date(m.createdAt), "MMM d · h:mm a")}
+                  {mine && readReceipts && (
+                    <span className="ml-1 opacity-90">
+                      {m.status === "READ" ? "· Read" : "· Sent"}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -246,11 +259,19 @@ export function ChatClient({
       )}
 
       {paywall && (
-        <div className="border-t border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
-          {paywall}{" "}
-          <a href="/pricing" className="font-bold underline">
-            Upgrade plan
-          </a>
+        <div className="border-t border-stone-100 px-3 py-3">
+          <SoftPaywall
+            title="Message limit reached"
+            body={paywall}
+            used={paywallMeta.used}
+            limit={paywallMeta.limit}
+            compact
+          />
+        </div>
+      )}
+      {messages.length > 0 && messages.length < 4 && (
+        <div className="border-t border-stone-100 px-3 py-2">
+          <SafetyMeetChecklist compact />
         </div>
       )}
       <form

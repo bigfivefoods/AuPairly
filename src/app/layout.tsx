@@ -7,6 +7,7 @@ import { BRAND } from "@/lib/brand";
 import { getRequestLocale } from "@/lib/i18n/server";
 import { LOCALE_META } from "@/lib/i18n/config";
 import { PUBLIC_SITE_URL, SEO } from "@/lib/seo";
+import { AnalyticsScripts } from "@/components/analytics-scripts";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -157,6 +158,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Providers locale={locale}>
           <AppChrome>{children}</AppChrome>
           <PwaProvider />
+          <AnalyticsScripts />
         </Providers>
       </body>
     </html>
