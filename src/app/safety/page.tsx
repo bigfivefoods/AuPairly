@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -12,16 +13,26 @@ import {
   Flag,
 } from "lucide-react";
 import { PageHeader, Card } from "@/components/ui";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Safety & verification",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Safety & verification — trust centre",
   description:
-    "How AuPairly keeps childcare, caregiving, house sitting, and pet sitting introductions safer.",
-};
+    "How AuPairly keeps childcare, caregiving, house sitting, and pet sitting safer: ID verification, VerifyNow, Didit, references, reporting, and best practices for hosts and sitters.",
+  path: "/safety",
+  keywords: ["verified au pair", "safe babysitter", "caregiver background check"],
+});
 
 export default function SafetyPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Safety & verification", path: "/safety" },
+        ])}
+      />
       <PageHeader
         eyebrow="Trust centre"
         title="Safety & verification"

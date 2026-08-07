@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -20,12 +21,63 @@ import { ApplyPacketButton } from "@/components/apply-packet-button";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
+import { JsonLd } from "@/components/json-ld";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { ScheduleDisplay } from "@/components/schedule-display";
 import { format } from "date-fns";
 import { isReviewPublic } from "@/lib/reviews";
+import {
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  personProfileJsonLd,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const profile = await prisma.familyProfile.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      headline: true,
+      bio: true,
+      city: true,
+      country: true,
+      familyName: true,
+      isVerified: true,
+      coverImage: true,
+      user: { select: { name: true, image: true } },
+    },
+  });
+  if (!profile || profile.status !== "ACTIVE") {
+    return buildPageMetadata({
+      title: "Host listing",
+      description: "View host family listings on AuPairly.",
+      path: `/browse/families/${id}`,
+      noIndex: true,
+    });
+  }
+  const name = profile.familyName || profile.user.name || "Host family";
+  const place = [profile.city, profile.country].filter(Boolean).join(", ");
+  const title = `${name}${place ? ` in ${place}` : ""} — host listing`;
+  const description = (
+    profile.headline ||
+    profile.bio ||
+    `${name} is looking for care on AuPairly${place ? ` in ${place}` : ""}.`
+  ).slice(0, 300);
+  return buildPageMetadata({
+    title,
+    description,
+    path: `/browse/families/${id}`,
+    image: profile.coverImage || profile.user.image || undefined,
+    type: "profile",
+  });
+}
 
 export default async function FamilyDetailPage({
   params,
@@ -43,6 +95,29 @@ export default async function FamilyDetailPage({
   if (!profile || (profile.status !== "ACTIVE" && profile.userId !== session?.user?.id)) {
     notFound();
   }
+
+  const familyJsonLd =
+    profile.status === "ACTIVE"
+      ? [
+          personProfileJsonLd({
+            name: profile.familyName || profile.user.name || "Host",
+            description: profile.headline || profile.bio || undefined,
+            path: `/browse/families/${id}`,
+            image: profile.user.image || profile.coverImage,
+            jobTitle: "Host family",
+            city: profile.city,
+            country: profile.country,
+          }),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Hosts", path: "/browse/families" },
+            {
+              name: profile.familyName || profile.user.name || "Listing",
+              path: `/browse/families/${id}`,
+            },
+          ]),
+        ]
+      : null;
 
   const ages = parseJsonArray(profile.childrenAges);
   const languages = parseJsonArray(profile.languages);
@@ -103,6 +178,7 @@ export default async function FamilyDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      {familyJsonLd ? <JsonLd data={familyJsonLd} /> : null}
       <Link
         href="/browse/families"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-teal-700"

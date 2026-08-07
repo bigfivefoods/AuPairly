@@ -1,22 +1,47 @@
 import type { Metadata } from "next";
 import { ServiceLanding } from "@/components/service-landing";
+import { JsonLd } from "@/components/json-ld";
 import { SERVICES } from "@/lib/services";
+import {
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  serviceJsonLd,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 const s = SERVICES.CAREGIVING;
+const path = `/${s.slug}`;
 
-export const metadata: Metadata = {
-  title: s.seoTitle,
+export const metadata: Metadata = buildPageMetadata({
+  title: `${s.seoTitle} — verified support`,
   description: s.seoDescription,
-  openGraph: {
-    title: `${s.seoTitle} · AuPairly`,
-    description: s.seoDescription,
-    url: "https://www.aupairly.me/caregiving",
-  },
-  alternates: { canonical: "/caregiving" },
-};
+  path,
+  keywords: [
+    "elderly caregiver",
+    "companion care",
+    "disability support",
+    "respite care",
+  ],
+});
 
 export default function CaregivingPage() {
-  return <ServiceLanding serviceId="CAREGIVING" />;
+  return (
+    <>
+      <JsonLd
+        data={[
+          serviceJsonLd({
+            name: s.name,
+            description: s.seoDescription,
+            path,
+          }),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: s.name, path },
+          ]),
+        ]}
+      />
+      <ServiceLanding serviceId="CAREGIVING" />
+    </>
+  );
 }

@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
+import { Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { AuPairCard } from "@/components/listing-cards";
 import { EmptyState, PageHeader, Input } from "@/components/ui";
@@ -7,11 +10,17 @@ import { CategoryTabs } from "@/components/category-tabs";
 import { continentName } from "@/lib/locations";
 import { serviceFromParam, SERVICES } from "@/lib/services";
 import { profileIdsForService } from "@/lib/service-tags";
-import { Users } from "lucide-react";
-import Link from "next/link";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Find sitters" };
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Find verified sitters & au pairs",
+  description:
+    "Browse verified au pairs, babysitters, caregivers, house sitters, and pet sitters. Filter by city, services, and availability on AuPairly.",
+  path: "/browse/aupairs",
+  keywords: ["find au pair", "hire babysitter", "caregiver listings"],
+});
 
 type SearchParams = Promise<{
   q?: string;

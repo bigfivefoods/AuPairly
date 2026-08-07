@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui";
 import { ContactUs } from "@/components/contact-us";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/seo";
+import { BRAND } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: "Contact us",
-  description:
-    "Contact AuPairly at hello@aupairly.me or WhatsApp +27 82 581 4215.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Contact AuPairly",
+  description: `Contact AuPairly support at ${BRAND.email} or WhatsApp ${BRAND.whatsapp}. Help for hosts, sitters, and partners worldwide.`,
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (
