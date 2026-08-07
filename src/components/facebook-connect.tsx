@@ -7,7 +7,11 @@ import { Button, Badge, Card } from "@/components/ui";
 
 type Status = {
   linked: boolean;
-  config?: { configured?: boolean; appId?: string | null; clientReady?: boolean };
+  config?: {
+    configured?: boolean;
+    appId?: string | null;
+    clientReady?: boolean;
+  };
   profile?: {
     name?: string;
     picture?: string;
@@ -30,16 +34,27 @@ export function FacebookConnect({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const oauthHref = `/api/social/facebook/oauth?returnTo=${encodeURIComponent(returnTo)}`;
+
   async function refresh() {
-    const res = await fetch("/api/social/facebook");
-    if (!res.ok) return;
-    const data = await res.json();
-    setStatus({
-      linked: Boolean(data.linked),
-      config: data.config,
-      profile: data.profile,
-      user: data.user,
-    });
+    try {
+      const res = await fetch("/api/social/facebook", { credentials: "same-origin" });
+      if (!res.ok) {
+        if (res.status === 401) {
+          setMessage("Please sign in to connect Facebook.");
+        }
+        return;
+      }
+      const data = await res.json();
+      setStatus({
+        linked: Boolean(data.linked),
+        config: data.config,
+        profile: data.profile,
+        user: data.user,
+      });
+    } catch {
+      setMessage("Could not load Facebook connection status.");
+    }
   }
 
   useEffect(() => {
@@ -54,20 +69,26 @@ export function FacebookConnect({
       router.refresh();
     } else if (fb === "error") {
       setMessage(sp.get("message") || "Facebook connect failed");
+      setLoading(false);
     }
   }, [sp, router]);
 
   function startOAuth() {
+    setMessage("");
     setLoading(true);
-    window.location.href = `/api/social/facebook/oauth?returnTo=${encodeURIComponent(returnTo)}`;
+    // Full navigation — more reliable than fetch for OAuth redirect + cookies
+    window.location.assign(oauthHref);
   }
 
   async function unlink() {
     setLoading(true);
     setMessage("");
     try {
-      const res = await fetch("/api/social/facebook", { method: "DELETE" });
-      const data = await res.json();
+      const res = await fetch("/api/social/facebook", {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setMessage(data.error || "Could not unlink");
         return;
@@ -80,9 +101,14 @@ export function FacebookConnect({
     }
   }
 
-  const configured = status?.config?.configured ?? status?.config?.clientReady;
+  const configured =
+    status?.config?.configured === true ||
+    status?.config?.clientReady === true ||
+    Boolean(process.env.NEXT_PUBLIC_FACEBOOK_APP_ID);
   const linked = status?.linked;
   const picture = status?.profile?.picture || status?.user?.image;
+  // Never hard-disable for “not configured” — let OAuth route explain the error
+  const busy = loading;
 
   const body = (
     <>
@@ -117,9 +143,9 @@ export function FacebookConnect({
               {status.profile.email ? ` · ${status.profile.email}` : ""}
             </p>
           )}
-          {configured === false && (
+          {status && !configured && (
             <p className="mt-2 text-xs text-amber-800">
-              Meta App not configured on this server yet. Add{" "}
+              Meta App keys may be missing on this server. Admins: set{" "}
               <code className="rounded bg-amber-100 px-1">NEXT_PUBLIC_FACEBOOK_APP_ID</code> and{" "}
               <code className="rounded bg-amber-100 px-1">AUTH_FACEBOOK_SECRET</code>.
             </p>
@@ -128,15 +154,24 @@ export function FacebookConnect({
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
         <Button
+          type="button"
           variant={linked ? "secondary" : "primary"}
-          disabled={loading || configured === false}
+          disabled={busy}
           onClick={startOAuth}
         >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />}
           {linked ? "Re-sync Facebook" : "Connect Facebook"}
         </Button>
+        {/* Fallback plain link if JS onClick is blocked */}
+        <a
+          href={oauthHref}
+          className="sr-only"
+          onClick={() => setLoading(true)}
+        >
+          Connect Facebook via Meta OAuth
+        </a>
         {linked && (
-          <Button variant="ghost" disabled={loading} onClick={unlink}>
+          <Button type="button" variant="ghost" disabled={busy} onClick={unlink}>
             <Unlink className="h-4 w-4" />
             Unlink
           </Button>
@@ -149,7 +184,11 @@ export function FacebookConnect({
   );
 
   if (compact) {
-    return <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">{body}</div>;
+    return (
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {body}
+      </div>
+    );
   }
 
   return (

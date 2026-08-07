@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   BadgeCheck,
   FileText,
@@ -80,6 +80,7 @@ export function VerificationClient({
   facebookLinked?: boolean;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState(initial);
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -95,15 +96,166 @@ export function VerificationClient({
     didit?: boolean;
     facebook?: boolean;
   }>({});
+  const [kycFee, setKycFee] = useState<{
+    feeCents: number;
+    feeLabel: string;
+    paystackRequired: boolean;
+  }>({ feeCents: 6900, feeLabel: "R69", paystackRequired: true });
+  const resumePaidRef = useRef(false);
+
+  const PENDING_KYC_KEY = "aupairly_pending_kyc";
+
+  async function refreshVerificationList() {
+    const list = await fetch("/api/verification").then((r) => r.json());
+    if (list.verifications) {
+      setItems(
+        list.verifications.map(
+          (v: {
+            id: string;
+            type: string;
+            status: string;
+            notes: string | null;
+            createdAt: string;
+            documentUrl?: string | null;
+          }) => ({
+            id: v.id,
+            type: v.type,
+            status: v.status,
+            notes: v.notes,
+            createdAt: v.createdAt,
+            documentUrl: v.documentUrl,
+          })
+        )
+      );
+    }
+  }
+
+  async function postKyc(payload: {
+    country: string;
+    idNumber?: string;
+    selfieBase64?: string | null;
+    paymentReference?: string;
+  }) {
+    const res = await fetch("/api/verification/kyc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        country: payload.country,
+        idNumber: payload.idNumber,
+        selfieBase64: payload.selfieBase64 || undefined,
+        paymentReference: payload.paymentReference,
+      }),
+    });
+    const data = await res.json();
+    return { res, data };
+  }
 
   useEffect(() => {
-    fetch("/api/verification/kyc")
+    // Didit redirects back with verificationSessionId + status
+    const sessionId =
+      searchParams.get("verificationSessionId") ||
+      searchParams.get("session_id");
+    const qs = sessionId
+      ? `?syncSession=${encodeURIComponent(sessionId)}`
+      : "";
+
+    // Restore pending form after Paystack return
+    try {
+      const raw = sessionStorage.getItem(PENDING_KYC_KEY);
+      if (raw) {
+        const pending = JSON.parse(raw) as {
+          country?: string;
+          idNumber?: string;
+          selfieBase64?: string | null;
+        };
+        if (pending.country) setCountry(pending.country);
+        if (pending.idNumber) setIdNumber(pending.idNumber);
+        if (pending.selfieBase64) setSelfieB64(pending.selfieBase64);
+      }
+    } catch {
+      /* ignore */
+    }
+
+    fetch(`/api/verification/kyc${qs}`)
       .then((r) => r.json())
-      .then((d) => {
+      .then(async (d) => {
         if (d.providers) setProviders(d.providers);
+        if (d.verifynow?.feeCents != null) {
+          setKycFee({
+            feeCents: d.verifynow.feeCents,
+            feeLabel: d.verifynow.feeLabel || `R${(d.verifynow.feeCents / 100).toFixed(0)}`,
+            paystackRequired: Boolean(d.verifynow.paystackRequired),
+          });
+        }
+        if (d.diditSync?.outcome === "VERIFIED") {
+          setMessage("Didit verification approved. Your badge will update shortly.");
+        } else if (d.diditSync?.outcome === "REJECTED") {
+          setMessage(
+            `Didit verification ${d.diditSync.status || "declined"}. You can retry or upload documents below.`
+          );
+        } else if (d.diditSync?.outcome === "PENDING") {
+          setMessage("Didit verification is still in progress or under review.");
+        } else if (searchParams.get("kyc") === "didit") {
+          setMessage("Welcome back from Didit. Status will update when the check finishes.");
+        }
+        if (sessionId || searchParams.get("kyc") === "didit") {
+          await refreshVerificationList();
+          router.refresh();
+        }
+
+        // After Paystack: auto-run VerifyNow with paid reference
+        const paidRef = searchParams.get("reference");
+        const kycPaid = searchParams.get("kyc_paid") === "1";
+        if (kycPaid && paidRef && !resumePaidRef.current) {
+          resumePaidRef.current = true;
+          setKycLoading(true);
+          setMessage("Payment received — running VerifyNow…");
+          try {
+            let pending: {
+              country?: string;
+              idNumber?: string;
+              selfieBase64?: string | null;
+            } = {};
+            try {
+              pending = JSON.parse(sessionStorage.getItem(PENDING_KYC_KEY) || "{}");
+            } catch {
+              pending = {};
+            }
+            const { res, data } = await postKyc({
+              country: pending.country || "ZA",
+              idNumber: pending.idNumber,
+              selfieBase64: pending.selfieBase64,
+              paymentReference: paidRef,
+            });
+            if (!res.ok) {
+              setMessage(data.error || "KYC failed after payment");
+              return;
+            }
+            if (data.needsPayment && data.url) {
+              window.location.assign(data.url);
+              return;
+            }
+            sessionStorage.removeItem(PENDING_KYC_KEY);
+            setMessage(
+              data.isFullyVerified
+                ? "Identity verified via VerifyNow. Badge updated."
+                : data.face?.statusText ||
+                    data.id?.statusText ||
+                    data.message ||
+                    "VerifyNow completed."
+            );
+            await refreshVerificationList();
+            router.refresh();
+          } catch {
+            setMessage("Could not complete verification after payment");
+          } finally {
+            setKycLoading(false);
+          }
+        }
       })
       .catch(() => null);
-  }, []);
+  }, [searchParams, router]);
 
   const statusByType = new Map(items.map((i) => [i.type, i]));
 
@@ -188,24 +340,65 @@ export function VerificationClient({
     setKycLoading(true);
     setMessage("");
     try {
-      const res = await fetch("/api/verification/kyc", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          country,
-          idNumber: country === "ZA" ? idNumber : undefined,
-          selfieBase64: selfieB64 || undefined,
-        }),
+      // Persist form so we can resume after Paystack redirect
+      if (country === "ZA") {
+        try {
+          sessionStorage.setItem(
+            PENDING_KYC_KEY,
+            JSON.stringify({
+              country,
+              idNumber,
+              selfieBase64: selfieB64,
+            })
+          );
+        } catch {
+          /* private mode */
+        }
+      }
+
+      const paidRef =
+        searchParams.get("reference") ||
+        (typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("reference")
+          : null);
+
+      const { res, data } = await postKyc({
+        country,
+        idNumber: country === "ZA" ? idNumber : undefined,
+        selfieBase64: selfieB64,
+        paymentReference: country === "ZA" ? paidRef || undefined : undefined,
       });
-      const data = await res.json();
+
       if (!res.ok) {
         setMessage(data.error || "KYC failed");
         return;
       }
-      if (data.url) {
-        window.location.href = data.url;
+
+      // Paystack hosted checkout for R69 VerifyNow fee
+      if (data.needsPayment && data.url) {
+        setMessage(data.message || `Redirecting to Paystack (${data.feeLabel || "R69"})…`);
+        window.location.assign(data.url);
         return;
       }
+
+      // Didit hosted URL
+      if (data.url && data.provider === "didit") {
+        window.location.assign(data.url);
+        return;
+      }
+      if (data.url) {
+        window.location.assign(data.url);
+        return;
+      }
+
+      if (country === "ZA") {
+        try {
+          sessionStorage.removeItem(PENDING_KYC_KEY);
+        } catch {
+          /* ignore */
+        }
+      }
+
       if (data.manualUpload) {
         setMessage(data.message || "Use document upload below for international ID.");
       } else {
@@ -218,29 +411,7 @@ export function VerificationClient({
                 "KYC submitted."
         );
       }
-      // refresh list
-      const list = await fetch("/api/verification").then((r) => r.json());
-      if (list.verifications) {
-        setItems(
-          list.verifications.map(
-            (v: {
-              id: string;
-              type: string;
-              status: string;
-              notes: string | null;
-              createdAt: string;
-              documentUrl?: string | null;
-            }) => ({
-              id: v.id,
-              type: v.type,
-              status: v.status,
-              notes: v.notes,
-              createdAt: v.createdAt,
-              documentUrl: v.documentUrl,
-            })
-          )
-        );
-      }
+      await refreshVerificationList();
       router.refresh();
     } catch {
       setMessage("KYC request failed");
@@ -273,13 +444,17 @@ export function VerificationClient({
             </h2>
             <p className="mt-1 text-sm text-stone-500">
               <strong>South Africa:</strong> VerifyNow Standard KYC Bundle (Home Affairs ID) + face
-              match. <strong>International:</strong> Didit document + liveness when configured;
-              otherwise upload documents below for review.
+              match — <strong>{kycFee.feeLabel}</strong> via Paystack.{" "}
+              <strong>International:</strong> Didit document + liveness when configured; otherwise
+              upload documents below for review.
             </p>
             <p className="mt-1 text-xs text-stone-400">
               Providers: VerifyNow {providers.verifynow ? "● live" : "○ not configured"} · Didit{" "}
               {providers.didit ? "● live" : "○ not configured"} · Meta/Facebook{" "}
               {providers.facebook ? "● app configured" : "○ not configured"}
+              {kycFee.paystackRequired
+                ? ` · SA check ${kycFee.feeLabel}`
+                : " · SA check free (demo / Paystack off)"}
             </p>
           </div>
         </div>
@@ -338,13 +513,24 @@ export function VerificationClient({
         )}
 
         <Button
+          type="button"
           onClick={runKyc}
           disabled={kycLoading || (country === "ZA" && idNumber.length !== 13)}
           className="w-full sm:w-auto"
         >
           {kycLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-          {country === "ZA" ? "Verify with VerifyNow (SA)" : "Start international verification"}
+          {country === "ZA"
+            ? kycFee.paystackRequired
+              ? `Pay ${kycFee.feeLabel} & verify with VerifyNow`
+              : "Verify with VerifyNow (SA · demo)"
+            : "Start international verification"}
         </Button>
+        {country === "ZA" && kycFee.paystackRequired && (
+          <p className="text-xs text-stone-500">
+            You&apos;ll pay <strong>{kycFee.feeLabel}</strong> securely with Paystack, then we run
+            the Home Affairs ID check (and face match if you uploaded a selfie).
+          </p>
+        )}
       </Card>
 
       {/* Meta app OAuth — profile import only */}

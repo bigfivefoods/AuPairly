@@ -5,6 +5,7 @@ export type PaymentKind =
   | "BOOST"
   | "SUCCESS_FEE"
   | "MARKETPLACE"
+  | "KYC"
   | "DEMO"
   | "OTHER";
 
@@ -73,6 +74,8 @@ export function paymentKindLabel(kind: string) {
       return "Placement success fee";
     case "MARKETPLACE":
       return "Marketplace";
+    case "KYC":
+      return "Identity verification (VerifyNow)";
     case "DEMO":
       return "Demo / test";
     default:

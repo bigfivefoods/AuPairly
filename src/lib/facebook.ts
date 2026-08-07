@@ -139,8 +139,9 @@ export async function exchangeFacebookCode(input: {
 export function facebookOAuthDialogUrl(input: {
   redirectUri: string;
   state: string;
-}): string {
+}): string | null {
   const appId = facebookAppId();
+  if (!appId) return null;
   const params = new URLSearchParams({
     client_id: appId,
     redirect_uri: input.redirectUri,

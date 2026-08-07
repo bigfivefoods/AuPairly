@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/ui";
@@ -27,19 +28,23 @@ export default async function VerificationPage() {
       <PageHeader
         eyebrow="Trust center"
         title="Verify your identity"
-        description="South Africa: automated SA ID + face match via VerifyNow. International: Didit when configured, or document upload. Optional Meta/Facebook OAuth import for name/photo only."
+        description="South Africa: automated SA ID + face match via VerifyNow. International: Didit document + liveness when configured, or document upload. Optional Meta/Facebook OAuth import for name/photo only."
       />
-      <VerificationClient
-        initial={verifications.map((v) => ({
-          id: v.id,
-          type: v.type,
-          status: v.status,
-          notes: v.notes,
-          createdAt: v.createdAt.toISOString(),
-        }))}
-        isFullyVerified={profile?.isVerified ?? false}
-        facebookLinked={Boolean(dbUser?.facebookId)}
-      />
+      <Suspense
+        fallback={<p className="py-10 text-center text-sm text-stone-400">Loading verification…</p>}
+      >
+        <VerificationClient
+          initial={verifications.map((v) => ({
+            id: v.id,
+            type: v.type,
+            status: v.status,
+            notes: v.notes,
+            createdAt: v.createdAt.toISOString(),
+          }))}
+          isFullyVerified={profile?.isVerified ?? false}
+          facebookLinked={Boolean(dbUser?.facebookId)}
+        />
+      </Suspense>
     </div>
   );
 }

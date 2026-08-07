@@ -1,23 +1,32 @@
 /**
  * POST /api/verification/kyc/webhook
- * Didit (or other international) completion webhook.
+ * Didit v3 completion webhook (status.updated / data.updated).
+ *
+ * Register destination:
+ *   url: https://www.aupairly.me/api/verification/kyc/webhook
+ *   events: status.updated, data.updated
+ *   store secret_shared_key as DIDIT_WEBHOOK_SECRET
  */
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { refreshUserVerifiedBadge } from "@/lib/verification";
-import { verifyDiditWebhookSignature } from "@/lib/kyc/didit";
+import {
+  diditStatusOutcome,
+  verifyDiditWebhookSignature,
+} from "@/lib/kyc/didit";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const raw = await req.text();
-  const signature =
-    req.headers.get("x-signature") ||
-    req.headers.get("x-didit-signature") ||
-    req.headers.get("authorization");
-
-  if (!verifyDiditWebhookSignature(raw, signature)) {
+  const ok = verifyDiditWebhookSignature(raw, {
+    signatureV2: req.headers.get("x-signature-v2"),
+    signature: req.headers.get("x-signature"),
+    signatureSimple: req.headers.get("x-signature-simple"),
+    timestamp: req.headers.get("x-timestamp"),
+  });
+  if (!ok) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
@@ -28,35 +37,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  const webhookType = String(payload.webhook_type || "");
+  // Only process session status/data events for KYC
+  if (
+    webhookType &&
+    webhookType !== "status.updated" &&
+    webhookType !== "data.updated"
+  ) {
+    return NextResponse.json({ ok: true, ignored: webhookType });
+  }
+
   const vendorData = String(
     payload.vendor_data || payload.vendorData || payload.user_id || ""
   );
-  const status = String(
-    payload.status || payload.decision || payload.verification_status || ""
-  ).toLowerCase();
+  const status = String(payload.status || "");
   const sessionId = String(payload.session_id || payload.id || "");
+  const outcome = diditStatusOutcome(status);
 
-  if (!vendorData) {
-    return NextResponse.json({ error: "Missing vendor_data / user id" }, { status: 400 });
+  if (outcome === "ignore") {
+    return NextResponse.json({ ok: true, ignored: status || "no-status" });
   }
-
-  const passed =
-    status.includes("approv") ||
-    status === "verified" ||
-    status === "success" ||
-    status === "pass";
 
   const user = await prisma.user.findFirst({
     where: {
-      OR: [{ id: vendorData }, { kycExternalId: sessionId || undefined }],
+      OR: [
+        ...(vendorData ? [{ id: vendorData }] : []),
+        ...(sessionId ? [{ kycExternalId: sessionId }] : []),
+      ],
     },
     select: { id: true },
   });
   if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Acknowledge so Didit does not retry forever for unknown users
+    return NextResponse.json({ ok: true, warning: "User not found" });
   }
 
-  const vStatus = passed ? "VERIFIED" : "REJECTED";
+  const vStatus = outcome; // VERIFIED | REJECTED | PENDING
   for (const type of ["ID", "SELFIE"] as const) {
     await prisma.verification.deleteMany({
       where: { userId: user.id, type },
@@ -66,8 +82,8 @@ export async function POST(req: Request) {
         userId: user.id,
         type,
         status: vStatus,
-        notes: `Didit webhook: ${status || "unknown"} · session ${sessionId}`,
-        reviewedAt: new Date(),
+        notes: `Didit ${webhookType || "webhook"}: ${status || "unknown"} · session ${sessionId}`,
+        reviewedAt: vStatus === "PENDING" ? null : new Date(),
       },
     });
   }
@@ -77,11 +93,11 @@ export async function POST(req: Request) {
     data: {
       kycProvider: "didit",
       kycExternalId: sessionId || undefined,
-      kycVerifiedAt: passed ? new Date() : null,
+      kycVerifiedAt: outcome === "VERIFIED" ? new Date() : null,
     },
   });
 
   await refreshUserVerifiedBadge(user.id);
 
-  return NextResponse.json({ ok: true, passed });
+  return NextResponse.json({ ok: true, outcome, status });
 }

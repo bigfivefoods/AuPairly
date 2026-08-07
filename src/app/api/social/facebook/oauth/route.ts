@@ -39,21 +39,23 @@ export async function GET(req: Request) {
   }
 
   if (!facebookAppId() || !facebookAppSecret()) {
-    return NextResponse.json(
-      {
-        error:
-          "Facebook App not fully configured. Set NEXT_PUBLIC_FACEBOOK_APP_ID and AUTH_FACEBOOK_SECRET.",
-      },
-      { status: 503 }
+    // Redirect with error (never return raw JSON for browser navigation)
+    const msg = encodeURIComponent(
+      "Facebook App not fully configured. Set NEXT_PUBLIC_FACEBOOK_APP_ID and AUTH_FACEBOOK_SECRET on the server."
     );
+    return NextResponse.redirect(`${site}${returnTo}?fb=error&message=${msg}`);
   }
 
   const redirectUri = `${site}/api/social/facebook/callback`;
   const state = randomBytes(16).toString("hex");
 
-  const res = NextResponse.redirect(
-    facebookOAuthDialogUrl({ redirectUri, state })
-  );
+  const dialog = facebookOAuthDialogUrl({ redirectUri, state });
+  if (!dialog) {
+    const msg = encodeURIComponent("Could not build Facebook OAuth URL");
+    return NextResponse.redirect(`${site}${returnTo}?fb=error&message=${msg}`);
+  }
+
+  const res = NextResponse.redirect(dialog);
   // Short-lived cookies for CSRF state + where to land after
   const secure = site.startsWith("https");
   res.cookies.set("fb_oauth_state", state, {
