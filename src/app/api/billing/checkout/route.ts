@@ -18,6 +18,7 @@ import {
 } from "@/lib/plans";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
+import { recordPayment } from "@/lib/payments";
 import {
   getSiteUrl,
   initializeTransaction,
@@ -61,12 +62,21 @@ export async function POST(req: Request) {
     await activatePlan(session.user.id, planId, {
       days: periodPricing.durationDays,
     });
+    await recordPayment({
+      userId: session.user.id,
+      kind: "DEMO",
+      amountCents: 0,
+      description: `Demo ${plan.name} · ${periodPricing.label} (${periodPricing.durationDays} days)`,
+      provider: "demo",
+      reference: `demo_plan_${session.user.id}_${planId}_${period}_${Date.now()}`,
+      meta: { planId, period, demo: true },
+    });
     await createNotification({
       userId: session.user.id,
       type: "BILLING",
       title: `${plan.name} (${periodPricing.label}) activated (demo)`,
       body: `Paystack is not configured — you got ${periodPricing.durationDays} days of ${plan.name} in demo mode.`,
-      href: "/billing",
+      href: "/account",
     });
     return NextResponse.json({
       demo: true,

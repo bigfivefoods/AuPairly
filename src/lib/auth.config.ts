@@ -56,6 +56,7 @@ export const authConfig = {
         "/interests",
         "/discover",
         "/billing",
+        "/account",
         "/onboarding",
         "/placements",
         "/trust",

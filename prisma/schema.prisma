@@ -107,6 +107,7 @@ model User {
   interviewProposals  InterviewProposal[] @relation("InterviewFrom")
   boostEvents         BoostEvent[]
   pushSubscriptions   PushSubscription[]
+  paymentTransactions PaymentTransaction[]
 }
 
 model AuPairProfile {
@@ -716,6 +717,31 @@ model BoostEvent {
   messages  Int      @default(0)
 
   @@index([userId, endsAt])
+}
+
+/// Payment / billing ledger for the user account report
+model PaymentTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// MEMBERSHIP | BOOST | SUCCESS_FEE | MARKETPLACE | DEMO | OTHER
+  kind        String
+  /// SUCCESS | PENDING | FAILED | REFUNDED
+  status      String   @default("SUCCESS")
+  amountCents Int
+  currency    String   @default("ZAR")
+  description String
+  /// Paystack / Stripe external reference (unique when present)
+  reference   String?  @unique
+  /// paystack | demo | stripe
+  provider    String   @default("paystack")
+  /// Optional JSON extras (planId, period, productId, placementId, …)
+  meta        String?
+  paidAt      DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([userId, paidAt])
+  @@index([userId, kind])
 }
 
 /// Web Push subscriptions (PWA notifications)

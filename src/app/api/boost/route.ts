@@ -12,6 +12,7 @@ import {
   makeReference,
   paystackErrorResponse,
 } from "@/lib/paystack";
+import { recordPayment } from "@/lib/payments";
 
 const BOOST_CENTS = Number(process.env.BOOST_FEE_CENTS || "4900"); // R49
 
@@ -74,6 +75,15 @@ export async function POST() {
         startedAt: new Date(),
         endsAt: until,
       },
+    });
+    await recordPayment({
+      userId: session.user.id,
+      kind: "DEMO",
+      amountCents: 0,
+      description: "Demo profile boost · 7 days",
+      provider: "demo",
+      reference: `demo_boost_${session.user.id}_${Date.now()}`,
+      meta: { endsAt: until.toISOString(), demo: true },
     });
     return NextResponse.json({
       demo: true,
@@ -139,6 +149,16 @@ export async function PATCH(req: Request) {
         startedAt: new Date(),
         endsAt: until,
       },
+    });
+    await recordPayment({
+      userId: session.user.id,
+      kind: "BOOST",
+      amountCents: Number(tx.amount || BOOST_CENTS),
+      currency: String(tx.currency || "ZAR").toUpperCase(),
+      description: "Featured profile boost · 7 days",
+      reference,
+      provider: "paystack",
+      meta: { endsAt: until.toISOString() },
     });
     return NextResponse.json({ ok: true, boostedUntil: until.toISOString() });
   } catch (err) {

@@ -23,6 +23,11 @@ export default async function BillingPage({
         eyebrow="Membership"
         title="Billing & plan"
         description="Free, Plus, or Premium — choose week, 3 months, or annual when you upgrade."
+        action={
+          <Link href="/account" className="btn-secondary text-sm">
+            Account report &amp; history
+          </Link>
+        }
       />
 
       {sp.success && (

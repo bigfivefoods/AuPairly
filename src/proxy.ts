@@ -17,6 +17,8 @@ export const config = {
     "/interests/:path*",
     "/discover/:path*",
     "/billing/:path*",
+    "/account",
+    "/account/:path*",
     "/connect",
     "/connect/:path*",
     "/placements/:path*",

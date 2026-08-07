@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
+import { recordPayment } from "@/lib/payments";
 import {
   PLANS,
   durationDaysFor,
@@ -31,12 +32,21 @@ export async function POST(req: Request) {
   const plan = PLANS[planId];
 
   await activatePlan(session.user.id, planId, { days });
+  await recordPayment({
+    userId: session.user.id,
+    kind: "DEMO",
+    amountCents: 0,
+    description: `Demo ${plan.name} · ${period} (${days} days)`,
+    provider: "demo",
+    reference: `demo_activate_${session.user.id}_${planId}_${Date.now()}`,
+    meta: { planId, period, demo: true },
+  });
   await createNotification({
     userId: session.user.id,
     type: "BILLING",
     title: `${plan.name} unlocked`,
     body: `Your ${days}-day ${plan.name} membership is active. Unlimited matching starts now.`,
-    href: "/discover",
+    href: "/account",
   });
 
   return NextResponse.json({ ok: true, plan: planId, period, durationDays: days });

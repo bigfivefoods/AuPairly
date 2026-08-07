@@ -16,6 +16,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
+import { recordPayment } from "@/lib/payments";
 import {
   isPaystackConfigured,
   verifyPaystackSignature,
@@ -99,18 +100,45 @@ async function handleChargeSuccess(data: any) {
       days,
       stripeSubscriptionId: data.reference,
     });
+    await recordPayment({
+      userId,
+      kind: "MEMBERSHIP",
+      amountCents: Number(data.amount || 0),
+      currency: String(data.currency || "ZAR").toUpperCase(),
+      description: `${plan.name} membership · ${period} · ${days} days`,
+      reference: data.reference ? String(data.reference) : null,
+      provider: "paystack",
+      meta: { planId, period, days, purpose },
+    });
     await createNotification({
       userId,
       type: "BILLING",
       title: "Payment successful",
       body: `Your ${plan.name} membership is active for ${days} days. Welcome to unlimited matching.`,
-      href: "/billing",
+      href: "/account",
     });
     return;
   }
 
-  // Storefront / product purchase — log only for now
+  // Storefront / product purchase
   if (purpose === "product") {
+    const buyerId = userId || (meta.buyerUserId ? String(meta.buyerUserId) : null);
+    if (buyerId) {
+      await recordPayment({
+        userId: buyerId,
+        kind: "MARKETPLACE",
+        amountCents: Number(data.amount || 0),
+        currency: String(data.currency || "ZAR").toUpperCase(),
+        description: `Marketplace purchase${meta.productId ? ` · ${meta.productId}` : ""}`,
+        reference: data.reference ? String(data.reference) : null,
+        provider: "paystack",
+        meta: {
+          productId: meta.productId,
+          sellerUserId: meta.sellerUserId,
+          purpose,
+        },
+      });
+    }
     console.log(
       "[paystack] product purchase",
       data.reference,
@@ -136,6 +164,16 @@ async function handleChargeSuccess(data: any) {
         data: { isFeatured: true, boostedUntil: until },
       });
     }
+    await recordPayment({
+      userId,
+      kind: "BOOST",
+      amountCents: Number(data.amount || 0),
+      currency: String(data.currency || "ZAR").toUpperCase(),
+      description: "Featured profile boost · 7 days",
+      reference: data.reference ? String(data.reference) : null,
+      provider: "paystack",
+      meta: { purpose: "boost", endsAt: until.toISOString() },
+    });
     await createNotification({
       userId,
       type: "BILLING",
@@ -153,6 +191,18 @@ async function handleChargeSuccess(data: any) {
         successFeeRef: data.reference,
       },
     });
+    if (userId) {
+      await recordPayment({
+        userId,
+        kind: "SUCCESS_FEE",
+        amountCents: Number(data.amount || 0),
+        currency: String(data.currency || "ZAR").toUpperCase(),
+        description: "Placement success fee",
+        reference: data.reference ? String(data.reference) : null,
+        provider: "paystack",
+        meta: { placementId: meta.placementId, purpose },
+      });
+    }
   }
 }
 
