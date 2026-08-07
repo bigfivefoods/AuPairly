@@ -56,24 +56,24 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    // Cache-bust query forces browsers off the old Next/Vercel default triangle.
+    // Circular lite logo (transparent corners). Cache-bust when icon art changes.
     // PNG + SVG first (modern browsers); classic .ico last for legacy.
     icon: [
-      { url: "/favicon-32.png?v=lite2", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16.png?v=lite2", sizes: "16x16", type: "image/png" },
-      { url: "/icons/icon.svg?v=lite2", type: "image/svg+xml" },
-      { url: "/icon.png?v=lite2", sizes: "512x512", type: "image/png" },
-      { url: "/icons/icon-192.png?v=lite2", sizes: "192x192", type: "image/png" },
-      { url: "/favicon.ico?v=lite2", sizes: "any" },
+      { url: "/favicon-32.png?v=circle1", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png?v=circle1", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon.svg?v=circle1", type: "image/svg+xml" },
+      { url: "/icon.png?v=circle1", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon-192.png?v=circle1", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.ico?v=circle1", sizes: "any" },
     ],
     apple: [
       {
-        url: "/apple-touch-icon.png?v=lite2",
+        url: "/apple-touch-icon.png?v=circle1",
         sizes: "180x180",
         type: "image/png",
       },
     ],
-    shortcut: "/favicon-32.png?v=lite2",
+    shortcut: "/favicon-32.png?v=circle1",
   },
   openGraph: {
     title: BRAND.ogTitle,
