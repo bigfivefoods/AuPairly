@@ -58,3 +58,4 @@ RESEND_API_KEY.local.txt
 # Local paste files with secrets — never commit
 COPY_ME_*.txt
 RESEND_API_KEY.local.txt
+!COPY_ME_FACEBOOK_META_SETUP.txt

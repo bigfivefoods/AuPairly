@@ -1,0 +1,84 @@
+FIX FACEBOOK: "Can't load URL / domain isn't included"
+
+AuPairly always uses this redirect URL (copy exactly):
+
+  https://www.aupairly.me/api/social/facebook/callback
+
+
+Do ALL of these in Meta developers.facebook.com → your AuPairly app:
+
+────────────────────────────────────────
+1) Settings → Basic
+────────────────────────────────────────
+App Domains (plain domain, NO https, NO www, NO path):
+  aupairly.me
+
+Privacy Policy URL:
+  https://www.aupairly.me/privacy
+
+Terms of Service URL:
+  https://www.aupairly.me/terms
+
+Click Save Changes.
+
+────────────────────────────────────────
+2) Settings → Basic → Add Platform → Website (if missing)
+────────────────────────────────────────
+Site URL:
+  https://www.aupairly.me
+
+Save Changes.
+
+────────────────────────────────────────
+3) Facebook Login → Settings  (or "Use cases" → Facebook Login → Settings)
+────────────────────────────────────────
+Valid OAuth Redirect URIs — paste EXACTLY:
+
+  https://www.aupairly.me/api/social/facebook/callback
+
+Also add (optional safety):
+  https://aupairly.me/api/social/facebook/callback
+
+Client OAuth Login: Yes
+Web OAuth Login: Yes
+Enforce HTTPS: Yes
+Use Strict Mode for Redirect URIs: Yes (recommended)
+
+Native or desktop app?: No / Off
+
+Save Changes.
+
+────────────────────────────────────────
+4) Domain Manager (optional ownership)
+────────────────────────────────────────
+If Meta asks to verify domain ownership for aupairly.me, complete DNS verification.
+Domain Manager alone is NOT enough — App Domains + Redirect URI still required.
+
+────────────────────────────────────────
+5) App mode
+────────────────────────────────────────
+Development: only Meta admins/developers/testers can use Login.
+  → Roles → add yourself as Administrator or Tester.
+
+Live: public users can connect (public_profile + email usually OK without App Review).
+
+────────────────────────────────────────
+6) Vercel env (Production) + Redeploy
+────────────────────────────────────────
+NEXT_PUBLIC_FACEBOOK_APP_ID=...
+AUTH_FACEBOOK_SECRET=...
+NEXT_PUBLIC_SITE_URL=https://www.aupairly.me
+AUTH_URL=https://www.aupairly.me
+
+────────────────────────────────────────
+7) Test
+────────────────────────────────────────
+1. Open https://www.aupairly.me/settings/connections (logged in)
+2. Connect Facebook
+3. Should return with ?fb=linked
+
+Common mistakes:
+- App Domains set to "https://www.aupairly.me"  ← WRONG (no https, no www)
+- Redirect URI missing /api/social/facebook/callback
+- Using vercel.app URL (app never uses that for OAuth anymore)
+- App still in Development and Facebook user not a tester
