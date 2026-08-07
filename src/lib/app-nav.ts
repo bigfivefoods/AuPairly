@@ -72,7 +72,7 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
       {
         href: "/verification",
         label: "Verification",
-        match: ["/verification", "/trust"],
+        match: ["/verification", "/trust", "/references"],
       },
       {
         href: "/applications",
