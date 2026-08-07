@@ -100,7 +100,17 @@ export function VerificationClient({
     feeCents: number;
     feeLabel: string;
     paystackRequired: boolean;
-  }>({ feeCents: 6900, feeLabel: "R69", paystackRequired: true });
+    free: boolean;
+    planId?: string;
+    feeReason?: string;
+    configured?: boolean;
+  }>({
+    feeCents: 1000,
+    feeLabel: "R10",
+    paystackRequired: true,
+    free: false,
+    planId: "FREE",
+  });
   const resumePaidRef = useRef(false);
 
   const PENDING_KYC_KEY = "aupairly_pending_kyc";
@@ -181,11 +191,19 @@ export function VerificationClient({
       .then((r) => r.json())
       .then(async (d) => {
         if (d.providers) setProviders(d.providers);
-        if (d.verifynow?.feeCents != null) {
+        if (d.verifynow) {
           setKycFee({
-            feeCents: d.verifynow.feeCents,
-            feeLabel: d.verifynow.feeLabel || `R${(d.verifynow.feeCents / 100).toFixed(0)}`,
+            feeCents: d.verifynow.feeCents ?? 1000,
+            feeLabel:
+              d.verifynow.feeLabel ||
+              (d.verifynow.free
+                ? "Free"
+                : `R${((d.verifynow.feeCents ?? 1000) / 100).toFixed(0)}`),
             paystackRequired: Boolean(d.verifynow.paystackRequired),
+            free: Boolean(d.verifynow.free),
+            planId: d.verifynow.planId,
+            feeReason: d.verifynow.feeReason,
+            configured: Boolean(d.verifynow.configured ?? d.providers?.verifynow),
           });
         }
         if (d.diditSync?.outcome === "VERIFIED") {
@@ -374,9 +392,12 @@ export function VerificationClient({
         return;
       }
 
-      // Paystack hosted checkout for R69 VerifyNow fee
+      // Paystack hosted checkout for Free-plan VerifyNow fee (R10)
       if (data.needsPayment && data.url) {
-        setMessage(data.message || `Redirecting to Paystack (${data.feeLabel || "R69"})…`);
+        setMessage(
+          data.message ||
+            `Redirecting to Paystack (${data.feeLabel || "R10"})…`
+        );
         window.location.assign(data.url);
         return;
       }
@@ -444,17 +465,31 @@ export function VerificationClient({
             </h2>
             <p className="mt-1 text-sm text-stone-500">
               <strong>South Africa:</strong> VerifyNow Standard KYC Bundle (Home Affairs ID) + face
-              match — <strong>{kycFee.feeLabel}</strong> via Paystack.{" "}
+              match.{" "}
+              {kycFee.free || !kycFee.paystackRequired ? (
+                <>
+                  <strong>Free</strong>
+                  {kycFee.feeReason ? ` (${kycFee.feeReason})` : " on your plan"}.
+                </>
+              ) : (
+                <>
+                  <strong>{kycFee.feeLabel}</strong> on Free · included free on Plus/Premium.
+                </>
+              )}{" "}
               <strong>International:</strong> Didit document + liveness when configured; otherwise
               upload documents below for review.
             </p>
             <p className="mt-1 text-xs text-stone-400">
-              Providers: VerifyNow {providers.verifynow ? "● live" : "○ not configured"} · Didit{" "}
+              Providers: VerifyNow{" "}
+              {providers.verifynow || kycFee.configured ? "● live" : "○ not configured"} · Didit{" "}
               {providers.didit ? "● live" : "○ not configured"} · Meta/Facebook{" "}
               {providers.facebook ? "● app configured" : "○ not configured"}
+              {kycFee.planId ? ` · plan ${kycFee.planId}` : ""}
               {kycFee.paystackRequired
                 ? ` · SA check ${kycFee.feeLabel}`
-                : " · SA check free (demo / Paystack off)"}
+                : kycFee.free
+                  ? " · SA check free"
+                  : " · SA check free (demo / Paystack off)"}
             </p>
           </div>
         </div>
@@ -522,13 +557,21 @@ export function VerificationClient({
           {country === "ZA"
             ? kycFee.paystackRequired
               ? `Pay ${kycFee.feeLabel} & verify with VerifyNow`
-              : "Verify with VerifyNow (SA · demo)"
+              : kycFee.free
+                ? "Verify with VerifyNow (included free)"
+                : "Verify with VerifyNow (SA · demo)"
             : "Start international verification"}
         </Button>
         {country === "ZA" && kycFee.paystackRequired && (
           <p className="text-xs text-stone-500">
-            You&apos;ll pay <strong>{kycFee.feeLabel}</strong> securely with Paystack, then we run
-            the Home Affairs ID check (and face match if you uploaded a selfie).
+            Free accounts pay <strong>{kycFee.feeLabel}</strong> via Paystack for the automated SA
+            check. Plus and Premium members get VerifyNow free. Face match runs if you upload a
+            selfie.
+          </p>
+        )}
+        {country === "ZA" && kycFee.free && (
+          <p className="text-xs text-emerald-700">
+            Your {kycFee.planId || "paid"} plan includes VerifyNow at no extra charge.
           </p>
         )}
       </Card>
