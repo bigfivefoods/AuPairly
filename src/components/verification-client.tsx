@@ -572,11 +572,13 @@ export function VerificationClient({
         >
           {kycLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {country === "ZA"
-            ? kycFee.paystackRequired
-              ? `Pay ${kycFee.feeLabel} & verify with VerifyNow`
-              : kycFee.free
-                ? "Verify with VerifyNow (included free)"
-                : "Verify with VerifyNow (SA · demo)"
+            ? !kycFee.configured
+              ? "VerifyNow not configured"
+              : kycFee.paystackRequired
+                ? `Pay ${kycFee.feeLabel} & verify with VerifyNow`
+                : kycFee.free
+                  ? "Verify with VerifyNow (included free)"
+                  : "Verify with VerifyNow (SA)"
             : "Start international verification"}
         </Button>
         {country === "ZA" && kycFee.paystackRequired && (
@@ -706,10 +708,9 @@ export function VerificationClient({
       )}
 
       <p className="text-center text-xs text-stone-400">
-        SA automated checks use VerifyNow when <code>VERIFYNOW_API_KEY</code> is set (sandbox by
-        default). International hosted checks use Didit when <code>DIDIT_API_KEY</code> is set.
-        Facebook (Meta OAuth) only imports public profile fields — never use it as sole identity
-        proof. See <code>META.md</code> for app setup.
+        SA checks use live VerifyNow when <code>VERIFYNOW_API_KEY</code> is set (
+        <code>vn_live_…</code> keys run in production automatically). International uses Didit when
+        configured. Facebook only imports public profile fields — not sole identity proof.
       </p>
     </div>
   );
