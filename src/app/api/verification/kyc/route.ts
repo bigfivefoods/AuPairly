@@ -24,6 +24,7 @@ import {
   verifyFaceMatch,
   verifySaIdNumber,
   isVerifyNowConfigured,
+  verifyNowMode,
 } from "@/lib/kyc/verifynow";
 import {
   createInternationalSession,
@@ -146,7 +147,8 @@ export async function GET(req: Request) {
   return NextResponse.json({
     providers: kycProvidersStatus(),
     verifynow: {
-      mode: process.env.VERIFYNOW_MODE === "production" ? "production" : "sandbox",
+      mode: isVerifyNowConfigured() ? verifyNowMode() : "off",
+      live: isVerifyNowConfigured() && verifyNowMode() === "production",
       credits,
       feeCents: fee.feeCents,
       feeLabel: fee.label,

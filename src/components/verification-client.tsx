@@ -104,12 +104,16 @@ export function VerificationClient({
     planId?: string;
     feeReason?: string;
     configured?: boolean;
+    live?: boolean;
+    mode?: string;
   }>({
     feeCents: 1000,
     feeLabel: "R10",
     paystackRequired: true,
     free: false,
     planId: "FREE",
+    live: false,
+    mode: "off",
   });
   const resumePaidRef = useRef(false);
 
@@ -204,6 +208,8 @@ export function VerificationClient({
             planId: d.verifynow.planId,
             feeReason: d.verifynow.feeReason,
             configured: Boolean(d.verifynow.configured ?? d.providers?.verifynow),
+            live: Boolean(d.verifynow.live),
+            mode: d.verifynow.mode || "off",
           });
         }
         if (d.diditSync?.outcome === "VERIFIED") {
@@ -481,16 +487,27 @@ export function VerificationClient({
             </p>
             <p className="mt-1 text-xs text-stone-400">
               Providers: VerifyNow{" "}
-              {providers.verifynow || kycFee.configured ? "● live" : "○ not configured"} · Didit{" "}
-              {providers.didit ? "● live" : "○ not configured"} · Meta/Facebook{" "}
+              {kycFee.live
+                ? "● production (live)"
+                : kycFee.configured || providers.verifynow
+                  ? `● ${kycFee.mode || "sandbox"}`
+                  : "○ not configured"}{" "}
+              · Didit {providers.didit ? "● live" : "○ not configured"} · Meta/Facebook{" "}
               {providers.facebook ? "● app configured" : "○ not configured"}
               {kycFee.planId ? ` · plan ${kycFee.planId}` : ""}
               {kycFee.paystackRequired
                 ? ` · SA check ${kycFee.feeLabel}`
                 : kycFee.free
                   ? " · SA check free"
-                  : " · SA check free (demo / Paystack off)"}
+                  : " · SA check free (Paystack off)"}
             </p>
+            {!kycFee.configured && (
+              <p className="mt-2 text-xs text-amber-800">
+                VerifyNow is not live yet. Add <code className="rounded bg-amber-100 px-1">VERIFYNOW_API_KEY</code>{" "}
+                and <code className="rounded bg-amber-100 px-1">VERIFYNOW_MODE=production</code> on Vercel, then
+                redeploy.
+              </p>
+            )}
           </div>
         </div>
 
