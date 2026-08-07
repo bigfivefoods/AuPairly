@@ -104,9 +104,64 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 These power `@supabase/supabase-js` helpers in `src/lib/supabase/`.  
 They **cannot** replace `DATABASE_URL` / `DIRECT_URL` for Prisma tables.
 
+## 7. Row Level Security (RLS) — required for production
+
+Auth is **Auth.js**, not Supabase Auth. App data is read/written only through **Prisma** (`DATABASE_URL`).  
+The browser **publishable key** must never be able to query business tables via PostgREST.
+
+### What we enforce
+
+| Layer | Behaviour |
+|-------|-----------|
+| **RLS ON** all Prisma tables | `anon` / `authenticated` get **no** policies → denied |
+| **No FORCE RLS** | Prisma’s DB role (table owner) still works |
+| **REVOKE** from `anon` / `authenticated` | Extra hard deny on table privileges |
+| **Storage bucket `aupairly`** | Public **SELECT** (profile photos); uploads only via **service role** |
+
+SQL source of truth:
+
+- `supabase/rls-enforce.sql`
+- Prisma migration `prisma/migrations/20260807180000_rls_enforce/`
+
+### Apply
+
+```bash
+# Preferred (Vercel build already runs migrate deploy)
+npx prisma migrate deploy
+
+# Or paste into Supabase → SQL Editor → Run
+# File: supabase/rls-enforce.sql
+```
+
+### Verify in SQL Editor
+
+```sql
+-- All app tables should show rowsecurity = true
+SELECT c.relname AS table, c.relrowsecurity AS rls_on, c.relforcerowsecurity AS force_rls
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind = 'r'
+ORDER BY 1;
+
+-- Should return 0 rows for public policies on app tables
+SELECT tablename, policyname, roles, cmd
+FROM pg_policies
+WHERE schemaname = 'public';
+```
+
+### Threat model (honest)
+
+| Path | Protected? |
+|------|------------|
+| Someone uses your **publishable key** + Supabase REST/Realtime on `User` / messages | **Yes** — RLS + revoke |
+| Someone steals **DATABASE_URL** or **service_role** | **No** — treat as root secrets |
+| Prisma app server | **Intended** — full access after Auth.js checks in code |
+
+Never put `SUPABASE_SERVICE_ROLE_KEY` or `DATABASE_URL` in client bundles.
+
 ## Optional later
 
-- Supabase Storage for profile photos (today uploads use local/data-URL fallback)
 - Supabase Auth (today we use Auth.js email/password)
+- Per-user storage paths tied to Supabase Auth UIDs (only if you migrate auth)
 
-Not required for the marketplace to run.
+Not required for the marketplace to run once RLS is applied.
