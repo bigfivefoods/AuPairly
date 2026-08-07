@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { canAccessManagement } from "@/lib/management";
 import { PageHeader } from "@/components/ui";
 import { AdminVerificationQueue } from "@/components/admin-verification-queue";
 import { AdminUnsuspendButton } from "@/components/admin-unsuspend-button";
@@ -10,7 +12,7 @@ export const metadata = { title: "Admin" };
 
 export default async function AdminPage() {
   const user = await requireUser();
-  if (user.role !== "ADMIN") {
+  if (!canAccessManagement(user)) {
     redirect("/dashboard");
   }
 
@@ -92,6 +94,12 @@ export default async function AdminPage() {
         title="Admin console"
         description="Review identity checks and safety reports. Production should keep AUTO_VERIFY=false."
       />
+
+      <div className="mb-6">
+        <Link href="/manage" className="btn-secondary">
+          Full management stats →
+        </Link>
+      </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[

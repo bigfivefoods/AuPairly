@@ -29,6 +29,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Activity,
 } from "lucide-react";
 import Image from "next/image";
 import { BrandLogo } from "@/components/brand-logo";
@@ -45,9 +46,11 @@ import {
   navItemVisible,
   type AppNavItem,
 } from "@/lib/app-nav";
+import { canAccessManagement } from "@/lib/management";
 
 type ShellUser = {
   name: string;
+  email?: string | null;
   image?: string | null;
   role?: string;
 };
@@ -80,6 +83,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/settings/notifications": Bell,
   "/support": LifeBuoy,
   "/admin": Shield,
+  "/manage": Activity,
 };
 
 function iconFor(href: string) {
@@ -105,7 +109,9 @@ function SideNavLinks({
       )}
     >
       {APP_NAV_GROUPS.map((group) => {
-        const items = group.items.filter((i) => navItemVisible(i, user.role));
+        const items = group.items.filter((i) =>
+          navItemVisible(i, user.role, user.email)
+        );
         if (!items.length) return null;
         return (
           <div key={group.id}>
@@ -355,13 +361,21 @@ export function AppShell({
                 <UnreadMessagesLink />
               </div>
 
-              {user.role === "ADMIN" && (
-                <Link
-                  href="/admin"
-                  className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-amber-700 hover:bg-amber-50 lg:inline"
-                >
-                  {t("nav_admin")}
-                </Link>
+              {canAccessManagement(user) && (
+                <>
+                  <Link
+                    href="/manage"
+                    className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-teal-800 hover:bg-teal-50 lg:inline"
+                  >
+                    Manage
+                  </Link>
+                  <Link
+                    href="/admin"
+                    className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-amber-700 hover:bg-amber-50 lg:inline"
+                  >
+                    {t("nav_admin")}
+                  </Link>
+                </>
               )}
 
               <Link
@@ -409,13 +423,15 @@ export function AppShell({
                   {user.name}
                 </p>
                 <p className="truncate text-xs text-teal-100/75">
-                  {user.role === "PARENT"
-                    ? "Host account"
-                    : user.role === "AUPAIR"
-                      ? "Sitter account"
-                      : user.role === "ADMIN"
-                        ? "Admin"
-                        : "Member"}
+                  {canAccessManagement(user)
+                    ? "Owner / management"
+                    : user.role === "PARENT"
+                      ? "Host account"
+                      : user.role === "AUPAIR"
+                        ? "Sitter account"
+                        : user.role === "ADMIN"
+                          ? "Admin"
+                          : "Member"}
                 </p>
               </div>
             ) : (

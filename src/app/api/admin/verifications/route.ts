@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { refreshUserVerifiedBadge } from "@/lib/verification";
+import { canAccessManagement } from "@/lib/management";
 
 async function requireAdmin() {
   const session = await auth();
   if (!session?.user) return null;
-  if (session.user.role !== "ADMIN") return null;
+  if (!canAccessManagement(session.user)) return null;
   return session.user;
 }
 

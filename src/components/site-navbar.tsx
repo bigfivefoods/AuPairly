@@ -11,9 +11,11 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { MobileMenu } from "@/components/mobile-menu";
 import { useI18n } from "@/components/i18n-provider";
 import { Heart, MessageCircle, Star } from "lucide-react";
+import { canAccessManagement } from "@/lib/management";
 
 type NavUser = {
   name: string;
+  email?: string | null;
   image?: string | null;
   role?: string;
 } | null;
@@ -94,13 +96,21 @@ export function SiteNavbar({
                     <MessageCircle className="h-5 w-5" />
                   </Link>
                 </div>
-                {user.role === "ADMIN" && (
-                  <Link
-                    href="/admin"
-                    className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-amber-700 hover:bg-amber-50 lg:inline"
-                  >
-                    {t("nav_admin")}
-                  </Link>
+                {canAccessManagement(user) && (
+                  <>
+                    <Link
+                      href="/manage"
+                      className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-teal-800 hover:bg-teal-50 lg:inline"
+                    >
+                      Manage
+                    </Link>
+                    <Link
+                      href="/admin"
+                      className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-amber-700 hover:bg-amber-50 lg:inline"
+                    >
+                      {t("nav_admin")}
+                    </Link>
+                  </>
                 )}
                 <Link
                   href="/dashboard"

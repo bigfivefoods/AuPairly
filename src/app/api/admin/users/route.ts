@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
+import { canAccessManagement } from "@/lib/management";
 
 const schema = z.object({
   userId: z.string().min(1),
@@ -12,7 +13,7 @@ const schema = z.object({
 
 export async function PATCH(req: Request) {
   const session = await auth();
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
+  if (!session?.user?.id || !canAccessManagement(session.user)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

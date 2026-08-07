@@ -10,6 +10,7 @@ import { isAuthPath } from "@/lib/app-nav";
 
 type ShellUser = {
   name: string;
+  email?: string | null;
   image?: string | null;
   role?: string;
 };
