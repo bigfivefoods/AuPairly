@@ -27,8 +27,33 @@ export function diditWorkflowId(): string {
   return (process.env.DIDIT_WORKFLOW_ID || "").trim();
 }
 
+export function diditWebhookSecret(): string {
+  return (process.env.DIDIT_WEBHOOK_SECRET || "").trim();
+}
+
+/** API key + published workflow — enough to start hosted sessions */
 export function isDiditConfigured() {
   return Boolean(diditApiKey() && diditWorkflowId());
+}
+
+/**
+ * Production-ready: sessions + signed webhooks.
+ * Without DIDIT_WEBHOOK_SECRET, sessions can start but status relies on
+ * callback sync only (webhooks rejected in production).
+ */
+export function isDiditLive() {
+  return isDiditConfigured() && Boolean(diditWebhookSecret());
+}
+
+export function diditPublicStatus() {
+  return {
+    configured: isDiditConfigured(),
+    live: isDiditLive(),
+    workflowIdSet: Boolean(diditWorkflowId()),
+    webhookConfigured: Boolean(diditWebhookSecret()),
+    apiBase:
+      process.env.DIDIT_API_BASE || "https://verification.didit.me/v3",
+  };
 }
 
 export type InternationalSession = {
@@ -49,6 +74,15 @@ export async function createInternationalSession(input: {
   country?: string;
 }): Promise<InternationalSession> {
   if (!isDiditConfigured()) {
+    // Never silent-demo on Vercel/production — force explicit manual fallback
+    if (
+      process.env.VERCEL === "1" ||
+      process.env.NODE_ENV === "production"
+    ) {
+      throw new Error(
+        "Didit is not configured for live KYC. Set DIDIT_API_KEY and DIDIT_WORKFLOW_ID on the server (see DIDIT.md)."
+      );
+    }
     return {
       sessionId: `demo_${input.userId}_${Date.now()}`,
       url: "",

@@ -28,6 +28,7 @@ import {
 } from "@/lib/kyc/verifynow";
 import {
   createInternationalSession,
+  diditPublicStatus,
   diditStatusOutcome,
   fetchDiditSessionDecision,
   isDiditConfigured,
@@ -170,10 +171,7 @@ export async function GET(req: Request) {
       /** When set, production is blocking test-key checkouts */
       liveRequiredError: liveBlock,
     },
-    didit: {
-      configured: isDiditConfigured(),
-      workflowIdSet: Boolean(process.env.DIDIT_WORKFLOW_ID),
-    },
+    didit: diditPublicStatus(),
     user,
     diditSync,
   });

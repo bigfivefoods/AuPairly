@@ -78,9 +78,24 @@ set_env PAYSTACK_SECRET_KEY "${PAYSTACK_SECRET_KEY:-}"
 set_env NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY "${NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY:-}"
 set_env PAYSTACK_CURRENCY "${PAYSTACK_CURRENCY:-ZAR}"
 
+# VerifyNow (SA KYC)
+set_env VERIFYNOW_API_KEY "${VERIFYNOW_API_KEY:-}"
+set_env VERIFYNOW_MODE "${VERIFYNOW_MODE:-production}"
+set_env KYC_VERIFYNOW_FEE_CENTS "${KYC_VERIFYNOW_FEE_CENTS:-1000}"
+
+# Didit (international KYC — live)
+set_env DIDIT_API_KEY "${DIDIT_API_KEY:-}"
+set_env DIDIT_WORKFLOW_ID "${DIDIT_WORKFLOW_ID:-}"
+set_env DIDIT_WEBHOOK_SECRET "${DIDIT_WEBHOOK_SECRET:-}"
+set_env DIDIT_API_BASE "${DIDIT_API_BASE:-https://verification.didit.me/v3}"
+
+# Meta Facebook
+set_env NEXT_PUBLIC_FACEBOOK_APP_ID "${NEXT_PUBLIC_FACEBOOK_APP_ID:-${AUTH_FACEBOOK_ID:-}}"
+set_env AUTH_FACEBOOK_SECRET "${AUTH_FACEBOOK_SECRET:-${FACEBOOK_APP_SECRET:-}}"
+
 echo "Triggering production redeploy..."
 npx vercel --prod --yes "${TOKEN_FLAG[@]}"
 
 echo ""
-echo "Done. Check: https://www.aupairly.me/childcare"
-echo "Listings should load once DATABASE_URL is live on Production (Build + Runtime)."
+echo "Done. Check: https://www.aupairly.me/verification"
+echo "Didit live when GET /api/verification/kyc shows didit.live=true (logged in)."

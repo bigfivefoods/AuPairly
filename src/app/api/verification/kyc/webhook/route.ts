@@ -38,12 +38,15 @@ export async function POST(req: Request) {
   }
 
   const webhookType = String(payload.webhook_type || "");
-  // Only process session status/data events for KYC
-  if (
-    webhookType &&
-    webhookType !== "status.updated" &&
-    webhookType !== "data.updated"
-  ) {
+  // Session KYC events (and user-level status as a soft signal)
+  const allowed = new Set([
+    "status.updated",
+    "data.updated",
+    "user.status.updated",
+    "user.data.updated",
+    "", // some console tests omit type
+  ]);
+  if (webhookType && !allowed.has(webhookType)) {
     return NextResponse.json({ ok: true, ignored: webhookType });
   }
 

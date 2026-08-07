@@ -1,86 +1,92 @@
-# Didit international KYC (AuPairly)
+# Didit international KYC (AuPairly) — live production
 
 Didit powers **non–South Africa** automated identity checks (passport / national ID + liveness).  
 South African IDs use **VerifyNow** instead.
 
 Docs: [docs.didit.me](https://docs.didit.me) · Console: [business.didit.me](https://business.didit.me)
 
-## 1. Create application + workflow
+## Live status (this project)
 
-1. Sign up at Didit Business Console
-2. Create an **application** (sandbox first)
-3. **Workflows → Create** a KYC workflow with document + liveness (and face match if desired)
-4. **Publish** the workflow and copy its **workflow UUID**
+| Item | Status |
+|------|--------|
+| API key | Set locally (`DIDIT_API_KEY`) — session create returns **201** |
+| Workflow | Published UUID in `DIDIT_WORKFLOW_ID` |
+| API base | `https://verification.didit.me/v3` |
+| Webhook destination | `https://www.aupairly.me/api/verification/kyc/webhook` (label: *AuPairly production KYC*) |
+| Webhook secret | Stored as `DIDIT_WEBHOOK_SECRET` in local `.env` |
 
-## 2. API key
+**Still required:** copy the same three secrets to **Vercel Production** and redeploy.
 
-Console → API & Webhooks → create API key → store as `DIDIT_API_KEY` (server only).
-
-## 3. Environment variables
-
-```bash
-DIDIT_API_KEY="..."
-DIDIT_WORKFLOW_ID="11111111-2222-3333-4444-555555555555"
-DIDIT_WEBHOOK_SECRET="..."   # from webhook destination create response
-# Optional:
-# DIDIT_API_BASE="https://verification.didit.me/v3"
-```
-
-Also ensure:
+## Vercel Production env
 
 ```bash
-NEXT_PUBLIC_SITE_URL="https://www.aupairly.me"
+DIDIT_API_KEY=...                    # Business Console → API keys
+DIDIT_WORKFLOW_ID=...                # published KYC workflow UUID
+DIDIT_WEBHOOK_SECRET=...             # destination secret_shared_key
+DIDIT_API_BASE=https://verification.didit.me/v3
+NEXT_PUBLIC_SITE_URL=https://www.aupairly.me
 ```
 
-## 4. Webhook destination
+Push from local `.env` (if you have a Vercel token):
 
-Create a destination (console or API):
+```bash
+export VERCEL_TOKEN=...
+# ensure set-vercel-env.sh includes Didit keys (see scripts/set-vercel-env.sh)
+./scripts/set-vercel-env.sh
+```
+
+Or set manually in Vercel → Settings → Environment Variables → Production, then **Redeploy**.
+
+## Webhook destination (already registered via API)
 
 | Field | Value |
 |-------|--------|
 | URL | `https://www.aupairly.me/api/verification/kyc/webhook` |
 | Version | `v3` |
-| Events | `status.updated`, `data.updated` |
+| Events | `status.updated`, `data.updated`, `user.status.updated`, `user.data.updated` |
 
-Save the returned **`secret_shared_key`** as `DIDIT_WEBHOOK_SECRET`.
+Handler verifies `X-Signature-V2` (HMAC-SHA256, canonical JSON), with fallbacks.
 
-Our handler verifies `X-Signature-V2` (HMAC-SHA256, canonical JSON), with fallbacks to `X-Signature` and `X-Signature-Simple`.
+In production, missing `DIDIT_WEBHOOK_SECRET` → **401 Invalid signature** (no unsigned webhooks).
 
-## 5. User flow
+## User flow
 
-1. User opens `/verification`, selects a non-ZA country
-2. Clicks **Start international verification**
-3. Backend `POST /v3/session/` with `workflow_id` + `vendor_data` (AuPairly user id)
-4. User is redirected to Didit hosted `url`
-5. On finish, Didit redirects to `/verification?kyc=didit&verificationSessionId=…&status=…`
-6. Webhook (and/or callback sync) marks ID + SELFIE `VERIFIED` / `REJECTED` / `PENDING`
-7. `refreshUserVerifiedBadge` updates the public Verified badge when both required steps pass
+1. `/verification` → non-ZA country  
+2. **Start international verification**  
+3. `POST /v3/session/` with `workflow_id` + `vendor_data` (user id)  
+4. Redirect to Didit hosted `url`  
+5. Return to `/verification?kyc=didit&verificationSessionId=…&status=…`  
+6. Webhook and/or `GET ?syncSession=` mark ID + SELFIE  
+7. Verified badge when both steps pass  
 
-## 6. App routes
+## App routes
 
 | Route | Role |
 |-------|------|
 | `POST /api/verification/kyc` | Start Didit session (non-ZA) |
-| `GET /api/verification/kyc?syncSession=` | Reconcile session after redirect |
+| `GET /api/verification/kyc?syncSession=` | Reconcile after redirect |
 | `POST /api/verification/kyc/webhook` | Didit status webhooks |
 
-## 7. Status mapping
+## Status mapping
 
-| Didit status | AuPairly |
-|--------------|----------|
+| Didit | AuPairly |
+|-------|----------|
 | Approved | VERIFIED |
 | Declined / Expired / Abandoned / Kyc Expired | REJECTED |
 | In Review / In Progress / Resubmitted / Awaiting User | PENDING |
 
-## 8. Test checklist
+## Live checklist
 
-1. Sandbox app + published workflow
-2. Set env vars on Vercel (preview + production)
-3. Register webhook destination; use **Try Webhook** in console
-4. Run a non-ZA verification from `/verification`
-5. Confirm ID + Selfie rows update and badge refreshes on **Approved**
+1. [x] API key works (`POST /v3/session/` → 201)  
+2. [x] Workflow UUID published  
+3. [x] Webhook destination created for production URL  
+4. [x] `DIDIT_WEBHOOK_SECRET` in local `.env`  
+5. [ ] Same three env vars on **Vercel Production**  
+6. [ ] Redeploy  
+7. [ ] Logged-in `GET /api/verification/kyc` shows `"didit": { "live": true, "webhookConfigured": true }`  
+8. [ ] Non-ZA verification end-to-end; badge updates on **Approved**  
+9. [ ] Console **Try Webhook** hits production webhook with 200  
 
 ## Support
 
-Didit: docs + console support  
-AuPairly: hello@aupairly.me
+Didit: docs + console · AuPairly: hello@aupairly.me

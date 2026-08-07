@@ -121,6 +121,11 @@ export function VerificationClient({
     live?: boolean;
     liveRequiredError?: string | null;
   }>({});
+  const [diditInfo, setDiditInfo] = useState<{
+    configured?: boolean;
+    live?: boolean;
+    webhookConfigured?: boolean;
+  }>({});
   const resumePaidRef = useRef(false);
 
   const PENDING_KYC_KEY = "aupairly_pending_kyc";
@@ -224,6 +229,13 @@ export function VerificationClient({
             mode: d.paystack.mode || "off",
             live: Boolean(d.paystack.live),
             liveRequiredError: d.paystack.liveRequiredError || null,
+          });
+        }
+        if (d.didit) {
+          setDiditInfo({
+            configured: Boolean(d.didit.configured),
+            live: Boolean(d.didit.live),
+            webhookConfigured: Boolean(d.didit.webhookConfigured),
           });
         }
         if (d.diditSync?.outcome === "VERIFIED") {
@@ -514,7 +526,15 @@ export function VerificationClient({
                   : paystackInfo.configured
                     ? `● ${paystackInfo.mode}`
                     : "○ not configured"}{" "}
-              · Didit {providers.didit ? "● live" : "○ not configured"} · Meta/Facebook{" "}
+              · Didit{" "}
+              {diditInfo.live
+                ? "● live (sessions + webhooks)"
+                : diditInfo.configured
+                  ? "○ sessions only (add DIDIT_WEBHOOK_SECRET)"
+                  : providers.didit
+                    ? "● configured"
+                    : "○ not configured"}{" "}
+              · Meta/Facebook{" "}
               {providers.facebook ? "● app configured" : "○ not configured"}
               {kycFee.planId ? ` · plan ${kycFee.planId}` : ""}
               {kycFee.paystackRequired
@@ -542,6 +562,18 @@ export function VerificationClient({
                 {paystackInfo.liveRequiredError ? (
                   <span className="mt-1 block font-medium">{paystackInfo.liveRequiredError}</span>
                 ) : null}
+              </p>
+            )}
+            {diditInfo.configured && !diditInfo.webhookConfigured && (
+              <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                <strong>Didit webhook secret missing.</strong> Sessions can start, but status
+                updates need{" "}
+                <code className="rounded bg-amber-100 px-1">DIDIT_WEBHOOK_SECRET</code> on
+                Vercel (from Didit Console → webhook destination for{" "}
+                <code className="rounded bg-amber-100 px-1">
+                  /api/verification/kyc/webhook
+                </code>
+                ).
               </p>
             )}
           </div>
