@@ -11,45 +11,49 @@ It is **not** government ID verification — users still complete VerifyNow (SA)
 4. Add product: **Facebook Login** → **Web**
 5. Site URL: `https://www.aupairly.me`
 
-## 2. Facebook Login settings (required for “Can't load URL”)
+## 2. Fix “Can't load URL / domain isn't included”
 
-If Meta shows **“The domain of this URL isn't included in the app's domains”**, fix **all** of these:
+**Domain Manager ≠ App Domains.** Domain Manager only verifies ownership.
+Login checks **App settings → Basic → App Domains**.
 
-**App settings → Basic:**
+### A. App settings → Basic (required)
 
 | Setting | Value |
 |---------|--------|
-| **App Domains** | `aupairly.me` only (root domain — do **not** put `https://` or paths) |
+| **App Domains** | `aupairly.me` (no `https://`, no `www`, no `/`) |
 | Privacy Policy URL | `https://www.aupairly.me/privacy` |
 | Terms of Service URL | `https://www.aupairly.me/terms` |
 
-**Add platform → Website** (if missing):
+Save Changes.
+
+### B. Website platform
 
 | Setting | Value |
 |---------|--------|
 | Site URL | `https://www.aupairly.me` |
 
-**Facebook Login → Settings:**
+### C. App authentication / Facebook Login
 
 | Setting | Value |
 |---------|--------|
-| Client OAuth login | **Yes** |
-| Web OAuth login | **Yes** |
-| Strict Mode | Yes (recommended) |
-| Valid OAuth Redirect URIs | `https://www.aupairly.me/api/social/facebook/callback` |
-| | `https://aupairly.me/api/social/facebook/callback` (apex, if used) |
-| | `http://localhost:3000/api/social/facebook/callback` (local) |
+| **Native or desktop app?** | **Off** |
+| Authorize / Valid OAuth Redirect URI | `https://www.aupairly.me/api/social/facebook/callback` |
+| Client OAuth login | Yes |
+| Web OAuth login | Yes |
 
-Save after each section. Wait ~1 minute, then try Connect again.
-
-**Vercel env (must match the domain users open):**
+### D. Vercel
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://www.aupairly.me
 AUTH_URL=https://www.aupairly.me
-NEXT_PUBLIC_FACEBOOK_APP_ID=...
+NEXT_PUBLIC_FACEBOOK_APP_ID=2132905357632800
 AUTH_FACEBOOK_SECRET=...
 ```
+
+AuPairly always uses redirect_uri:
+
+`https://www.aupairly.me/api/social/facebook/callback`
+
 
 ## 3. Permissions
 
