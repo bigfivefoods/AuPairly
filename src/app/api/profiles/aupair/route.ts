@@ -72,6 +72,8 @@ export async function PUT(req: Request) {
       petTypes: toJsonArray(body.petTypes ?? []),
       houseSittingNotes: body.houseSittingNotes || null,
       careFocus: toJsonArray(body.careFocus ?? []),
+      openToPeerConnect: body.openToPeerConnect !== false,
+      peerIntro: body.peerIntro?.trim() ? String(body.peerIntro).slice(0, 280) : null,
       status: body.status === "ACTIVE" ? "ACTIVE" : body.status === "PAUSED" ? "PAUSED" : "DRAFT",
     },
     update: {
@@ -127,6 +129,16 @@ export async function PUT(req: Request) {
       houseSittingNotes:
         body.houseSittingNotes !== undefined ? body.houseSittingNotes || null : undefined,
       careFocus: body.careFocus ? toJsonArray(body.careFocus) : undefined,
+      openToPeerConnect:
+        body.openToPeerConnect !== undefined
+          ? Boolean(body.openToPeerConnect)
+          : undefined,
+      peerIntro:
+        body.peerIntro !== undefined
+          ? body.peerIntro?.trim()
+            ? String(body.peerIntro).slice(0, 280)
+            : null
+          : undefined,
       status: body.status,
     },
   });
