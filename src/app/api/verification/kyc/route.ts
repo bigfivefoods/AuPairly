@@ -43,8 +43,18 @@ export async function GET() {
       facebookId: true,
     },
   });
+  let credits: { available: number; organizationName?: string } | null = null;
+  if (kycProvidersStatus().verifynow) {
+    const { getVerifyNowCredits } = await import("@/lib/kyc/verifynow");
+    credits = await getVerifyNowCredits().catch(() => null);
+  }
+
   return NextResponse.json({
     providers: kycProvidersStatus(),
+    verifynow: {
+      mode: process.env.VERIFYNOW_MODE === "production" ? "production" : "sandbox",
+      credits,
+    },
     user,
   });
 }
@@ -122,11 +132,23 @@ async function runSouthAfricaKyc(
 
   await upsertVerification(userId, "ID", "VERIFIED", {
     notes: [
-      "SA ID verified",
-      idResult.firstName && `Name: ${idResult.firstName} ${idResult.lastName || ""}`.trim(),
+      "SA ID verified via VerifyNow",
+      (idResult.fullName ||
+        [idResult.firstName, idResult.lastName].filter(Boolean).join(" ")) &&
+        `Name: ${idResult.fullName || [idResult.firstName, idResult.lastName].filter(Boolean).join(" ")}`,
       idResult.dob && `DOB: ${idResult.dob}`,
+      idResult.gender && `Gender: ${idResult.gender}`,
+      idResult.citizenship && `Citizenship: ${idResult.citizenship}`,
+      idResult.alive === false
+        ? "⚠ Deceased status"
+        : idResult.deceasedStatus
+          ? `Status: ${idResult.deceasedStatus}`
+          : null,
       idResult.statusText,
       isVerifyNowConfigured() ? "provider=verifynow" : "provider=demo",
+      idResult.remainingCredits != null
+        ? `credits_left=${idResult.remainingCredits}`
+        : null,
     ]
       .filter(Boolean)
       .join(" · "),
