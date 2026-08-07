@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
+import { recordPayment } from "@/lib/payments";
 import {
   durationDaysFor,
   isBillingPeriod,
@@ -95,12 +96,23 @@ export async function POST(req: Request) {
       });
     }
 
+    await recordPayment({
+      userId: session.user.id,
+      kind: "MEMBERSHIP",
+      amountCents: Number(tx.amount || 0),
+      currency: String(tx.currency || "ZAR").toUpperCase(),
+      description: `${plan.name} membership · ${period} · ${days} days`,
+      reference,
+      provider: "paystack",
+      meta: { planId, period, days },
+    });
+
     await createNotification({
       userId: session.user.id,
       type: "BILLING",
       title: "Payment successful",
       body: `Your ${plan.name} membership is active for ${days} days. Paid via Paystack.`,
-      href: "/billing",
+      href: "/account",
     });
 
     return NextResponse.json({

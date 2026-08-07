@@ -120,6 +120,9 @@ export default async function DashboardPage() {
                 <Edit3 className="h-4 w-4" />
                 Edit profile
               </Link>
+              <Link href="/account" className="btn-secondary">
+                Account report
+              </Link>
               <Link href="/discover" className="btn-secondary">
                 <Search className="h-4 w-4" />
                 Discover
