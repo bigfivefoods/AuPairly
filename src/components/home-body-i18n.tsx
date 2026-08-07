@@ -295,6 +295,38 @@ export function HomeBodyI18n({
         </section>
       )}
 
+      {/* Focus cities — density first */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
+            Growing city by city
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold text-stone-900 sm:text-3xl">
+            Start where the community is densest
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-stone-500">
+            Join free in these focus cities — more sitters and hosts nearby means faster matches
+            and AuPair Connect friends.
+          </p>
+        </div>
+        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          {[
+            { city: "Cape Town", q: "Cape Town", country: "South Africa" },
+            { city: "Johannesburg", q: "Johannesburg", country: "South Africa" },
+            { city: "Durban", q: "Durban", country: "South Africa" },
+          ].map((c) => (
+            <Link
+              key={c.city}
+              href={`/browse/aupairs?city=${encodeURIComponent(c.q)}&country=${encodeURIComponent(c.country)}`}
+              className="rounded-2xl border border-stone-200 bg-white p-5 text-center shadow-sm transition hover:border-teal-300 hover:shadow-md"
+            >
+              <p className="font-display text-lg font-semibold text-stone-900">{c.city}</p>
+              <p className="mt-1 text-xs text-stone-500">{c.country} · Browse sitters</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <SocialFollowStrip />
 
       {/* Trust */}

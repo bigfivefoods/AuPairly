@@ -92,6 +92,10 @@ export default async function EditProfilePage() {
     country: profile?.country ?? "",
     continent: profile?.continent ?? "",
     addressArea: profile?.addressArea ?? "",
+    preferredAreas: parseJsonArray(
+      (profile as { preferredAreas?: string | null } | null)?.preferredAreas
+    ).join(", "),
+    isUrgent: Boolean((profile as { isUrgent?: boolean } | null)?.isUrgent),
     childrenCount: profile?.childrenCount?.toString() ?? "1",
     childrenAges: parseJsonArray(profile?.childrenAges),
     childrenDetails: profile?.childrenDetails ?? "",

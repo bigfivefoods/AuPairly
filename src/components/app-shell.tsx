@@ -37,6 +37,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { NotificationBell } from "@/components/notification-bell";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MainNavLinks } from "@/components/nav-links";
+import { UnreadMessagesLink } from "@/components/unread-messages-badge";
 import { useI18n } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
 import {
@@ -347,27 +348,13 @@ export function AppShell({
                 >
                   <Heart className="h-5 w-5" />
                 </Link>
-                <Link
-                  href="/messages"
-                  className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
-                  title={t("nav_messages")}
-                  aria-label={t("nav_messages")}
-                >
-                  <MessageCircle className="h-5 w-5" />
-                </Link>
+                <UnreadMessagesLink />
               </div>
 
               {/* Mobile: keep notifications + messages visible */}
               <div className="contents sm:hidden">
                 <NotificationBell />
-                <Link
-                  href="/messages"
-                  className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
-                  title={t("nav_messages")}
-                  aria-label={t("nav_messages")}
-                >
-                  <MessageCircle className="h-5 w-5" />
-                </Link>
+                <UnreadMessagesLink />
               </div>
 
               {user.role === "ADMIN" && (

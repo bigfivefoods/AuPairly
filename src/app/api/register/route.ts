@@ -141,6 +141,17 @@ export async function POST(req: Request) {
         body: `${user.name.split(" ")[0]} joined AuPairly with your link. More people nearby helps everyone match.`,
         href: "/dashboard",
       }).catch(() => null);
+
+      try {
+        const { grantReferralReward } = await import("@/lib/referral-reward");
+        await grantReferralReward({
+          inviterId: referredById,
+          inviteeName: user.name,
+          inviteeId: user.id,
+        });
+      } catch (e) {
+        console.error("[register] referral reward", e);
+      }
     }
 
     void sendWelcomeEmail({

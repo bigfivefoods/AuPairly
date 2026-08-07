@@ -22,6 +22,8 @@ import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { ShareButtons } from "@/components/share-buttons";
+import { BlockUserButton } from "@/components/block-user-button";
+import { TrustStrip } from "@/components/trust-strip";
 import { JsonLd } from "@/components/json-ld";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { ScheduleDisplay } from "@/components/schedule-display";
@@ -447,7 +449,8 @@ export default async function FamilyDetailPage({
               />
             </div>
             {session?.user && !isOwn && (
-              <div className="mt-4 border-t border-stone-100 pt-4">
+              <div className="mt-4 space-y-2 border-t border-stone-100 pt-4">
+                <BlockUserButton userId={profile.userId} name={displayName} />
                 <ReportButton targetId={profile.userId} />
               </div>
             )}
