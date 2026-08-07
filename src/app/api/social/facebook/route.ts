@@ -1,25 +1,59 @@
 /**
- * POST /api/social/facebook
- * Body: { accessToken: string }
+ * Facebook / Meta profile import for the logged-in AuPairly user.
  *
- * Exchanges a Facebook user access token (from Facebook Login JS SDK or
- * Graph API) for profile fields and saves them on the current AuPairly user.
+ * POST  { accessToken }  — import from JS SDK token
+ * DELETE                 — unlink Facebook
+ * GET                    — status for current user
  *
- * This is profile enrichment only — NOT government identity verification.
+ * Profile enrichment only — NOT KYC.
  */
 
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import {
+  facebookPublicConfig,
+  fetchFacebookProfile,
+  isFacebookConfigured,
+} from "@/lib/facebook";
 
-type FbProfile = {
-  id: string;
-  name?: string;
-  email?: string;
-  picture?: { data?: { url?: string } };
-  link?: string;
-};
+export async function GET() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      facebookId: true,
+      facebookProfile: true,
+      image: true,
+      name: true,
+    },
+  });
+
+  let profile: Record<string, unknown> | null = null;
+  if (user?.facebookProfile) {
+    try {
+      profile = JSON.parse(user.facebookProfile) as Record<string, unknown>;
+    } catch {
+      profile = null;
+    }
+  }
+
+  return NextResponse.json({
+    config: facebookPublicConfig(),
+    linked: Boolean(user?.facebookId),
+    facebookId: user?.facebookId || null,
+    profile,
+    user: {
+      name: user?.name,
+      image: user?.image,
+    },
+  });
+}
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -27,12 +61,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!facebookPublicConfig().clientReady) {
+    return NextResponse.json(
+      {
+        error:
+          "Facebook is not configured. Set NEXT_PUBLIC_FACEBOOK_APP_ID and AUTH_FACEBOOK_SECRET on the server.",
+      },
+      { status: 503 }
+    );
+  }
+
   const rl = rateLimit(`fb:${session.user.id}`, { limit: 10, windowMs: 60_000 });
   if (!rl.ok) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  let body: { accessToken?: string };
+  let body: { accessToken?: string; forcePhoto?: boolean; forceName?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -44,69 +88,64 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "accessToken is required" }, { status: 400 });
   }
 
-  const appId = process.env.AUTH_FACEBOOK_ID || process.env.FACEBOOK_APP_ID;
-  const appSecret =
-    process.env.AUTH_FACEBOOK_SECRET || process.env.FACEBOOK_APP_SECRET;
-
-  // Optional: app-secret proof for extra security when app secret is set
-  const fields = "id,name,email,picture.type(large),link";
-  let url = `https://graph.facebook.com/v21.0/me?fields=${fields}&access_token=${encodeURIComponent(accessToken)}`;
-  if (appId && appSecret) {
-    // debug token optional; Graph works with user token alone
-  }
-
-  const res = await fetch(url);
-  const data = (await res.json()) as FbProfile & { error?: { message?: string } };
-  if (!res.ok || data.error || !data.id) {
+  let fb;
+  try {
+    fb = await fetchFacebookProfile(accessToken);
+  } catch (e) {
     return NextResponse.json(
-      {
-        error:
-          data.error?.message ||
-          "Could not read Facebook profile. Check the token and app permissions (public_profile, email).",
-      },
+      { error: e instanceof Error ? e.message : "Facebook profile fetch failed" },
       { status: 400 }
     );
   }
 
-  // Ensure this Facebook ID is not linked to another account
   const existing = await prisma.user.findFirst({
-    where: { facebookId: data.id, NOT: { id: session.user.id } },
+    where: { facebookId: fb.id, NOT: { id: session.user.id } },
     select: { id: true },
   });
   if (existing) {
     return NextResponse.json(
-      { error: "This Facebook account is already linked to another AuPairly user." },
+      {
+        error:
+          "This Facebook account is already linked to another AuPairly user.",
+      },
       { status: 409 }
     );
   }
-
-  const pictureUrl = data.picture?.data?.url || null;
-  const profileJson = JSON.stringify({
-    id: data.id,
-    name: data.name,
-    email: data.email,
-    picture: pictureUrl,
-    link: data.link,
-    importedAt: new Date().toISOString(),
-  });
 
   const current = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { image: true, name: true },
   });
 
+  const profileJson = JSON.stringify({
+    id: fb.id,
+    name: fb.name,
+    email: fb.email,
+    picture: fb.pictureUrl,
+    link: fb.link,
+    importedAt: new Date().toISOString(),
+  });
+
+  const forcePhoto = Boolean(body.forcePhoto);
+  const forceName = Boolean(body.forceName);
+  const nextImage =
+    forcePhoto && fb.pictureUrl
+      ? fb.pictureUrl
+      : current?.image || fb.pictureUrl || undefined;
+  const nextName =
+    forceName && fb.name
+      ? fb.name
+      : !current?.name || current.name.length < 2 || current.name === "User"
+        ? fb.name || current?.name
+        : current?.name;
+
   const updated = await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      facebookId: data.id,
+      facebookId: fb.id,
       facebookProfile: profileJson,
-      // Prefer Facebook photo only when user has no profile photo yet
-      image: current?.image || pictureUrl || undefined,
-      // Prefer FB name only when name is empty/placeholder
-      name:
-        !current?.name || current.name.length < 2 || current.name === "User"
-          ? data.name || current?.name
-          : current?.name,
+      image: nextImage,
+      name: nextName,
     },
     select: {
       id: true,
@@ -119,14 +158,15 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     ok: true,
+    configured: isFacebookConfigured(),
     user: updated,
     imported: {
-      name: data.name,
-      email: data.email,
-      picture: pictureUrl,
-      link: data.link,
+      name: fb.name,
+      email: fb.email,
+      picture: fb.pictureUrl,
+      link: fb.link,
     },
-    note: "Facebook is used for profile enrichment only — complete ID verification for a Verified badge.",
+    note: "Facebook is for profile enrichment only — complete ID verification for a Verified badge.",
   });
 }
 
@@ -139,5 +179,5 @@ export async function DELETE() {
     where: { id: session.user.id },
     data: { facebookId: null, facebookProfile: null },
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, linked: false });
 }

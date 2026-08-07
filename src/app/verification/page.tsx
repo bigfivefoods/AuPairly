@@ -27,7 +27,7 @@ export default async function VerificationPage() {
       <PageHeader
         eyebrow="Trust center"
         title="Verify your identity"
-        description="South Africa: automated SA ID + face match via VerifyNow. International: Didit when configured, or document upload. Optional Facebook import for name/photo only."
+        description="South Africa: automated SA ID + face match via VerifyNow. International: Didit when configured, or document upload. Optional Meta/Facebook OAuth import for name/photo only."
       />
       <VerificationClient
         initial={verifications.map((v) => ({
