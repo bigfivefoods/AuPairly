@@ -24,6 +24,7 @@ import { PeerConnectButton } from "@/components/peer-connect-button";
 import { ShareButtons } from "@/components/share-buttons";
 import { BlockUserButton } from "@/components/block-user-button";
 import { TrustStrip } from "@/components/trust-strip";
+import { PhotoGallery } from "@/components/photo-gallery";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { JsonLd } from "@/components/json-ld";
@@ -337,16 +338,8 @@ export default async function AuPairDetailPage({
           {photos.length > 0 && (
             <Card>
               <h2 className="font-display text-xl font-semibold">Photos</h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {photos.map((src) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={src}
-                    src={src}
-                    alt=""
-                    className="aspect-square rounded-xl object-cover"
-                  />
-                ))}
+              <div className="mt-4">
+                <PhotoGallery photos={photos} altPrefix={profile.user.name} />
               </div>
             </Card>
           )}

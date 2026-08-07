@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { pendingReviewTargets, isReviewPublic } from "@/lib/reviews";
+import { getPendingReviewsForUser } from "@/lib/pending-reviews";
 import { PageHeader, Card, Avatar, Stars } from "@/components/ui";
 import { ReviewSection } from "@/components/review-section";
 import { format } from "date-fns";
@@ -9,28 +10,50 @@ import { format } from "date-fns";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Reviews" };
 
-export default async function ReviewsPage() {
+export default async function ReviewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ writeFor?: string; placement?: string }>;
+}) {
   const user = await requireUser();
+  const sp = await searchParams;
+  const writeFor = sp.writeFor?.trim() || "";
 
-  const [pending, received, given] = await Promise.all([
-    pendingReviewTargets(user.id),
-    prisma.review.findMany({
-      where: { targetId: user.id },
-      include: {
-        author: { select: { id: true, name: true, image: true, role: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    }),
-    prisma.review.findMany({
-      where: { authorId: user.id },
-      include: {
-        target: { select: { id: true, name: true, image: true, role: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    }),
-  ]);
+  const [pending, placementPending, received, given, writeTarget] =
+    await Promise.all([
+      pendingReviewTargets(user.id),
+      getPendingReviewsForUser(user.id),
+      prisma.review.findMany({
+        where: { targetId: user.id },
+        include: {
+          author: { select: { id: true, name: true, image: true, role: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+      prisma.review.findMany({
+        where: { authorId: user.id },
+        include: {
+          target: { select: { id: true, name: true, image: true, role: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+      writeFor
+        ? prisma.user.findUnique({
+            where: { id: writeFor },
+            select: { id: true, name: true, image: true, role: true },
+          })
+        : null,
+    ]);
+
+  const existingForWrite = writeFor
+    ? await prisma.review.findUnique({
+        where: {
+          authorId_targetId: { authorId: user.id, targetId: writeFor },
+        },
+      })
+    : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
@@ -39,6 +62,49 @@ export default async function ReviewsPage() {
         title="Mutual reviews"
         description="Like Airbnb: both parties rate each other. Reviews stay private until both are in — or after 14 days."
       />
+
+      {writeTarget && (
+        <section className="mb-10">
+          <h2 className="font-display text-lg font-semibold text-stone-900">
+            Review {writeTarget.name}
+          </h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Your scores stay private until they review you too (or 14 days pass).
+          </p>
+          <div className="mt-4">
+            <ReviewSection
+              targetId={writeTarget.id}
+              targetName={writeTarget.name}
+              canReview={!existingForWrite}
+              existing={existingForWrite}
+              initialReviews={[]}
+            />
+          </div>
+        </section>
+      )}
+
+      {placementPending.filter((p) => p.source === "placement").length > 0 && (
+        <section className="mb-10">
+          <h2 className="font-display text-lg font-semibold text-stone-900">
+            After placement
+          </h2>
+          <ul className="mt-4 space-y-2">
+            {placementPending
+              .filter((p) => p.source === "placement")
+              .map((p) => (
+                <li
+                  key={p.otherUserId}
+                  className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-2"
+                >
+                  <span className="text-sm font-semibold">{p.otherName}</span>
+                  <Link href={p.href} className="text-sm font-semibold text-teal-700">
+                    Write review →
+                  </Link>
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
 
       {pending.length > 0 && (
         <section className="mb-10">

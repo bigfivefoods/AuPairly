@@ -301,6 +301,7 @@ export default async function BrowseAupairsPage({
                 name={a.user.name}
                 image={a.user.image}
                 coverImage={a.coverImage}
+                photos={a.photos}
                 headline={a.headline}
                 city={a.city}
                 region={a.region}

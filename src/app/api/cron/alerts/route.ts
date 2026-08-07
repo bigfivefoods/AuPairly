@@ -38,6 +38,13 @@ async function handle(req: Request) {
   });
 
   for (const s of searches) {
+    // Throttle: at most one alert per search per 20 hours
+    if (s.lastAlertedAt) {
+      const hours =
+        (Date.now() - s.lastAlertedAt.getTime()) / (1000 * 60 * 60);
+      if (hours < 20) continue;
+    }
+
     let filters: Record<string, string> = {};
     try {
       filters = JSON.parse(s.filters);
@@ -46,24 +53,47 @@ async function handle(req: Request) {
     }
     const city = filters.city || "";
     const country = filters.country || "";
+    const targetFamilies = filters.target === "families";
 
-    const count = await prisma.auPairProfile.count({
-      where: {
-        status: "ACTIVE",
-        createdAt: { gte: since },
-        ...(city ? { city: { contains: city } } : {}),
-        ...(country ? { country: { contains: country } } : {}),
-        ...(filters.verified === "1" ? { isVerified: true } : {}),
-      },
-    });
+    const whereBase = {
+      status: "ACTIVE" as const,
+      createdAt: { gte: since },
+      ...(city
+        ? {
+            OR: [
+              { city: { contains: city, mode: "insensitive" as const } },
+              { city: { equals: city, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+      ...(country
+        ? {
+            OR: [
+              { country: { contains: country, mode: "insensitive" as const } },
+              { country: { equals: country, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+      ...(filters.verified === "1" ? { isVerified: true } : {}),
+    };
+
+    const count = targetFamilies
+      ? await prisma.familyProfile.count({ where: whereBase })
+      : await prisma.auPairProfile.count({ where: whereBase });
 
     if (count > 0) {
+      const base = targetFamilies ? "/browse/families" : "/browse/aupairs";
+      const q = new URLSearchParams();
+      if (city) q.set("city", city);
+      if (country) q.set("country", country);
+      if (filters.verified === "1") q.set("verified", "1");
+
       await createNotification({
         userId: s.userId,
         type: "SYSTEM",
         title: `New matches for “${s.name}”`,
-        body: `${count} new listing(s) in the last day match your saved search.`,
-        href: `/browse/aupairs?q=${encodeURIComponent(city || "")}&country=${encodeURIComponent(country || "")}`,
+        body: `${count} new ${targetFamilies ? "host" : "sitter"} listing(s) in the last day match your saved search.`,
+        href: `${base}?${q.toString()}`,
       });
       await prisma.savedSearch.update({
         where: { id: s.id },
@@ -71,6 +101,37 @@ async function handle(req: Request) {
       });
       searchAlerts++;
     }
+  }
+
+  // Nudge users who still owe placement/message reviews
+  let reviewNudges = 0;
+  try {
+    const { getPendingReviewsForUser } = await import("@/lib/pending-reviews");
+    const activeUsers = await prisma.user.findMany({
+      where: {
+        OR: [
+          { placementsAsParent: { some: { status: { in: ["PLACED", "COMPLETED", "TRIAL"] } } } },
+          { placementsAsAupair: { some: { status: { in: ["PLACED", "COMPLETED", "TRIAL"] } } } },
+        ],
+      },
+      select: { id: true },
+      take: 100,
+    });
+    for (const u of activeUsers) {
+      const pending = await getPendingReviewsForUser(u.id);
+      const placementPending = pending.filter((p) => p.source === "placement");
+      if (placementPending.length === 0) continue;
+      await createNotification({
+        userId: u.id,
+        type: "REVIEW",
+        title: "Leave a review",
+        body: `You have ${placementPending.length} placement review(s) waiting. Mutual reviews build trust.`,
+        href: "/reviews",
+      });
+      reviewNudges++;
+    }
+  } catch (e) {
+    console.error("[cron alerts] review nudges", e);
   }
 
   // Placement day-7 / day-30 check-in nudges
@@ -113,7 +174,7 @@ async function handle(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, searchAlerts, checkInNudges });
+  return NextResponse.json({ ok: true, searchAlerts, checkInNudges, reviewNudges });
 }
 
 export async function GET(req: Request) {
