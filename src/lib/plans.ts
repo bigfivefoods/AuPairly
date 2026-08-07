@@ -4,7 +4,7 @@
  *
  * Tiers: Free · Plus · Premium
  * Paid periods (once-off access, no forced auto-renew):
- * - Week: once-off
+ * - 2 weeks: once-off (period key still WEEK for API compatibility)
  * - 3 months: monthly rate × 3 (minimum purchase)
  * - Annual: discounted full year
  */
@@ -62,22 +62,22 @@ export const PERIOD_LABELS: Record<
   BillingPeriod,
   { label: string; shortLabel: string }
 > = {
-  WEEK: { label: "1 Week", shortLabel: "Week" },
+  WEEK: { label: "2 Weeks", shortLabel: "2 wks" },
   QUARTER: { label: "3 Months", shortLabel: "3 mo" },
   ANNUAL: { label: "Annual", shortLabel: "Year" },
 };
 
-/** Plus — prices from product: week R299, R99/mo (×3), annual R999 */
+/** Plus — short period R199 / 14 days, R99/mo (×3), annual R999 */
 const PLUS_PERIODS: PeriodPricing[] = [
   {
     period: "WEEK",
-    label: "1 Week",
-    shortLabel: "Week",
-    priceZar: 299,
-    displayPrice: 299,
+    label: "2 Weeks",
+    shortLabel: "2 wks",
+    priceZar: 199,
+    displayPrice: 199,
     priceSuffix: "once off",
-    billingNote: "7 days of Plus · no auto-renew",
-    durationDays: 7,
+    billingNote: "14 days of Plus · no auto-renew",
+    durationDays: 14,
   },
   {
     period: "QUARTER",
@@ -106,13 +106,13 @@ const PLUS_PERIODS: PeriodPricing[] = [
 const PREMIUM_PERIODS: PeriodPricing[] = [
   {
     period: "WEEK",
-    label: "1 Week",
-    shortLabel: "Week",
-    priceZar: 499,
-    displayPrice: 499,
+    label: "2 Weeks",
+    shortLabel: "2 wks",
+    priceZar: 349,
+    displayPrice: 349,
     priceSuffix: "once off",
-    billingNote: "7 days of Premium · no auto-renew",
-    durationDays: 7,
+    billingNote: "14 days of Premium · no auto-renew",
+    durationDays: 14,
   },
   {
     period: "QUARTER",
@@ -174,7 +174,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Featured listing badge",
       "Read receipts",
       "2 profile boosts / month",
-      "Week, 3 months, or annual access",
+      "2 weeks, 3 months, or annual access",
     ],
     limits: {
       messagesPerDay: -1,
