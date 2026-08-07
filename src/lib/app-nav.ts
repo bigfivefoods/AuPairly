@@ -111,11 +111,6 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         label: "Notifications",
         match: ["/settings/notifications"],
       },
-      {
-        href: "/connect",
-        label: "Payouts / store",
-        match: ["/connect", "/store"],
-      },
       { href: "/support", label: "Support", match: ["/support"] },
       {
         href: "/admin",

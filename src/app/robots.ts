@@ -47,6 +47,8 @@ export default function robots(): MetadataRoute.Robots {
           "/household/",
           "/connect",
           "/connect/",
+          "/store",
+          "/store/",
           "/boost",
           "/boost/",
           "/coach",

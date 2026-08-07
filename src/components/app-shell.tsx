@@ -21,7 +21,6 @@ import {
   Settings,
   Link2,
   Bell,
-  Store,
   LifeBuoy,
   Shield,
   Menu,
@@ -79,7 +78,6 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/account": Settings,
   "/settings/connections": Link2,
   "/settings/notifications": Bell,
-  "/connect": Store,
   "/support": LifeBuoy,
   "/admin": Shield,
 };
