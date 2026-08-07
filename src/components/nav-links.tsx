@@ -5,11 +5,21 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/i18n-provider";
 
-export function MainNavLinks({ className = "" }: { className?: string }) {
+export function MainNavLinks({
+  className = "",
+  showDashboard = false,
+}: {
+  className?: string;
+  /** Include Dashboard as the first link (logged-in app chrome) */
+  showDashboard?: boolean;
+}) {
   const pathname = usePathname() || "";
   const { t } = useI18n();
 
   const MAIN_LINKS = [
+    ...(showDashboard
+      ? [{ href: "/dashboard", label: t("nav_dashboard") }]
+      : []),
     { href: "/discover", label: t("nav_discover") },
     { href: "/browse/aupairs", label: t("nav_sitters") },
     { href: "/browse/families", label: t("nav_hosts") },

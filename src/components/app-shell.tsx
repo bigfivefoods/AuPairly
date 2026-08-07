@@ -35,6 +35,8 @@ import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationBell } from "@/components/notification-bell";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { MainNavLinks } from "@/components/nav-links";
+import { useI18n } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
 import {
   APP_NAV_GROUPS,
@@ -243,6 +245,7 @@ export function AppShell({
 
   const first = user.name.split(" ")[0] || "You";
   const sidebarW = expanded ? APP_SIDEBAR_EXPANDED : APP_SIDEBAR_COLLAPSED;
+  const { t } = useI18n();
 
   function toggleExpanded() {
     setExpanded((v) => !v);
@@ -258,7 +261,7 @@ export function AppShell({
         } as React.CSSProperties
       }
     >
-      {/* Top bar — logo cell width tracks sidebar expanded/collapsed */}
+      {/* Full top navbar — primary destinations + account actions */}
       <header className="sticky top-0 z-[100] border-b border-stone-200/80 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
         <div className="flex h-14 items-stretch sm:h-16">
           <div
@@ -271,7 +274,7 @@ export function AppShell({
             <Link
               href="/dashboard"
               className="flex min-w-0 items-center"
-              aria-label="Dashboard"
+              aria-label={t("nav_dashboard")}
             >
               {expanded ? (
                 <BrandLogo className="max-w-full" priority />
@@ -283,7 +286,7 @@ export function AppShell({
             </Link>
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 px-2 sm:gap-2 sm:px-3 lg:gap-3 lg:px-4">
             <button
               type="button"
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-stone-600 hover:bg-white lg:hidden"
@@ -296,43 +299,93 @@ export function AppShell({
             <Link
               href="/dashboard"
               className="flex min-w-0 shrink-0 items-center lg:hidden"
-              aria-label="Dashboard"
+              aria-label={t("nav_dashboard")}
             >
               <BrandLogo className="max-w-[9rem] sm:max-w-[10.5rem]" priority />
             </Link>
 
-            <div className="mx-auto hidden max-w-md flex-1 px-2 md:block lg:px-4">
-              <Link
-                href="/discover"
-                className="flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3.5 py-2 text-sm text-stone-500 shadow-sm transition hover:border-teal-300 hover:text-teal-800"
-              >
-                <Compass className="h-4 w-4 shrink-0 text-teal-600" />
-                <span className="truncate">Discover matches & listings…</span>
-              </Link>
-            </div>
+            <MainNavLinks
+              showDashboard
+              className="hidden min-w-0 flex-1 md:flex"
+            />
 
             <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
               <div className="hidden sm:block">
                 <LanguageSwitcher />
               </div>
-              <NotificationBell />
-              <Link
-                href="/messages"
-                className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
-                aria-label="Messages"
-                title="Messages"
-              >
-                <MessageCircle className="h-5 w-5" />
-              </Link>
+              <div className="sm:hidden">
+                <LanguageSwitcher compact />
+              </div>
+
+              <div className="hidden sm:contents">
+                <NotificationBell />
+                <Link
+                  href="/reviews"
+                  className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
+                  title={t("nav_reviews")}
+                  aria-label={t("nav_reviews")}
+                >
+                  <Star className="h-5 w-5" />
+                </Link>
+                <Link
+                  href="/interests"
+                  className="hidden rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700 md:inline-flex"
+                  title={t("nav_interests")}
+                  aria-label={t("nav_interests")}
+                >
+                  <Heart className="h-5 w-5" />
+                </Link>
+                <Link
+                  href="/messages"
+                  className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
+                  title={t("nav_messages")}
+                  aria-label={t("nav_messages")}
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </Link>
+              </div>
+
+              {/* Mobile: keep notifications + messages visible */}
+              <div className="contents sm:hidden">
+                <NotificationBell />
+                <Link
+                  href="/messages"
+                  className="rounded-full p-2 text-stone-600 transition hover:bg-white hover:text-teal-700"
+                  title={t("nav_messages")}
+                  aria-label={t("nav_messages")}
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </Link>
+              </div>
+
+              {user.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  className="hidden rounded-full px-3 py-1.5 text-sm font-semibold text-amber-700 hover:bg-amber-50 lg:inline"
+                >
+                  {t("nav_admin")}
+                </Link>
+              )}
+
               <Link
                 href="/account"
                 className="ml-0.5 flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2.5 shadow-sm transition hover:border-teal-300"
+                title={t("nav_dashboard")}
               >
                 <UserAvatar name={user.name} image={user.image} size="sm" />
                 <span className="hidden max-w-[6rem] truncate text-sm font-semibold text-stone-800 sm:inline">
                   {first}
                 </span>
               </Link>
+
+              <form action={signOutAction} className="hidden xl:block">
+                <button
+                  type="submit"
+                  className="px-1 text-sm font-medium text-stone-500 hover:text-stone-800"
+                >
+                  {t("nav_sign_out")}
+                </button>
+              </form>
             </div>
           </div>
         </div>
