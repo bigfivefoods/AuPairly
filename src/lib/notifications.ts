@@ -8,7 +8,8 @@ export type NotificationType =
   | "SYSTEM"
   | "REVIEW"
   | "MATCH"
-  | "BILLING";
+  | "BILLING"
+  | "PEER_CONNECT";
 
 export async function createNotification(opts: {
   userId: string;

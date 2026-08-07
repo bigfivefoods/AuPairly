@@ -36,7 +36,12 @@ export async function GET(req: Request) {
     },
   });
 
-  const myLoc = me?.aupairProfile || {};
+  const myLoc: {
+    city?: string | null;
+    region?: string | null;
+    country?: string | null;
+    continent?: string | null;
+  } = me?.aupairProfile ?? {};
 
   const peers = await prisma.auPairProfile.findMany({
     where: {
