@@ -12,11 +12,35 @@ const API_BASE =
   process.env.VERIFYNOW_API_BASE || "https://www.verifynow.co.za/api/external";
 
 export function isVerifyNowConfigured() {
-  return Boolean(process.env.VERIFYNOW_API_KEY);
+  return Boolean((process.env.VERIFYNOW_API_KEY || "").trim());
 }
 
+/**
+ * Live vs sandbox.
+ * - Explicit VERIFYNOW_MODE=production|live|sandbox|test wins
+ * - Else vn_live_* keys default to production (real Home Affairs credits)
+ * - Else sandbox
+ */
 export function verifyNowMode(): "sandbox" | "production" {
-  return process.env.VERIFYNOW_MODE === "production" ? "production" : "sandbox";
+  const explicit = (process.env.VERIFYNOW_MODE || "").trim().toLowerCase();
+  if (explicit === "production" || explicit === "live" || explicit === "prod") {
+    return "production";
+  }
+  if (explicit === "sandbox" || explicit === "test" || explicit === "dev") {
+    return "sandbox";
+  }
+  const key = (process.env.VERIFYNOW_API_KEY || "").trim();
+  if (key.startsWith("vn_live_")) return "production";
+  return "sandbox";
+}
+
+/** Silent “format only” demo — never on Vercel/production unless opted in */
+export function allowVerifyNowDemoFallback(): boolean {
+  if (process.env.VERIFYNOW_ALLOW_DEMO === "true") return true;
+  if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
+    return false;
+  }
+  return true;
 }
 
 type VerifyNowError = {
@@ -262,10 +286,17 @@ export async function verifySaIdNumber(
   }
 
   if (!isVerifyNowConfigured()) {
+    if (!allowVerifyNowDemoFallback()) {
+      return {
+        ok: false,
+        statusText:
+          "VerifyNow is not live on this server. Set VERIFYNOW_API_KEY (and VERIFYNOW_MODE=production) in Vercel, then redeploy.",
+      };
+    }
     return {
       ok: true,
       statusText:
-        "Demo: ID format valid (set VERIFYNOW_API_KEY for live VerifyNow KYC)",
+        "Demo: ID format valid only (set VERIFYNOW_API_KEY for live VerifyNow KYC)",
     };
   }
 
@@ -318,6 +349,12 @@ export async function verifySaIdEnhanced(
     return { ok: false, statusText: "Invalid South African ID number format" };
   }
   if (!isVerifyNowConfigured()) {
+    if (!allowVerifyNowDemoFallback()) {
+      return {
+        ok: false,
+        statusText: "VerifyNow is not live (VERIFYNOW_API_KEY missing).",
+      };
+    }
     return {
       ok: true,
       statusText: "Demo: enhanced ID skipped (no API key)",
@@ -357,6 +394,13 @@ export async function verifyFaceMatch(input: {
   idempotencyKey: string;
 }): Promise<FaceMatchResult> {
   if (!isVerifyNowConfigured()) {
+    if (!allowVerifyNowDemoFallback()) {
+      return {
+        ok: false,
+        statusText:
+          "VerifyNow face match is not live. Set VERIFYNOW_API_KEY on the server.",
+      };
+    }
     return {
       ok: true,
       statusText:
