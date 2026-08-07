@@ -16,10 +16,10 @@ import {
   SKILL_OPTIONS,
 } from "@/lib/utils";
 import { COUNTRY_OPTIONS } from "@/lib/locations";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, MapPin, Plus, X } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
 import { ScheduleEditor } from "@/components/schedule-editor";
-import { LocationFields } from "@/components/location-fields";
+import { LocationFields, type LocationValue } from "@/components/location-fields";
 import {
   computeWeeklyHours,
   parseSchedule,
@@ -81,7 +81,8 @@ const AUPAIR_SECTIONS = [
   { id: "basics", label: "Basics" },
   { id: "languages", label: "Languages" },
   { id: "skills", label: "Skills" },
-  { id: "location", label: "Location" },
+  { id: "location", label: "Where you are" },
+  { id: "work-areas", label: "Where you'll work" },
   { id: "community", label: "AuPair Connect" },
   { id: "availability", label: "Availability" },
   { id: "schedule", label: "Schedule" },
@@ -116,9 +117,45 @@ export function AuPairProfileForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  /** Draft location for multi-select “willing to work” places */
+  const [workLocDraft, setWorkLocDraft] = useState<LocationValue>({
+    continent: "",
+    country: "",
+    region: "",
+    city: "",
+  });
+  const [workLocCustom, setWorkLocCustom] = useState("");
 
   function set<K extends keyof Initial>(key: K, value: Initial[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function formatWorkPlace(loc: LocationValue): string {
+    return [loc.city, loc.region, loc.country].filter(Boolean).join(", ");
+  }
+
+  function addWorkLocation() {
+    const label =
+      workLocCustom.trim() ||
+      formatWorkPlace(workLocDraft);
+    if (!label) return;
+    if (!form.relocateCities.includes(label)) {
+      set("relocateCities", [...form.relocateCities, label]);
+    }
+    // Prefer countries list stays in sync
+    if (workLocDraft.country && !form.preferredCountries.includes(workLocDraft.country)) {
+      set("preferredCountries", [...form.preferredCountries, workLocDraft.country]);
+    }
+    set("willingRelocate", true);
+    setWorkLocDraft({ continent: workLocDraft.continent, country: workLocDraft.country, region: "", city: "" });
+    setWorkLocCustom("");
+  }
+
+  function removeWorkLocation(label: string) {
+    set(
+      "relocateCities",
+      form.relocateCities.filter((x) => x !== label)
+    );
   }
 
   function toggle(
@@ -357,10 +394,15 @@ export function AuPairProfileForm({
 
       <ProfileSection id="location">
       <Card className="space-y-4">
-        <h2 className="font-display text-lg font-semibold">Location (worldwide)</h2>
-        <p className="text-sm text-stone-500">
-          Where you are now — or plan to be. Families filter by continent, country, province, and city.
-        </p>
+        <div className="flex items-start gap-2">
+          <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-teal-700" />
+          <div>
+            <h2 className="font-display text-lg font-semibold">Where you are now</h2>
+            <p className="mt-1 text-sm text-stone-500">
+              Your current base — hosts and AuPair Connect use this for local matches.
+            </p>
+          </div>
+        </div>
         <LocationFields
           value={{
             continent: form.continent || continentForCountry(form.country) || "",
@@ -378,6 +420,113 @@ export function AuPairProfileForm({
             }))
           }
         />
+      </Card>
+      </ProfileSection>
+
+      <ProfileSection id="work-areas">
+      <Card className="space-y-5">
+        <div>
+          <h2 className="font-display text-lg font-semibold">Where you&apos;ll work</h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Select every place you are willing and able to work — not only where you live now.
+            Hosts filter by these areas worldwide.
+          </p>
+        </div>
+
+        <label className="flex items-start gap-3 rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-3 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            checked={form.willingRelocate}
+            onChange={(e) => set("willingRelocate", e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          <span>
+            <span className="font-semibold">Open to relocating / working in other places</span>
+            <span className="mt-0.5 block text-stone-500">
+              Turn on if you can move or take placements outside your current city.
+            </span>
+          </span>
+        </label>
+
+        <div>
+          <Label>Preferred countries (multi-select)</Label>
+          <p className="mb-2 text-xs text-stone-500">
+            Tap all countries you can work in. Used in host search filters.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {COUNTRY_OPTIONS.map((c) => (
+              <ChipToggle
+                key={c}
+                label={c}
+                selected={form.preferredCountries.includes(c)}
+                onClick={() => {
+                  toggle("preferredCountries", c);
+                  if (!form.preferredCountries.includes(c)) {
+                    set("willingRelocate", true);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
+          <Label>Preferred cities / regions (add as many as you like)</Label>
+          <p className="mb-3 text-xs text-stone-500">
+            e.g. Cape Town, London, NYC, Bali — specific places you want placements.
+          </p>
+
+          {form.relocateCities.length > 0 && (
+            <ul className="mb-4 flex flex-wrap gap-2">
+              {form.relocateCities.map((place) => (
+                <li
+                  key={place}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-teal-900 shadow-sm ring-1 ring-teal-200"
+                >
+                  <MapPin className="h-3.5 w-3.5 text-teal-600" />
+                  {place}
+                  <button
+                    type="button"
+                    onClick={() => removeWorkLocation(place)}
+                    className="rounded-full p-0.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                    aria-label={`Remove ${place}`}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <LocationFields
+            value={workLocDraft}
+            onChange={setWorkLocDraft}
+            cityLabel="City / town you want to work in"
+          />
+          <div className="mt-3">
+            <Label>Or type a place freely</Label>
+            <Input
+              value={workLocCustom}
+              onChange={(e) => setWorkLocCustom(e.target.value)}
+              placeholder="e.g. Stellenbosch, Western Cape · or remote/flexible"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addWorkLocation();
+                }
+              }}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-3"
+            onClick={addWorkLocation}
+          >
+            <Plus className="h-4 w-4" />
+            Add work location
+          </Button>
+        </div>
       </Card>
       </ProfileSection>
 
@@ -457,15 +606,6 @@ export function AuPairProfileForm({
             </Select>
           </div>
         </div>
-        <label className="flex items-center gap-2 text-sm text-stone-700">
-          <input
-            type="checkbox"
-            checked={form.willingRelocate}
-            onChange={(e) => set("willingRelocate", e.target.checked)}
-            className="h-4 w-4 rounded border-stone-300 text-teal-600"
-          />
-          Willing to relocate within SA
-        </label>
         <div>
           <Label>Certificates</Label>
           <div className="mt-2 flex flex-wrap gap-2">
@@ -475,19 +615,6 @@ export function AuPairProfileForm({
                 label={c}
                 selected={form.certificates.includes(c)}
                 onClick={() => toggle("certificates", c)}
-              />
-            ))}
-          </div>
-        </div>
-        <div>
-          <Label>Preferred host countries</Label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {COUNTRY_OPTIONS.map((c) => (
-              <ChipToggle
-                key={c}
-                label={c}
-                selected={form.preferredCountries.includes(c)}
-                onClick={() => toggle("preferredCountries", c)}
               />
             ))}
           </div>

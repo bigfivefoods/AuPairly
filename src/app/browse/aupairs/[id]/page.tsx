@@ -140,6 +140,7 @@ export default async function AuPairDetailPage({
   const languages = parseJsonArray(profile.languages);
   const skills = parseJsonArray(profile.childcareSkills);
   const preferred = parseJsonArray(profile.preferredCountries);
+  const workPlaces = parseJsonArray(profile.relocateCities);
   const photos = parseJsonArray(profile.photos);
   const isOwn = session?.user?.id === profile.userId;
 
@@ -457,7 +458,7 @@ export default async function AuPairDetailPage({
             <div className="space-y-3 text-sm">
               <Row
                 icon={<MapPin className="h-4 w-4" />}
-                label="Location"
+                label="Based now"
                 value={formatLocation(profile.city, profile.country, profile.region)}
               />
               {profile.continent && (
@@ -474,6 +475,35 @@ export default async function AuPairDetailPage({
                     } as Record<string, string>)[profile.continent] || profile.continent
                   }
                 />
+              )}
+              {(preferred.length > 0 || workPlaces.length > 0 || profile.willingRelocate) && (
+                <div className="rounded-xl border border-teal-100 bg-teal-50/50 px-3 py-2.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-800">
+                    Open to work in
+                  </p>
+                  {profile.willingRelocate && (
+                    <p className="mt-1 text-xs font-medium text-teal-700">
+                      Willing to relocate for the right placement
+                    </p>
+                  )}
+                  {preferred.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {preferred.map((c) => (
+                        <Badge key={c}>{c}</Badge>
+                      ))}
+                    </div>
+                  )}
+                  {workPlaces.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-sm text-stone-700">
+                      {workPlaces.map((p) => (
+                        <li key={p} className="flex items-start gap-1.5">
+                          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600" />
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               )}
               {profile.nationality && <Row label="Nationality" value={profile.nationality} />}
               {profile.age && <Row label="Age" value={`${profile.age}`} />}
@@ -499,9 +529,6 @@ export default async function AuPairDetailPage({
                 <Row label="Pocket money from" value={`R${profile.pocketMoneyMin}/wk`} />
               )}
               <Row label="Live-in" value={profile.liveIn ? "Preferred" : "Live-out OK"} />
-              {preferred.length > 0 && (
-                <Row label="Preferred countries" value={preferred.join(", ")} />
-              )}
             </div>
 
             <div className="mt-6 space-y-3 border-t border-stone-100 pt-5">
