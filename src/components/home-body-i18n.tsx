@@ -15,6 +15,7 @@ import {
   PawPrint,
 } from "lucide-react";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
+import { SocialFollowStrip } from "@/components/social-follow-strip";
 import { SERVICE_LIST } from "@/lib/services";
 import { useI18n } from "@/components/i18n-provider";
 import { serviceLabel } from "@/lib/i18n/service-label";
@@ -293,6 +294,8 @@ export function HomeBodyI18n({
           </div>
         </section>
       )}
+
+      <SocialFollowStrip />
 
       {/* Trust */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">

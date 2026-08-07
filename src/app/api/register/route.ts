@@ -17,6 +17,8 @@ const schema = z.object({
   role: z.enum(["AUPAIR", "PARENT"]),
   /** Privy access token after successful email OTP */
   privyAccessToken: z.string().min(10).optional(),
+  /** Invite code from /register?ref= (prefix of inviter user id) */
+  refCode: z.string().min(4).max(32).optional(),
 });
 
 export async function POST(req: Request) {
@@ -79,6 +81,18 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(data.password, 12);
 
+    let referredById: string | null = null;
+    if (data.refCode) {
+      const code = data.refCode.trim();
+      const inviter = await prisma.user.findFirst({
+        where: {
+          OR: [{ id: code }, { id: { startsWith: code } }],
+        },
+        select: { id: true, name: true },
+      });
+      if (inviter) referredById = inviter.id;
+    }
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -86,6 +100,7 @@ export async function POST(req: Request) {
         passwordHash,
         role: data.role,
         emailVerified: privyUserId ? new Date() : null,
+        ...(referredById ? { referredById } : {}),
         ...(data.role === "AUPAIR"
           ? {
               aupairProfile: {
@@ -117,6 +132,16 @@ export async function POST(req: Request) {
       body: "Pick your services and city — takes under 2 minutes.",
       href: "/onboarding",
     });
+
+    if (referredById) {
+      await createNotification({
+        userId: referredById,
+        type: "SYSTEM",
+        title: "Your invite worked!",
+        body: `${user.name.split(" ")[0]} joined AuPairly with your link. More people nearby helps everyone match.`,
+        href: "/dashboard",
+      }).catch(() => null);
+    }
 
     void sendWelcomeEmail({
       email: user.email,
