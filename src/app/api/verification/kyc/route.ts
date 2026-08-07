@@ -28,6 +28,7 @@ import {
 } from "@/lib/kyc/verifynow";
 import {
   createInternationalSession,
+  diditPublicStatus,
   diditStatusOutcome,
   fetchDiditSessionDecision,
   isDiditConfigured,
@@ -170,10 +171,7 @@ export async function GET(req: Request) {
       /** When set, production is blocking test-key checkouts */
       liveRequiredError: liveBlock,
     },
-    didit: {
-      configured: isDiditConfigured(),
-      workflowIdSet: Boolean(process.env.DIDIT_WORKFLOW_ID),
-    },
+    didit: diditPublicStatus(),
     user,
     diditSync,
   });
@@ -598,12 +596,24 @@ async function runInternationalKyc(
       country,
     });
   } catch (e) {
+    const msg =
+      e instanceof Error
+        ? e.message
+        : "Could not start Didit verification session";
+    // Missing config → graceful manual upload path (not a hard 502)
+    if (/not configured/i.test(msg)) {
+      return NextResponse.json({
+        ok: true,
+        region: "INTERNATIONAL",
+        provider: "manual",
+        message:
+          "International live KYC is not configured yet. Upload your passport/ID and selfie below for admin review, or set DIDIT_API_KEY + DIDIT_WORKFLOW_ID + DIDIT_WEBHOOK_SECRET (see DIDIT.md).",
+        manualUpload: true,
+      });
+    }
     return NextResponse.json(
       {
-        error:
-          e instanceof Error
-            ? e.message
-            : "Could not start Didit verification session",
+        error: msg,
         provider: "didit",
       },
       { status: 502 }
@@ -616,7 +626,7 @@ async function runInternationalKyc(
       region: "INTERNATIONAL",
       provider: "manual",
       message:
-        "International live KYC is not configured yet. Upload your passport/ID and selfie below for admin review, or set DIDIT_API_KEY + DIDIT_WORKFLOW_ID for automated global checks (see DIDIT.md).",
+        "International live KYC is not configured yet. Upload your passport/ID and selfie below for admin review, or set DIDIT_API_KEY + DIDIT_WORKFLOW_ID + DIDIT_WEBHOOK_SECRET for automated global checks (see DIDIT.md).",
       manualUpload: true,
     });
   }
