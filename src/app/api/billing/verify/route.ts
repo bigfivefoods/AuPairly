@@ -8,12 +8,14 @@ import { auth } from "@/lib/auth";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
 import { recordPayment } from "@/lib/payments";
+import { sendPaymentReceiptEmail } from "@/lib/email";
 import {
   durationDaysFor,
   isBillingPeriod,
   isPaidPlanId,
   normalizePlanId,
   planFor,
+  PERIOD_LABELS,
   type BillingPeriod,
   type PlanId,
 } from "@/lib/plans";
@@ -96,6 +98,10 @@ export async function POST(req: Request) {
       });
     }
 
+    const existingPay = reference
+      ? await prisma.paymentTransaction.findUnique({ where: { reference } })
+      : null;
+
     await recordPayment({
       userId: session.user.id,
       kind: "MEMBERSHIP",
@@ -114,6 +120,20 @@ export async function POST(req: Request) {
       body: `Your ${plan.name} membership is active for ${days} days. Paid via Paystack.`,
       href: "/account",
     });
+
+    // Receipt once per Paystack reference (webhook may race with verify)
+    if (!existingPay && session.user.email) {
+      void sendPaymentReceiptEmail({
+        toEmail: session.user.email,
+        toName: session.user.name || "there",
+        planName: plan.name,
+        periodLabel: PERIOD_LABELS[period]?.label || period,
+        days,
+        amountCents: Number(tx.amount || 0),
+        currency: String(tx.currency || "ZAR"),
+        reference,
+      }).catch((e) => console.error("[email] payment receipt", e));
+    }
 
     return NextResponse.json({
       ok: true,

@@ -67,6 +67,8 @@ export default async function EditProfilePage() {
       houseSittingNotes: profile?.houseSittingNotes ?? "",
       openToPeerConnect: profile?.openToPeerConnect ?? true,
       peerIntro: profile?.peerIntro ?? "",
+      photos: parseJsonArray(profile?.photos),
+      coverImage: profile?.coverImage ?? null,
       status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
     };
 
@@ -121,6 +123,8 @@ export default async function EditProfilePage() {
     services: parseServices(profile?.services),
     petTypes: parseJsonArray(profile?.petTypes),
     houseSittingNotes: profile?.houseSittingNotes ?? "",
+    photos: parseJsonArray(profile?.photos),
+    coverImage: profile?.coverImage ?? null,
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
   };
 
