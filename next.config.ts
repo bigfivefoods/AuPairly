@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
           { key: "Content-Type", value: "application/manifest+json" },
         ],
       },
+      {
+        // Apple Pay domain verification (Paystack) — must not be HTML
+        source: "/.well-known/apple-developer-merchantid-domain-association",
+        headers: [
+          { key: "Content-Type", value: "text/plain; charset=utf-8" },
+          { key: "Cache-Control", value: "public, max-age=3600" },
+        ],
+      },
     ];
   },
 };
