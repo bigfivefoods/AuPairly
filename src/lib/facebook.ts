@@ -138,33 +138,15 @@ export async function exchangeFacebookCode(input: {
 
 /**
  * Canonical public site for Facebook OAuth redirect_uri.
- * Always use https://www.aupairly.me in production so Meta App Domains match
- * (Domain Manager alone is not enough — Basic → App Domains must list aupairly.me).
+ *
+ * Meta error "domain of this URL isn't included in the app's domains" means
+ * App Domains / Valid OAuth Redirect URIs must match THIS host exactly.
+ *
+ * We always use https://www.aupairly.me except on localhost — never
+ * *.vercel.app previews (those are not in Meta App Domains).
  */
 export function facebookOAuthSiteUrl(req?: Request | null): string {
-  const env = (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.AUTH_URL ||
-    ""
-  )
-    .trim()
-    .replace(/\/$/, "");
-
-  // Production product host — force www so redirect_uri never drifts
-  if (
-    env.includes("aupairly.me") ||
-    process.env.VERCEL_ENV === "production" ||
-    process.env.NODE_ENV === "production"
-  ) {
-    // Prefer configured site if it's already aupairly; else hard default
-    if (env.startsWith("https://www.aupairly.me")) return "https://www.aupairly.me";
-    if (env.startsWith("https://aupairly.me")) return "https://www.aupairly.me";
-    if (process.env.VERCEL_ENV === "production" || env.includes("aupairly.me")) {
-      return "https://www.aupairly.me";
-    }
-  }
-
-  // Local / preview: use request host or env
+  // Local dev only
   if (req) {
     const host =
       req.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
@@ -174,14 +156,27 @@ export function facebookOAuthSiteUrl(req?: Request | null): string {
       const proto = req.headers.get("x-forwarded-proto") || "http";
       return `${proto}://${host}`.replace(/\/$/, "");
     }
-    // Preview deployments on vercel.app — still prefer product domain for OAuth
-    if (host.includes("aupairly.me")) {
-      return "https://www.aupairly.me";
-    }
   }
 
-  if (env) return env;
-  return "http://localhost:3000";
+  const env = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.AUTH_URL ||
+    ""
+  )
+    .trim()
+    .replace(/\/$/, "");
+
+  if (env.includes("localhost") || env.includes("127.0.0.1")) {
+    return env;
+  }
+
+  // All non-local (production, preview, staging) → product www host
+  return "https://www.aupairly.me";
+}
+
+/** Exact redirect_uri string Meta must allow */
+export function facebookOAuthRedirectUri(req?: Request | null): string {
+  return `${facebookOAuthSiteUrl(req)}/api/social/facebook/callback`;
 }
 
 export function facebookOAuthDialogUrl(input: {

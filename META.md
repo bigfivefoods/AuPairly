@@ -14,13 +14,21 @@ It is **not** government ID verification — users still complete VerifyNow (SA)
 ## 2. Fix “Can't load URL / domain isn't included”
 
 **Domain Manager ≠ App Domains.** Domain Manager only verifies ownership.
-Login checks **App settings → Basic → App Domains**.
+Login checks **App settings → Basic → App Domains** + **Valid OAuth Redirect URIs**.
+
+AuPairly **always** sends redirect_uri:
+
+```text
+https://www.aupairly.me/api/social/facebook/callback
+```
+
+(never `*.vercel.app` — code forces www product host except localhost)
 
 ### A. App settings → Basic (required)
 
 | Setting | Value |
 |---------|--------|
-| **App Domains** | `aupairly.me` (no `https://`, no `www`, no `/`) |
+| **App Domains** | `aupairly.me` (**no** `https://`, **no** `www`, **no** `/`) |
 | Privacy Policy URL | `https://www.aupairly.me/privacy` |
 | Terms of Service URL | `https://www.aupairly.me/terms` |
 
@@ -37,9 +45,10 @@ Save Changes.
 | Setting | Value |
 |---------|--------|
 | **Native or desktop app?** | **Off** |
-| Authorize / Valid OAuth Redirect URI | `https://www.aupairly.me/api/social/facebook/callback` |
+| Valid OAuth Redirect URIs | `https://www.aupairly.me/api/social/facebook/callback` |
 | Client OAuth login | Yes |
 | Web OAuth login | Yes |
+| Use Strict Mode for Redirect URIs | Yes |
 
 ### D. Vercel
 

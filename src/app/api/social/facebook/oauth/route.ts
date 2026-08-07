@@ -12,6 +12,7 @@ import {
   facebookAppId,
   facebookAppSecret,
   facebookOAuthDialogUrl,
+  facebookOAuthRedirectUri,
   facebookOAuthSiteUrl,
 } from "@/lib/facebook";
 import { randomBytes } from "node:crypto";
@@ -47,7 +48,8 @@ export async function GET(req: Request) {
   }
 
   // Exact string Meta must allow under Valid OAuth Redirect URIs
-  const redirectUri = `${site}/api/social/facebook/callback`;
+  // (always https://www.aupairly.me/... except localhost)
+  const redirectUri = facebookOAuthRedirectUri(req);
   const state = randomBytes(16).toString("hex");
 
   const dialog = facebookOAuthDialogUrl({ redirectUri, state });
