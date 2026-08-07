@@ -108,6 +108,19 @@ model User {
   boostEvents         BoostEvent[]
   pushSubscriptions   PushSubscription[]
   paymentTransactions PaymentTransaction[]
+
+  /// External identity / social
+  facebookId          String?  @unique
+  /// JSON: name, picture, link, email (from Facebook Login — not KYC)
+  facebookProfile     String?
+  /// Last 4 of national ID only (privacy); full ID never stored long-term
+  idNumberLast4       String?
+  /// verifynow | didit | manual | demo
+  kycProvider         String?
+  kycExternalId       String?
+  kycVerifiedAt       DateTime?
+  /// ISO country that drove the KYC path (ZA → VerifyNow, else international)
+  kycCountry          String?
 }
 
 model AuPairProfile {
