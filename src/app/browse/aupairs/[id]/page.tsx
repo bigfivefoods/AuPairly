@@ -251,7 +251,7 @@ export default async function AuPairDetailPage({
         href="/browse/aupairs"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-teal-700"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to au pairs
+        <ArrowLeft className="h-4 w-4" /> Back to sitters
       </Link>
 
       <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">

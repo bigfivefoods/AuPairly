@@ -29,7 +29,10 @@ export function AppChromeClient({
   if (user && !isAuthPath(path)) {
     return (
       <AppShell user={user} signOutAction={signOutAction}>
-        <main className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0">
+        <main
+          id="main"
+          className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
+        >
           {children}
         </main>
         <MobileNav />
@@ -40,7 +43,10 @@ export function AppChromeClient({
   return (
     <>
       <SiteNavbar user={user} signOutAction={signOutAction} />
-      <main className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0">
+      <main
+        id="main"
+        className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
+      >
         {children}
       </main>
       <FooterI18n />

@@ -55,7 +55,17 @@ export async function POST() {
   }
 
   if (!isPaystackConfigured()) {
-    // Demo boost
+    const allowDemo =
+      process.env.ALLOW_DEMO_BILLING === "true" &&
+      process.env.VERCEL_ENV !== "production" &&
+      process.env.NODE_ENV !== "production";
+    if (!allowDemo) {
+      return NextResponse.json(
+        { error: "Payments are not configured. Please try again later." },
+        { status: 503 }
+      );
+    }
+    // Demo boost (non-production only)
     const until = new Date();
     until.setDate(until.getDate() + 7);
     if (session.user.role === "AUPAIR") {

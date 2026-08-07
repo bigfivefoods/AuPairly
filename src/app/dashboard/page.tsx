@@ -216,7 +216,7 @@ export default async function DashboardPage() {
         </p>
         <p className="mt-3 break-all rounded-xl border border-teal-100 bg-white px-3 py-2 font-mono text-xs text-teal-800">
           {(
-            process.env.NEXT_PUBLIC_SITE_URL || "https://aupairly-orcin.vercel.app"
+            process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"
           ).replace(/\/$/, "")}
           /register?ref={user.id.slice(0, 8)}
         </p>
@@ -234,7 +234,7 @@ export default async function DashboardPage() {
               href="/discover"
               icon={<Search className="h-5 w-5" />}
               title="Discover"
-              desc="Swipe to match with families or au pairs"
+              desc="Swipe to match with hosts or sitters"
             />
             {user.role === "AUPAIR" && (
               <Action

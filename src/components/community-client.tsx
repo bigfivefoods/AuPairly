@@ -37,6 +37,8 @@ type NearbyItem = {
   reviewCount: number;
   safetyScore?: number | null;
   proximity: PeerProximity;
+  connectStatus?: string;
+  conversationId?: string | null;
 };
 
 type ConnectRow = {
@@ -59,9 +61,11 @@ type ConnectRow = {
 
 export function CommunityClient({
   meLocation,
+  openToPeerConnect = true,
   initialTab = "nearby",
 }: {
   meLocation: { city?: string | null; region?: string | null; country?: string | null };
+  openToPeerConnect?: boolean;
   initialTab?: string;
 }) {
   const router = useRouter();
@@ -116,9 +120,13 @@ export function CommunityClient({
   }, []);
 
   useEffect(() => {
+    // Always refresh request counts for the tab badge
+    loadRequests();
+  }, [loadRequests]);
+
+  useEffect(() => {
     if (tab === "nearby") loadNearby();
-    else loadRequests();
-  }, [tab, loadNearby, loadRequests]);
+  }, [tab, loadNearby]);
 
   async function respond(id: string, status: "ACCEPTED" | "DECLINED") {
     const res = await fetch(`/api/community/connects/${id}`, {
@@ -157,16 +165,34 @@ export function CommunityClient({
         )}
       </div>
 
-      <div className="mt-6 flex gap-2 border-b border-stone-200">
+      {!openToPeerConnect && (
+        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          You&apos;re hidden from AuPair Connect.{" "}
+          <Link href="/profile/edit" className="font-semibold underline">
+            Turn on “Show me in AuPair Connect”
+          </Link>{" "}
+          so other sitters can find you too.
+        </div>
+      )}
+
+      <div className="mt-6 flex gap-2 border-b border-stone-200" role="tablist">
         {(
           [
             { id: "nearby", label: "Sitters near me" },
-            { id: "requests", label: "Requests" },
+            {
+              id: "requests",
+              label:
+                received.filter((c) => c.status === "PENDING").length > 0
+                  ? `Requests (${received.filter((c) => c.status === "PENDING").length})`
+                  : "Requests",
+            },
           ] as const
         ).map((t) => (
           <Link
             key={t.id}
             href={`/community?tab=${t.id}`}
+            role="tab"
+            aria-selected={tab === t.id}
             className={cn(
               "-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition",
               tab === t.id
@@ -251,6 +277,15 @@ export function CommunityClient({
                       toUserId={p.userId}
                       toName={p.name}
                       variant="secondary"
+                      initialStatus={
+                        (p.connectStatus as
+                          | "NONE"
+                          | "PENDING"
+                          | "ACCEPTED"
+                          | "DECLINED"
+                          | "WITHDRAWN") || "NONE"
+                      }
+                      conversationId={p.conversationId}
                     />
                   </div>
                 </li>

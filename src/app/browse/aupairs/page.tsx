@@ -141,6 +141,7 @@ export default async function BrowseAupairsPage({
         },
       },
       orderBy: [{ isVerified: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
+      take: 48,
     });
   } catch (e) {
     console.error("[browse/aupairs] load failed", e);

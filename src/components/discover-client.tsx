@@ -375,7 +375,7 @@ export function DiscoverClient({
                   {ages.length ? ` · ${ages.join(", ")}` : ""}
                 </Badge>
                 {card.pocketMoney != null && (
-                  <Badge variant="success">${card.pocketMoney}/wk</Badge>
+                  <Badge variant="success">R{card.pocketMoney}/wk</Badge>
                 )}
               </div>
             )}

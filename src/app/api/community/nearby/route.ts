@@ -123,6 +123,46 @@ export async function GET(req: Request) {
     orderBy: [{ isVerified: "desc" }, { updatedAt: "desc" }],
   });
 
+  const peerUserIds = peers.map((p) => p.userId);
+  const [connects, conversations] = await Promise.all([
+    peerUserIds.length
+      ? prisma.peerConnect.findMany({
+          where: {
+            OR: [
+              { fromUserId: session.user.id, toUserId: { in: peerUserIds } },
+              { toUserId: session.user.id, fromUserId: { in: peerUserIds } },
+            ],
+          },
+        })
+      : Promise.resolve([]),
+    peerUserIds.length
+      ? prisma.conversation.findMany({
+          where: {
+            OR: peerUserIds.flatMap((oid) => {
+              const [a, b] =
+                session.user.id < oid
+                  ? [session.user.id, oid]
+                  : [oid, session.user.id];
+              return [{ userAId: a, userBId: b }];
+            }),
+          },
+          select: { id: true, userAId: true, userBId: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const connectByUser = new Map<string, (typeof connects)[0]>();
+  for (const c of connects) {
+    const other = c.fromUserId === session.user.id ? c.toUserId : c.fromUserId;
+    const prev = connectByUser.get(other);
+    if (!prev || c.updatedAt > prev.updatedAt) connectByUser.set(other, c);
+  }
+  const convByUser = new Map<string, string>();
+  for (const c of conversations) {
+    const other = c.userAId === session.user.id ? c.userBId : c.userAId;
+    convByUser.set(other, c.id);
+  }
+
   const rank: Record<string, number> = {
     city: 0,
     region: 1,
@@ -133,6 +173,7 @@ export async function GET(req: Request) {
   const items = peers
     .map((p) => {
       const proximity = peerProximity(myLoc, p);
+      const connect = connectByUser.get(p.userId);
       return {
         id: p.id,
         userId: p.userId,
@@ -154,6 +195,8 @@ export async function GET(req: Request) {
         safetyScore: p.user.safetyScore,
         proximity,
         lastActiveAt: p.user.lastActiveAt,
+        connectStatus: (connect?.status as string) || "NONE",
+        conversationId: convByUser.get(p.userId) || null,
       };
     })
     .sort((a, b) => rank[a.proximity] - rank[b.proximity])

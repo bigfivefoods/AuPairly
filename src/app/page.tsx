@@ -79,9 +79,9 @@ export default async function HomePage() {
       />
       <HomeHeroI18n
         stats={{
-          aupairs: stats.aupairs || "50+",
-          families: stats.families || "40+",
-          verified: stats.verified || "90%",
+          aupairs: stats.aupairs > 0 ? stats.aupairs : "New",
+          families: stats.families > 0 ? stats.families : "Open",
+          verified: stats.verified,
         }}
       />
       <HomeBodyI18n
@@ -119,7 +119,12 @@ async function getStats() {
   ]);
   const total = aupairs + families;
   const verified = verifiedA + verifiedF;
+  // Only show a % when we have enough listings; never invent a fake rate
   const verifiedPct =
-    total > 0 ? `${Math.round((verified / Math.max(total, 1)) * 100)}%` : "90%";
+    total >= 5
+      ? `${Math.round((verified / Math.max(total, 1)) * 100)}%`
+      : total > 0
+        ? `${verified} verified`
+        : "Join free";
   return { aupairs, families, verified: verifiedPct };
 }
