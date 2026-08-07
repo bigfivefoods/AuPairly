@@ -16,10 +16,27 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json();
-  const type = String(body.type || "OTHER");
+  const type = String(body.type || "OTHER").slice(0, 40);
   const url = String(body.url || "").trim();
-  const label = body.label ? String(body.label) : null;
-  if (!url) return NextResponse.json({ error: "url required" }, { status: 400 });
+  const label = body.label ? String(body.label).slice(0, 120) : null;
+  if (!url) {
+    return NextResponse.json(
+      { error: "Upload a file first — document URL is missing." },
+      { status: 400 }
+    );
+  }
+  // Accept storage paths, absolute https URLs, or data URLs from the upload API
+  const ok =
+    url.startsWith("https://") ||
+    url.startsWith("http://") ||
+    url.startsWith("/") ||
+    url.startsWith("data:");
+  if (!ok) {
+    return NextResponse.json(
+      { error: "Invalid document file URL from upload." },
+      { status: 400 }
+    );
+  }
 
   const doc = await prisma.secureDocument.create({
     data: {
