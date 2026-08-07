@@ -71,13 +71,21 @@ body {
   }
 }
 
-/* Images & media never blow out layout */
+/* Images & media never blow out layout.
+   Note: height:auto would turn circular avatars into ovals — Avatar uses a
+   fixed square wrapper + !h-full/!w-full on the img instead. */
 img,
 video,
 svg,
 canvas {
   max-width: 100%;
   height: auto;
+}
+/* Explicit square/circle crops (avatars, thumbs) keep fixed box height */
+img.object-cover.\!h-full,
+img.max-w-none {
+  max-width: none;
+  height: 100%;
 }
 
 /* Comfortable touch targets + iOS form zoom fix */
