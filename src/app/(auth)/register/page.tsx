@@ -37,6 +37,8 @@ function RegisterForm() {
       setEmailVerified(true);
       setStep("details");
       setError("");
+      // Must clear spinner — loginWithCode may resolve before or after this callback
+      setLoading(false);
     },
     onError: (err) => {
       const msg =
@@ -50,6 +52,14 @@ function RegisterForm() {
     },
   });
 
+  // Don't leave the UI stuck on "Loading secure verification…" forever
+  const [privyWaitTimedOut, setPrivyWaitTimedOut] = useState(false);
+  useEffect(() => {
+    if (!privyEnabled || ready) return;
+    const t = window.setTimeout(() => setPrivyWaitTimedOut(true), 12_000);
+    return () => window.clearTimeout(t);
+  }, [privyEnabled, ready]);
+
   // If already authenticated with Privy on this email, skip to details
   useEffect(() => {
     if (!privyEnabled || !ready || !authenticated || !user) return;
@@ -58,6 +68,7 @@ function RegisterForm() {
       setEmail(linked);
       setEmailVerified(true);
       setStep("details");
+      setLoading(false);
     }
   }, [privyEnabled, ready, authenticated, user]);
 
@@ -104,7 +115,8 @@ function RegisterForm() {
     setLoading(true);
     try {
       await loginWithCode({ code: code.trim() });
-      // onComplete advances to details
+      // onComplete advances to details; always clear loading so Create account is pressable
+      setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid or expired code.");
       setLoading(false);
@@ -163,23 +175,47 @@ function RegisterForm() {
         redirect: false,
       });
       if (login?.error) {
+        setLoading(false);
         router.push("/login");
         return;
       }
       // Ruthless path: always land in photo → city → publish wizard
       router.push("/onboarding");
       router.refresh();
+      // Keep spinner until navigation; safety clear if stuck
+      window.setTimeout(() => setLoading(false), 8000);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   }
 
-  if (privyEnabled && !ready) {
+  if (privyEnabled && !ready && !privyWaitTimedOut) {
     return (
       <Card className="w-full max-w-lg text-center">
         <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-600" />
         <p className="mt-4 text-sm text-stone-500">Loading secure verification…</p>
+      </Card>
+    );
+  }
+
+  if (privyEnabled && !ready && privyWaitTimedOut) {
+    return (
+      <Card className="w-full max-w-lg text-center">
+        <p className="font-display text-lg font-semibold text-stone-900">
+          Verification is taking too long
+        </p>
+        <p className="mt-2 text-sm text-stone-500">
+          Check your connection, disable ad blockers for this site, then try again.
+        </p>
+        <Button
+          type="button"
+          className="mt-6"
+          variant="primary"
+          onClick={() => window.location.reload()}
+        >
+          Reload page
+        </Button>
       </Card>
     );
   }
