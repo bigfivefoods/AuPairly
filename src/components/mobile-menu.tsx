@@ -237,7 +237,7 @@ export function MobileMenu({
             ) : (
               <div className="flex flex-col gap-2">
                 <Link
-                  href="/login"
+                  href="/login?callbackUrl=/dashboard"
                   className="btn-secondary btn-inline w-full !min-h-11 justify-center text-sm"
                   onClick={() => setOpen(false)}
                 >
