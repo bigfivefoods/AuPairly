@@ -82,6 +82,13 @@ export function PricingCards({
         {" · "}
         <span className="text-stone-400">{t("pricing_paystack")}</span>
       </p>
+      <p className="mb-6 text-center text-xs text-stone-400">
+        Cards work everywhere ·{" "}
+        <span className="font-medium text-stone-500">
+          Apple Pay on Safari (iPhone / Mac)
+        </span>{" "}
+        · once-off ZAR via Paystack · no forced auto-renew
+      </p>
 
       {/* Period selector — applies to Plus & Premium */}
       <div className="mb-8 flex flex-col items-center gap-2">

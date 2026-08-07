@@ -10,11 +10,14 @@ export function PhotoUpload({
   currentImage,
   onUploaded,
   kind = "avatar",
+  showPreview = true,
 }: {
   name: string;
   currentImage?: string | null;
-  onUploaded?: (url: string) => void;
+  onUploaded?: (url: string, meta?: { photos?: string[] }) => void;
   kind?: "avatar" | "cover" | "gallery" | "document";
+  /** When false, only show the upload button (gallery grid handles previews). */
+  showPreview?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState(currentImage || "");
@@ -42,7 +45,9 @@ export function PhotoUpload({
         return;
       }
       setPreview(data.url);
-      onUploaded?.(data.url);
+      onUploaded?.(data.url, {
+        photos: Array.isArray(data.photos) ? data.photos : undefined,
+      });
 
       // Push photo into the Auth.js session so navbar/dashboard show it immediately
       if (kind === "avatar" && data.url) {
@@ -67,20 +72,21 @@ export function PhotoUpload({
 
   return (
     <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-      {kind === "avatar" ? (
-        <Avatar name={name} image={preview || null} size="xl" />
-      ) : (
-        <div className="h-24 w-40 overflow-hidden rounded-xl bg-stone-100">
-          {preview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="Cover" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-xs text-stone-400">
-              No cover
-            </div>
-          )}
-        </div>
-      )}
+      {showPreview &&
+        (kind === "avatar" ? (
+          <Avatar name={name} image={preview || null} size="xl" />
+        ) : (
+          <div className="h-24 w-40 overflow-hidden rounded-xl bg-stone-100">
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview} alt="Cover" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full items-center justify-center text-xs text-stone-400">
+                No cover
+              </div>
+            )}
+          </div>
+        ))}
       <div>
         <input
           ref={inputRef}

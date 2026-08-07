@@ -18,6 +18,7 @@ import {
 } from "@/lib/utils";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
+import { GalleryEditor } from "@/components/gallery-editor";
 import { ScheduleEditor } from "@/components/schedule-editor";
 import { LocationFields } from "@/components/location-fields";
 import {
@@ -72,6 +73,8 @@ type Initial = {
   /** Comma-separated or free text for multi care locations */
   preferredAreas?: string;
   isUrgent?: boolean;
+  photos?: string[];
+  coverImage?: string | null;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -238,12 +241,12 @@ export function FamilyProfileForm({
       <Card className="mt-5 space-y-4 sm:mt-6">
         <h2 className="font-display text-lg font-semibold">Home gallery</h2>
         <p className="text-sm text-stone-500">
-          Photos of your home and family life (no full address visible). Stored on Supabase when configured.
+          Photos of your home and family life (no full address visible). Each upload is saved
+          immediately to your listing (up to 12).
         </p>
-        <PhotoUpload
+        <GalleryEditor
           name={form.familyName || form.name || "Family"}
-          kind="gallery"
-          onUploaded={() => router.refresh()}
+          initialPhotos={initial.photos || []}
         />
       </Card>
       </ProfileSection>

@@ -4,6 +4,24 @@ import { prisma } from "@/lib/prisma";
 import { saveImageUpload } from "@/lib/uploads";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 
+function parsePhotos(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((u): u is string => typeof u === "string" && !!u) : [];
+  } catch {
+    return [];
+  }
+}
+
+function appendPhoto(existing: string | null | undefined, url: string): string[] {
+  const photos = parsePhotos(existing);
+  if (!photos.includes(url)) {
+    return [...photos, url].slice(-12);
+  }
+  return photos.slice(-12);
+}
+
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
@@ -41,61 +59,109 @@ export async function POST(req: Request) {
 
     const result = await saveImageUpload(file, session.user.id, uploadKind);
 
+    // Always prefer DB role so JWT lag cannot drop gallery saves
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    const role = dbUser?.role || session.user.role;
+
     if (uploadKind === "avatar") {
       await prisma.user.update({
         where: { id: session.user.id },
         data: { image: result.url },
       });
     } else if (uploadKind === "cover" || uploadKind === "gallery") {
-      const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-      if (user?.role === "AUPAIR") {
+      if (role === "AUPAIR") {
         if (uploadKind === "cover") {
-          await prisma.auPairProfile.updateMany({
+          await prisma.auPairProfile.upsert({
             where: { userId: session.user.id },
-            data: { coverImage: result.url },
+            create: {
+              userId: session.user.id,
+              coverImage: result.url,
+              status: "DRAFT",
+              services: '["CHILDCARE"]',
+            },
+            update: { coverImage: result.url },
           });
         } else {
-          const profile = await prisma.auPairProfile.findUnique({
+          const existing = await prisma.auPairProfile.findUnique({
             where: { userId: session.user.id },
+            select: { id: true, photos: true },
           });
-          if (profile) {
-            let photos: string[] = [];
-            try {
-              photos = JSON.parse(profile.photos || "[]");
-            } catch {
-              photos = [];
-            }
-            photos = [...photos, result.url].slice(-12);
+          const photos = appendPhoto(existing?.photos, result.url);
+          if (existing) {
             await prisma.auPairProfile.update({
-              where: { id: profile.id },
+              where: { id: existing.id },
               data: { photos: JSON.stringify(photos) },
+            });
+          } else {
+            await prisma.auPairProfile.create({
+              data: {
+                userId: session.user.id,
+                photos: JSON.stringify(photos),
+                status: "DRAFT",
+                services: '["CHILDCARE"]',
+              },
             });
           }
         }
-      } else if (user?.role === "PARENT") {
+      } else if (role === "PARENT") {
         if (uploadKind === "cover") {
-          await prisma.familyProfile.updateMany({
+          await prisma.familyProfile.upsert({
             where: { userId: session.user.id },
-            data: { coverImage: result.url },
+            create: {
+              userId: session.user.id,
+              coverImage: result.url,
+              status: "DRAFT",
+              services: '["CHILDCARE"]',
+            },
+            update: { coverImage: result.url },
           });
         } else {
-          const profile = await prisma.familyProfile.findUnique({
+          const existing = await prisma.familyProfile.findUnique({
             where: { userId: session.user.id },
+            select: { id: true, photos: true },
           });
-          if (profile) {
-            let photos: string[] = [];
-            try {
-              photos = JSON.parse(profile.photos || "[]");
-            } catch {
-              photos = [];
-            }
-            photos = [...photos, result.url].slice(-12);
+          const photos = appendPhoto(existing?.photos, result.url);
+          if (existing) {
             await prisma.familyProfile.update({
-              where: { id: profile.id },
+              where: { id: existing.id },
               data: { photos: JSON.stringify(photos) },
+            });
+          } else {
+            await prisma.familyProfile.create({
+              data: {
+                userId: session.user.id,
+                photos: JSON.stringify(photos),
+                status: "DRAFT",
+                services: '["CHILDCARE"]',
+              },
             });
           }
         }
+      }
+    }
+
+    // Return full gallery after gallery upload so clients can rehydrate
+    let photosOut: string[] | undefined;
+    if (uploadKind === "gallery") {
+      if (role === "AUPAIR") {
+        const p = await prisma.auPairProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { photos: true },
+        });
+        photosOut = parsePhotos(p?.photos);
+        if (photosOut.length === 0) photosOut = [result.url];
+      } else if (role === "PARENT") {
+        const p = await prisma.familyProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { photos: true },
+        });
+        photosOut = parsePhotos(p?.photos);
+        if (photosOut.length === 0) photosOut = [result.url];
+      } else {
+        photosOut = [result.url];
       }
     }
 
@@ -104,6 +170,8 @@ export async function POST(req: Request) {
       mime: result.mime,
       size: result.size,
       path: result.path,
+      ...(photosOut ? { photos: photosOut } : {}),
+      saved: true,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Upload failed";

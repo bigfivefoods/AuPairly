@@ -18,6 +18,7 @@ import {
 import { COUNTRY_OPTIONS } from "@/lib/locations";
 import { Loader2, CheckCircle2, MapPin, Plus, X } from "lucide-react";
 import { PhotoUpload } from "@/components/photo-upload";
+import { GalleryEditor } from "@/components/gallery-editor";
 import { ScheduleEditor } from "@/components/schedule-editor";
 import { LocationFields, type LocationValue } from "@/components/location-fields";
 import {
@@ -72,6 +73,8 @@ type Initial = {
   houseSittingNotes?: string;
   openToPeerConnect?: boolean;
   peerIntro?: string;
+  photos?: string[];
+  coverImage?: string | null;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -272,12 +275,12 @@ export function AuPairProfileForm({
       <Card className="mt-5 space-y-4 sm:mt-6">
         <h2 className="font-display text-lg font-semibold">Gallery photos</h2>
         <p className="text-sm text-stone-500">
-          Add more photos of yourself (with kids, activities, travel). Stored on Supabase when configured.
+          Add more photos of yourself (with kids, activities, travel). Each upload is saved
+          immediately to your listing (up to 12).
         </p>
-        <PhotoUpload
+        <GalleryEditor
           name={form.name || "Au pair"}
-          kind="gallery"
-          onUploaded={() => router.refresh()}
+          initialPhotos={initial.photos || []}
         />
       </Card>
       </ProfileSection>

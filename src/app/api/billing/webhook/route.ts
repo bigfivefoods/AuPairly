@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { activatePlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
 import { recordPayment } from "@/lib/payments";
+import { sendPaymentReceiptEmail } from "@/lib/email";
 import {
   isPaystackConfigured,
   verifyPaystackSignature,
@@ -27,6 +28,7 @@ import {
   isPaidPlanId,
   normalizePlanId,
   planFor,
+  PERIOD_LABELS,
   type BillingPeriod,
   type PlanId,
 } from "@/lib/plans";
@@ -100,13 +102,17 @@ async function handleChargeSuccess(data: any) {
       days,
       stripeSubscriptionId: data.reference,
     });
+    const ref = data.reference ? String(data.reference) : null;
+    const existingPay = ref
+      ? await prisma.paymentTransaction.findUnique({ where: { reference: ref } })
+      : null;
     await recordPayment({
       userId,
       kind: "MEMBERSHIP",
       amountCents: Number(data.amount || 0),
       currency: String(data.currency || "ZAR").toUpperCase(),
       description: `${plan.name} membership · ${period} · ${days} days`,
-      reference: data.reference ? String(data.reference) : null,
+      reference: ref,
       provider: "paystack",
       meta: { planId, period, days, purpose },
     });
@@ -117,6 +123,30 @@ async function handleChargeSuccess(data: any) {
       body: `Your ${plan.name} membership is active for ${days} days. Welcome to unlimited matching.`,
       href: "/account",
     });
+    // Receipt once per reference (client /billing/verify may also run)
+    if (!existingPay) {
+      void (async () => {
+        try {
+          const u = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, name: true },
+          });
+          if (!u?.email) return;
+          await sendPaymentReceiptEmail({
+            toEmail: u.email,
+            toName: u.name || "there",
+            planName: plan.name,
+            periodLabel: PERIOD_LABELS[period]?.label || period,
+            days,
+            amountCents: Number(data.amount || 0),
+            currency: String(data.currency || "ZAR"),
+            reference: ref,
+          });
+        } catch (e) {
+          console.error("[email] payment receipt", e);
+        }
+      })();
+    }
     return;
   }
 
