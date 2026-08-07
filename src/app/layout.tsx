@@ -6,6 +6,7 @@ import { PwaProvider } from "@/components/pwa-provider";
 import { BRAND } from "@/lib/brand";
 import { getRequestLocale } from "@/lib/i18n/server";
 import { LOCALE_META } from "@/lib/i18n/config";
+import { PUBLIC_SITE_URL, SEO } from "@/lib/seo";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -32,20 +33,23 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.AUTH_URL ||
-  "https://aupairly-orcin.vercel.app";
+const siteUrl = PUBLIC_SITE_URL;
 
 export const metadata: Metadata = {
-  title: {
-    default: BRAND.ogTitle,
-    template: `%s · ${BRAND.name}`,
-  },
-  description: `${BRAND.tagline} ${BRAND.description}`,
   metadataBase: new URL(siteUrl),
-  manifest: "/manifest.webmanifest",
+  title: {
+    default: SEO.defaultTitle,
+    template: SEO.titleTemplate,
+  },
+  description: SEO.defaultDescription,
   applicationName: BRAND.name,
+  authors: [{ name: BRAND.name, url: siteUrl }],
+  creator: BRAND.name,
+  publisher: BRAND.name,
+  category: "marketplace",
+  keywords: [...SEO.keywords],
+  referrer: "origin-when-cross-origin",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     title: BRAND.name,
@@ -53,10 +57,10 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+    email: false,
+    address: false,
   },
   icons: {
-    // Circular lite logo (transparent corners). Cache-bust when icon art changes.
-    // PNG + SVG first (modern browsers); classic .ico last for legacy.
     icon: [
       { url: "/favicon-32.png?v=circle1", sizes: "32x32", type: "image/png" },
       { url: "/favicon-16.png?v=circle1", sizes: "16x16", type: "image/png" },
@@ -74,40 +78,61 @@ export const metadata: Metadata = {
     ],
     shortcut: "/favicon-32.png?v=circle1",
   },
+  alternates: {
+    canonical: siteUrl,
+    languages: {
+      "en": siteUrl,
+      "x-default": siteUrl,
+    },
+  },
   openGraph: {
-    title: BRAND.ogTitle,
+    title: SEO.defaultTitle,
     description: BRAND.tagline,
     url: siteUrl,
-    siteName: "AuPairly",
+    siteName: BRAND.name,
     type: "website",
-    locale: "en_US",
+    locale: SEO.locale,
     images: [
       {
-        // Static PNG with AuPairly name (public/og-share.png)
-        url: "/og-share.png",
-        width: 1200,
-        height: 630,
-        alt: "AuPairly — Trusted care for your family, loved ones, home & pets",
+        url: SEO.ogImage.url,
+        width: SEO.ogImage.width,
+        height: SEO.ogImage.height,
+        alt: SEO.ogImage.alt,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: BRAND.ogTitle,
+    title: SEO.defaultTitle,
     description: BRAND.tagline,
-    site: "@aupairly",
+    site: SEO.twitter,
+    creator: SEO.twitter,
     images: [
       {
-        url: "/og-share.png",
-        width: 1200,
-        height: 630,
-        alt: "AuPairly — Trusted care for your family, loved ones, home & pets",
+        url: SEO.ogImage.url,
+        width: SEO.ogImage.width,
+        height: SEO.ogImage.height,
+        alt: SEO.ogImage.alt,
       },
     ],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  verification: {
+    // Add Google Search Console token via env when available
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+  },
   other: {
     "mobile-web-app-capable": "yes",
-    // Meta Business / Facebook domain verification
     "facebook-domain-verification": "6j1kqmmu5bfwfwrxshraad5s0h71f1",
   },
 };

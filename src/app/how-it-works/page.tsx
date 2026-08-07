@@ -1,16 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BadgeCheck, Search, MessageSquare, Handshake, Shield, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/ui";
+import { JsonLd } from "@/components/json-ld";
+import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "How it works",
+export const metadata: Metadata = buildPageMetadata({
+  title: "How AuPairly works — signup to trusted match",
   description:
-    "From signup to trusted match for childcare, caregiving, house sitting, and pet sitting.",
-};
+    "Step-by-step guide: sign up, verify identity, complete your profile, discover matches, message safely, and place care for childcare, caregiving, house sitting, and pet sitting.",
+  path: "/how-it-works",
+  keywords: ["how to find an au pair", "how to hire a babysitter online"],
+});
 
 export default function HowItWorksPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "How it works", path: "/how-it-works" },
+          ]),
+        ]}
+      />
       <PageHeader
         eyebrow="Guide"
         title="How AuPairly works"

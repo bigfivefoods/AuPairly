@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BadgeCheck,
@@ -16,9 +17,15 @@ import { UserAvatar } from "@/components/user-avatar";
 import { CompletenessCoach } from "@/components/completeness-coach";
 import { PushSettingsCard } from "@/components/pwa-provider";
 import { responseTimeLabel } from "@/lib/completeness";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Dashboard" };
+export const metadata: Metadata = buildPageMetadata({
+  title: "Dashboard",
+  description: "Your AuPairly hub — manage listing, messages, and verification.",
+  path: "/dashboard",
+  noIndex: true,
+});
 
 export default async function DashboardPage() {
   const user = await requireUser();

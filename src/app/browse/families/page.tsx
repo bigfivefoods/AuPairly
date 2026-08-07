@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
+import { Home } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { FamilyCard } from "@/components/listing-cards";
 import { EmptyState, PageHeader, Input } from "@/components/ui";
@@ -7,11 +10,17 @@ import { CategoryTabs } from "@/components/category-tabs";
 import { continentName } from "@/lib/locations";
 import { serviceFromParam, SERVICES } from "@/lib/services";
 import { profileIdsForService } from "@/lib/service-tags";
-import { Home } from "lucide-react";
-import Link from "next/link";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Find hosts" };
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Find host families & care jobs",
+  description:
+    "Browse families and hosts seeking childcare, caregiving, house sitting, or pet sitting. Apply and message securely on AuPairly.",
+  path: "/browse/families",
+  keywords: ["au pair jobs", "babysitting jobs", "house sitting jobs"],
+});
 
 type SearchParams = Promise<{
   q?: string;

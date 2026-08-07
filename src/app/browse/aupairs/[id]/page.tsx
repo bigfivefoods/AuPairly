@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,13 +22,68 @@ import { StartPlacementButton } from "@/components/start-placement-button";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
+import { JsonLd } from "@/components/json-ld";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { responseTimeLabel } from "@/lib/completeness";
 import { ScheduleDisplay } from "@/components/schedule-display";
 import { format } from "date-fns";
 import { isReviewPublic } from "@/lib/reviews";
+import {
+  breadcrumbJsonLd,
+  buildPageMetadata,
+  personProfileJsonLd,
+} from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const profile = await prisma.auPairProfile.findUnique({
+    where: { id },
+    select: {
+      status: true,
+      headline: true,
+      bio: true,
+      city: true,
+      country: true,
+      isVerified: true,
+      coverImage: true,
+      user: { select: { name: true, image: true } },
+    },
+  });
+  if (!profile || profile.status !== "ACTIVE") {
+    return buildPageMetadata({
+      title: "Sitter profile",
+      description: "View sitter profiles on AuPairly.",
+      path: `/browse/aupairs/${id}`,
+      noIndex: true,
+    });
+  }
+  const name = profile.user.name || "Sitter";
+  const place = [profile.city, profile.country].filter(Boolean).join(", ");
+  const title = `${name}${place ? ` in ${place}` : ""} — sitter profile`;
+  const description = (
+    profile.headline ||
+    profile.bio ||
+    `${name} offers care on AuPairly${place ? ` in ${place}` : ""}.`
+  ).slice(0, 300);
+  return buildPageMetadata({
+    title,
+    description,
+    path: `/browse/aupairs/${id}`,
+    image: profile.coverImage || profile.user.image || undefined,
+    type: "profile",
+    keywords: [
+      "au pair profile",
+      place,
+      profile.isVerified ? "verified sitter" : "sitter",
+    ].filter(Boolean) as string[],
+  });
+}
 
 export default async function AuPairDetailPage({
   params,
@@ -56,6 +112,29 @@ export default async function AuPairDetailPage({
   if (!profile || (profile.status !== "ACTIVE" && profile.userId !== session?.user?.id)) {
     notFound();
   }
+
+  const jsonLd =
+    profile.status === "ACTIVE"
+      ? [
+          personProfileJsonLd({
+            name: profile.user.name || "Sitter",
+            description: profile.headline || profile.bio || undefined,
+            path: `/browse/aupairs/${id}`,
+            image: profile.user.image || profile.coverImage,
+            jobTitle: "Care provider",
+            city: profile.city,
+            country: profile.country,
+          }),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Sitters", path: "/browse/aupairs" },
+            {
+              name: profile.user.name || "Profile",
+              path: `/browse/aupairs/${id}`,
+            },
+          ]),
+        ]
+      : null;
 
   const languages = parseJsonArray(profile.languages);
   const skills = parseJsonArray(profile.childcareSkills);
@@ -147,6 +226,7 @@ export default async function AuPairDetailPage({
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      {jsonLd ? <JsonLd data={jsonLd} /> : null}
       <Link
         href="/browse/aupairs"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 hover:text-teal-700"

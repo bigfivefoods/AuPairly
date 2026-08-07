@@ -19,10 +19,18 @@ export async function generateMetadata({
   const { slug } = await params;
   const city = cityFromSlug(slug);
   if (!city) return { title: "City" };
-  return {
-    title: `Au pairs & families in ${city.name}`,
-    description: `Find verified au pairs and host families in ${city.name}, ${city.province}. Browse, match, and message on AuPairly.`,
-  };
+  const { buildPageMetadata } = await import("@/lib/seo");
+  return buildPageMetadata({
+    title: `Au pairs & families in ${city.name}, ${city.province}`,
+    description: `Find verified au pairs, babysitters, caregivers, house sitters, pet sitters, and host families in ${city.name}, ${city.province}. Browse, match, and message on AuPairly.`,
+    path: `/cities/${slug}`,
+    keywords: [
+      `au pair ${city.name}`,
+      `babysitter ${city.name}`,
+      `childcare ${city.name}`,
+      city.province,
+    ],
+  });
 }
 
 export default async function CityLandingPage({
