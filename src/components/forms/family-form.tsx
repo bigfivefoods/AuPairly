@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -77,6 +77,10 @@ type Initial = {
   photos?: string[];
   coverImage?: string | null;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
+  isVerified?: boolean;
+  documentCount?: number;
+  referenceCount?: number;
+  videoIntroUrl?: string | null;
 };
 
 const FAMILY_SECTIONS = [
@@ -120,6 +124,23 @@ export function FamilyProfileForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [documentCount, setDocumentCount] = useState(initial.documentCount ?? 0);
+  const [referenceCount] = useState(initial.referenceCount ?? 0);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/documents", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d && Array.isArray(d.documents)) {
+          setDocumentCount(d.documents.length);
+        }
+      })
+      .catch(() => null);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function set<K extends keyof Initial>(key: K, value: Initial[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -224,16 +245,19 @@ export function FamilyProfileForm({
           languages: form.languages,
           services,
           status: form.status,
-          isVerified: false,
+          isVerified: Boolean(initial.isVerified),
+          videoIntroUrl: initial.videoIntroUrl,
           childrenCount: form.childrenCount
             ? Number(form.childrenCount)
             : 0,
-          childrenAges: JSON.stringify(form.childrenAges || []),
+          childrenAges: form.childrenAges || [],
           pocketMoney: form.pocketMoney ? Number(form.pocketMoney) : null,
           startDate: form.startDate || null,
           schoolArea: form.schoolArea,
           lifestyleNotes: form.lifestyleNotes,
-          photos: form.photos ? JSON.stringify(form.photos) : null,
+          photos: form.photos || initial.photos || [],
+          documentCount,
+          referenceCount,
         }}
       />
 

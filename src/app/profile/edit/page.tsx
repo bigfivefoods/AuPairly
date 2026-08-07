@@ -20,10 +20,20 @@ export default async function EditProfilePage() {
   }
 
   if (user.role === "AUPAIR") {
-    const profile = await prisma.auPairProfile.findUnique({
-      where: { userId: user.id },
-      include: { user: true },
-    });
+    const [profile, documentCount, referenceCount, me] = await Promise.all([
+      prisma.auPairProfile.findUnique({
+        where: { userId: user.id },
+        include: { user: true },
+      }),
+      prisma.secureDocument.count({ where: { userId: user.id } }),
+      prisma.referenceRequest.count({
+        where: { subjectId: user.id, status: "SUBMITTED" },
+      }),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: { videoIntroUrl: true },
+      }),
+    ]);
 
     const initial = {
       name: user.name,
@@ -70,6 +80,10 @@ export default async function EditProfilePage() {
       photos: parseJsonArray(profile?.photos),
       coverImage: profile?.coverImage ?? null,
       status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
+      isVerified: Boolean(profile?.isVerified),
+      documentCount,
+      referenceCount,
+      videoIntroUrl: me?.videoIntroUrl ?? null,
     };
 
     return (
@@ -77,10 +91,20 @@ export default async function EditProfilePage() {
     );
   }
 
-  const profile = await prisma.familyProfile.findUnique({
-    where: { userId: user.id },
-    include: { user: true },
-  });
+  const [profile, documentCount, referenceCount, me] = await Promise.all([
+    prisma.familyProfile.findUnique({
+      where: { userId: user.id },
+      include: { user: true },
+    }),
+    prisma.secureDocument.count({ where: { userId: user.id } }),
+    prisma.referenceRequest.count({
+      where: { subjectId: user.id, status: "SUBMITTED" },
+    }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { videoIntroUrl: true },
+    }),
+  ]);
 
   const initial = {
     name: user.name,
@@ -126,6 +150,10 @@ export default async function EditProfilePage() {
     photos: parseJsonArray(profile?.photos),
     coverImage: profile?.coverImage ?? null,
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
+    isVerified: Boolean(profile?.isVerified),
+    documentCount,
+    referenceCount,
+    videoIntroUrl: me?.videoIntroUrl ?? null,
   };
 
   return <FamilyProfileForm initial={initial} fullscreen userName={user.name} />;

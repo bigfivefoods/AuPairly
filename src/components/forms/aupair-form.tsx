@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -77,6 +77,11 @@ type Initial = {
   photos?: string[];
   coverImage?: string | null;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
+  /** Completeness coach extras (from server) */
+  isVerified?: boolean;
+  documentCount?: number;
+  referenceCount?: number;
+  videoIntroUrl?: string | null;
 };
 
 const AUPAIR_SECTIONS = [
@@ -121,6 +126,8 @@ export function AuPairProfileForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [documentCount, setDocumentCount] = useState(initial.documentCount ?? 0);
+  const [referenceCount] = useState(initial.referenceCount ?? 0);
   /** Draft location for multi-select “willing to work” places */
   const [workLocDraft, setWorkLocDraft] = useState<LocationValue>({
     continent: "",
@@ -129,6 +136,22 @@ export function AuPairProfileForm({
     city: "",
   });
   const [workLocCustom, setWorkLocCustom] = useState("");
+
+  // Keep document count accurate if user uploaded docs in another tab
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/documents", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d && Array.isArray(d.documents)) {
+          setDocumentCount(d.documents.length);
+        }
+      })
+      .catch(() => null);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function set<K extends keyof Initial>(key: K, value: Initial[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -258,7 +281,8 @@ export function AuPairProfileForm({
           languages: form.languages,
           services,
           status: form.status,
-          isVerified: false,
+          isVerified: Boolean(initial.isVerified),
+          videoIntroUrl: initial.videoIntroUrl,
           experienceYears: form.experienceYears
             ? Number(form.experienceYears)
             : 0,
@@ -267,7 +291,9 @@ export function AuPairProfileForm({
             : null,
           availableFrom: form.availableFrom || null,
           workRights: form.workRights,
-          photos: form.photos ? JSON.stringify(form.photos) : null,
+          photos: form.photos || initial.photos || [],
+          documentCount,
+          referenceCount,
         }}
       />
 

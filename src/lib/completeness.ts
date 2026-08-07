@@ -1,6 +1,9 @@
 /**
  * Profile completeness coach — actionable next steps for trust & conversion.
  * Client-safe pure helpers (no prisma).
+ *
+ * Important: the action list must be stable for a given role so that completing
+ * a step only changes `score`, not `maxScore` (no conditional steps).
  */
 
 import { parseJsonArray } from "@/lib/utils";
@@ -26,10 +29,11 @@ export type CompletenessInput = {
   drivingLicense?: boolean | null;
   firstAid?: boolean | null;
   workRights?: string | null;
-  photos?: string | null;
+  /** Gallery photos: JSON string or string[] */
+  photos?: string | string[] | null;
   // family
   childrenCount?: number | null;
-  childrenAges?: string | null;
+  childrenAges?: string | string[] | null;
   pocketMoney?: number | null;
   startDate?: Date | string | null;
   schoolArea?: string | null;
@@ -53,19 +57,17 @@ export type CompletenessResult = {
   score: number;
   maxScore: number;
   percent: number;
-  /** Points still needed for 100% */
   remainingPoints: number;
   doneCount: number;
   totalCount: number;
   actions: CompletenessAction[];
-  /** Highest-impact pending steps first */
   nextThree: CompletenessAction[];
   pending: CompletenessAction[];
   completed: CompletenessAction[];
 };
 
 function langs(input: CompletenessInput): string[] {
-  if (Array.isArray(input.languages)) return input.languages;
+  if (Array.isArray(input.languages)) return input.languages.filter(Boolean);
   return parseJsonArray(input.languages || "[]");
 }
 
@@ -74,29 +76,34 @@ function servicesCount(input: CompletenessInput): number {
   return parseJsonArray(input.services || "[]").length;
 }
 
+function photosCount(input: CompletenessInput): number {
+  if (Array.isArray(input.photos)) {
+    return input.photos.filter((p) => typeof p === "string" && p.trim()).length;
+  }
+  if (!input.photos) return 0;
+  return parseJsonArray(input.photos).length;
+}
+
+function agesCount(input: CompletenessInput): number {
+  if (Array.isArray(input.childrenAges)) {
+    return input.childrenAges.filter(Boolean).length;
+  }
+  return parseJsonArray(input.childrenAges || "[]").length;
+}
+
 export function computeCompleteness(input: CompletenessInput): CompletenessResult {
   const actions: CompletenessAction[] = [];
-
   const push = (a: CompletenessAction) => actions.push(a);
+  const role = (input.role || "").toUpperCase();
 
-  if (input.role === "AUPAIR" && !input.city) {
-    push({
-      id: "city-connect",
-      label: "Add your city for AuPair Connect",
-      detail: "Meet other sitters nearby — especially if you're abroad.",
-      href: "/profile/edit",
-      points: 8,
-      done: false,
-    });
-  }
-
+  // ——— Shared (stable list for all members) ———
   push({
     id: "photo",
     label: "Add a clear profile photo",
     detail: "Faces get more messages than logos or landscapes.",
     href: "/profile/edit",
     points: 10,
-    done: Boolean(input.image),
+    done: Boolean(input.image && String(input.image).trim()),
   });
   push({
     id: "headline",
@@ -120,7 +127,9 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     detail: "Local matches rely on location.",
     href: "/profile/edit",
     points: 10,
-    done: Boolean(input.city && input.country),
+    done: Boolean(
+      (input.city || "").trim() && (input.country || "").trim()
+    ),
   });
   push({
     id: "languages",
@@ -134,9 +143,17 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     id: "services",
     label: "Choose services",
     detail: "Childcare, caregiving, house sitting, and/or pet sitting.",
-    href: "/onboarding",
+    href: "/profile/edit",
     points: 10,
     done: servicesCount(input) >= 1,
+  });
+  push({
+    id: "gallery",
+    label: "Add a gallery photo",
+    detail: "One extra photo of you, home, or care moments.",
+    href: "/profile/edit",
+    points: 6,
+    done: photosCount(input) >= 1,
   });
   push({
     id: "publish",
@@ -159,8 +176,8 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     label: "Add a short video intro",
     detail: "Boosts trust score and placement-ready status.",
     href: "/trust",
-    points: 12,
-    done: Boolean(input.videoIntroUrl),
+    points: 10,
+    done: Boolean(input.videoIntroUrl && String(input.videoIntroUrl).trim()),
   });
   push({
     id: "refs",
@@ -170,15 +187,27 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     points: 8,
     done: (input.referenceCount || 0) >= 1,
   });
+  push({
+    id: "docs",
+    label: "Upload a key document",
+    detail:
+      role === "PARENT"
+        ? "ID, house rules, or care notes for your vault."
+        : "Passport, police clearance, or first aid cert.",
+    href: "/documents",
+    points: 8,
+    done: (input.documentCount || 0) >= 1,
+  });
 
-  if (input.role === "AUPAIR") {
+  // ——— Role-specific (always present for that role) ———
+  if (role === "AUPAIR") {
     push({
       id: "experience",
       label: "Add childcare experience",
-      detail: "Even informal babysitting counts.",
+      detail: "Years of experience (even 1+ counts).",
       href: "/profile/edit",
       points: 8,
-      done: (input.experienceYears || 0) > 0,
+      done: Number(input.experienceYears || 0) > 0,
     });
     push({
       id: "pocket",
@@ -186,7 +215,10 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
       detail: "Helps families match budget early.",
       href: "/profile/edit",
       points: 6,
-      done: input.pocketMoneyMin != null && input.pocketMoneyMin > 0,
+      done:
+        input.pocketMoneyMin != null &&
+        input.pocketMoneyMin !== ("" as unknown) &&
+        Number(input.pocketMoneyMin) > 0,
     });
     push({
       id: "available",
@@ -202,24 +234,20 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
       detail: "Citizen, permit, or seeking — sets clear expectations.",
       href: "/profile/edit",
       points: 6,
-      done: Boolean(input.workRights && input.workRights !== "UNKNOWN"),
+      done: Boolean(
+        input.workRights &&
+          String(input.workRights).trim() &&
+          input.workRights !== "UNKNOWN"
+      ),
     });
-    push({
-      id: "docs",
-      label: "Upload a key document",
-      detail: "Passport, police clearance, or first aid cert.",
-      href: "/documents",
-      points: 8,
-      done: (input.documentCount || 0) >= 1,
-    });
-  } else if (input.role === "PARENT") {
+  } else if (role === "PARENT") {
     push({
       id: "children",
       label: "Add children count & ages",
-      detail: "Au pairs need to know who they will care for.",
+      detail: "Sitters need to know who they will care for.",
       href: "/profile/edit",
       points: 10,
-      done: (input.childrenCount || 0) > 0 && parseJsonArray(input.childrenAges || "[]").length > 0,
+      done: Number(input.childrenCount || 0) > 0 && agesCount(input) > 0,
     });
     push({
       id: "budget",
@@ -227,12 +255,15 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
       detail: "Transparent budget filters better matches.",
       href: "/profile/edit",
       points: 6,
-      done: input.pocketMoney != null && input.pocketMoney > 0,
+      done:
+        input.pocketMoney != null &&
+        input.pocketMoney !== ("" as unknown) &&
+        Number(input.pocketMoney) > 0,
     });
     push({
       id: "start",
       label: "Set start date",
-      detail: "Aligns with au pair availability.",
+      detail: "Aligns with sitter availability.",
       href: "/profile/edit",
       points: 6,
       done: Boolean(input.startDate),
@@ -240,7 +271,7 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     push({
       id: "school",
       label: "Add school / area for school runs",
-      detail: "Helps au pairs who drive or use transit.",
+      detail: "Helps sitters who drive or use transit.",
       href: "/profile/edit",
       points: 5,
       done: Boolean((input.schoolArea || "").trim()),
@@ -248,7 +279,7 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
     push({
       id: "lifestyle",
       label: "Add lifestyle / home notes",
-      detail: "Day-in-the-life notes help international au pairs.",
+      detail: "Day-in-the-life notes help international sitters.",
       href: "/profile/edit",
       points: 5,
       done: Boolean((input.lifestyleNotes || "").trim().length >= 40),
