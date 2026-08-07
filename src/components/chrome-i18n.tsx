@@ -97,6 +97,11 @@ export function FooterI18n() {
                 </Link>
               </li>
               <li>
+                <Link href="/refunds" className="hover:text-teal-700">
+                  Refund policy
+                </Link>
+              </li>
+              <li>
                 <Link href="/verification" className="hover:text-teal-700">
                   {t("footer_verify")}
                 </Link>

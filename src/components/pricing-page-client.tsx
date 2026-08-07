@@ -64,9 +64,14 @@ export function PricingPageClient({
       <div className="mt-12 rounded-2xl border border-teal-100 bg-teal-50/50 px-6 py-5 text-center text-sm text-stone-600">
         <p className="font-semibold text-teal-900">{t("pricing_payments")}</p>
         <p className="mt-1 text-stone-500">{t("pricing_payments_body")}</p>
-        <Link href="/billing" className="mt-3 inline-block font-semibold text-teal-700 hover:underline">
-          {t("pricing_manage")}
-        </Link>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <Link href="/billing" className="font-semibold text-teal-700 hover:underline">
+            {t("pricing_manage")}
+          </Link>
+          <Link href="/refunds" className="font-semibold text-teal-700 hover:underline">
+            Refund policy
+          </Link>
+        </div>
       </div>
     </div>
   );

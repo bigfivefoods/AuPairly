@@ -101,7 +101,14 @@ export default async function BillingPage({
 
       <p className="mt-6 text-center text-xs text-stone-400">
         Paystack activates when <code>PAYSTACK_SECRET_KEY</code> is set. Otherwise upgrades run
-        in demo mode for the selected period.
+        in demo mode for the selected period.{" "}
+        <Link href="/refunds" className="font-medium text-teal-700 hover:underline">
+          Refund policy
+        </Link>
+        {" · "}
+        <Link href="/account" className="font-medium text-teal-700 hover:underline">
+          Transaction history
+        </Link>
       </p>
     </div>
   );
