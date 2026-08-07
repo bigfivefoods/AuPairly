@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { useI18n } from "@/components/i18n-provider";
 import { ContactUs } from "@/components/contact-us";
+import { BRAND } from "@/lib/brand";
 
 export function NavbarAuthLabels({
   part,
@@ -29,6 +30,24 @@ export function FooterI18n() {
               <BrandLogo className="max-w-[10.5rem]" />
             </div>
             <p className="mt-3 text-sm leading-relaxed text-stone-500">{t("footer_blurb")}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a
+                href={BRAND.social.facebook}
+                target="_blank"
+                rel="noopener noreferrer me"
+                className="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-teal-300 hover:text-teal-800"
+              >
+                Facebook
+              </a>
+              <a
+                href={BRAND.social.tiktok}
+                target="_blank"
+                rel="noopener noreferrer me"
+                className="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-teal-300 hover:text-teal-800"
+              >
+                TikTok
+              </a>
+            </div>
           </div>
           <div>
             <h4 className="text-sm font-semibold text-stone-900">{t("footer_marketplace")}</h4>
