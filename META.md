@@ -1,5 +1,8 @@
 # Meta / Facebook Login setup (AuPairly)
 
+> **Default: OFF.** Facebook is optional. Set `FACEBOOK_OAUTH_ENABLED=true` only after Meta
+> App Domains + Valid OAuth Redirect URIs work. Until then, users upload photos + VerifyNow / docs.
+
 Facebook is used for **profile enrichment only** (public name + photo + optional email).  
 It is **not** government ID verification — users still complete VerifyNow (SA) or document upload for a Verified badge.
 

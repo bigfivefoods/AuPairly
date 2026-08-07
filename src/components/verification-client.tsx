@@ -725,17 +725,10 @@ export function VerificationClient({
         )}
       </Card>
 
-      {/* Meta app OAuth — profile import only */}
-      <Suspense
-        fallback={
-          <Card className="py-6 text-center text-sm text-stone-400">Loading Facebook…</Card>
-        }
-      >
-        <FacebookConnect returnTo="/verification" />
-      </Suspense>
-
-      {/* Manual steps */}
-      <p className="text-sm font-semibold text-stone-700">Or complete checks manually</p>
+      {/* Manual steps first — Facebook is optional and often blocked by Meta domain config */}
+      <p className="text-sm font-semibold text-stone-700">
+        Complete checks manually (recommended path)
+      </p>
 
       {STEPS.map((step) => {
         const current = statusByType.get(step.type);
@@ -837,10 +830,14 @@ export function VerificationClient({
         <p className="rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-900">{message}</p>
       )}
 
+      {/* Optional Facebook — collapsed; not part of identity verification */}
+      <Suspense fallback={null}>
+        <FacebookConnect returnTo="/verification" optional />
+      </Suspense>
+
       <p className="text-center text-xs text-stone-400">
-        SA checks use live VerifyNow when <code>VERIFYNOW_API_KEY</code> is set (
-        <code>vn_live_…</code> keys run in production automatically). International uses Didit when
-        configured. Facebook only imports public profile fields — not sole identity proof.
+        SA checks use VerifyNow when configured. Upload ID + selfie for admin review anytime.
+        Facebook is optional and off by default — not required for a Verified badge.
       </p>
     </div>
   );

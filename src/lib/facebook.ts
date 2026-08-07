@@ -34,14 +34,36 @@ export function isFacebookConfigured(): boolean {
   return Boolean(facebookAppId() && facebookAppSecret());
 }
 
+/**
+ * Product switch: Facebook is optional profile import only.
+ *
+ * Default OFF so Meta domain/OAuth misconfig cannot block launch.
+ * To re-enable later (after Meta App Domains work):
+ *   FACEBOOK_OAUTH_ENABLED=true
+ *   NEXT_PUBLIC_FACEBOOK_OAUTH_ENABLED=true
+ * plus App ID + secret, then redeploy.
+ */
+export function isFacebookOAuthEnabled(): boolean {
+  // Explicit off
+  if (process.env.FACEBOOK_OAUTH_ENABLED === "false") return false;
+  if (process.env.NEXT_PUBLIC_FACEBOOK_OAUTH_ENABLED === "false") return false;
+  // Must opt in — default disabled until Meta is proven working
+  if (process.env.FACEBOOK_OAUTH_ENABLED === "true") return true;
+  if (process.env.NEXT_PUBLIC_FACEBOOK_OAUTH_ENABLED === "true") return true;
+  return false;
+}
+
 /** Public config safe to return to the browser */
 export function facebookPublicConfig() {
   const appId = facebookAppId();
+  const enabled = isFacebookOAuthEnabled();
   return {
-    configured: Boolean(appId && facebookAppSecret()),
-    appId: appId || null,
+    enabled,
+    configured: enabled && Boolean(appId && facebookAppSecret()),
+    appId: enabled ? appId || null : null,
     /** JS SDK can start with app id only; server import needs secret for best security */
-    clientReady: Boolean(appId),
+    clientReady: enabled && Boolean(appId),
+    redirectUri: enabled ? facebookOAuthRedirectUri() : null,
   };
 }
 
@@ -194,6 +216,6 @@ export function facebookOAuthDialogUrl(input: {
     // Use page display (web) — avoid desktop/native app mode quirks
     display: "page",
   });
-  // Unversioned dialog URL is more widely accepted for Login
-  return `https://www.facebook.com/dialog/oauth?${params.toString()}`;
+  // Versioned dialog (v21) matches Graph API version we use for token exchange
+  return `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 }
