@@ -4,9 +4,12 @@
  *
  * Tiers: Free · Plus · Premium
  * Paid periods (once-off access, no forced auto-renew):
- * - 2 weeks: once-off (period key still WEEK for API compatibility)
- * - 3 months: monthly rate × 3 (minimum purchase)
- * - Annual: discounted full year
+ * - 2 weeks: low once-off on-ramp (period key WEEK for API compatibility)
+ * - 3 months: hero pack (default) — billed once
+ * - Annual: discount vs 4 × quarter packs
+ *
+ * Price ladder (2026 revise): short plan = discovery; Plus quarter = main ARPU;
+ * Premium = visibility upsell, not a fake “best value” twin.
  */
 
 /** Membership tier stored on user / subscription */
@@ -67,72 +70,72 @@ export const PERIOD_LABELS: Record<
   ANNUAL: { label: "Annual", shortLabel: "Year" },
 };
 
-/** Plus — short period R199 / 14 days, R99/mo (×3), annual R999 */
+/** Plus — R99 / 14 days on-ramp · R249 / 90 days hero · R799 / year */
 const PLUS_PERIODS: PeriodPricing[] = [
   {
     period: "WEEK",
     label: "2 Weeks",
     shortLabel: "2 wks",
-    priceZar: 199,
-    displayPrice: 199,
+    priceZar: 99,
+    displayPrice: 99,
     priceSuffix: "once off",
-    billingNote: "14 days of Plus · no auto-renew",
+    billingNote: "14 days of Plus · R99 once · no auto-renew",
     durationDays: 14,
   },
   {
     period: "QUARTER",
     label: "3 Months",
     shortLabel: "3 mo",
-    priceZar: 297, // R99 × 3
-    displayPrice: 99,
+    priceZar: 249,
+    displayPrice: 83,
     priceSuffix: "/mo",
-    billingNote: "R297 billed once for 3 months (R99 × 3)",
+    billingNote: "R249 billed once for 3 months (≈ R83/mo) · no auto-renew",
     durationDays: 90,
   },
   {
     period: "ANNUAL",
     label: "Annual",
     shortLabel: "Year",
-    priceZar: 999,
-    displayPrice: 999,
+    priceZar: 799,
+    displayPrice: 799,
     priceSuffix: "/year",
-    billingNote: "Save R189 vs 12 × R99 (was R1,188)",
-    compareAtZar: 1188,
+    billingNote: "R799 for 12 months · save R197 vs 4 × 3-month packs",
+    compareAtZar: 996,
     durationDays: 365,
   },
 ];
 
-/** Premium — higher tier for same periods */
+/** Premium — visibility upsell for same periods */
 const PREMIUM_PERIODS: PeriodPricing[] = [
   {
     period: "WEEK",
     label: "2 Weeks",
     shortLabel: "2 wks",
-    priceZar: 349,
-    displayPrice: 349,
+    priceZar: 179,
+    displayPrice: 179,
     priceSuffix: "once off",
-    billingNote: "14 days of Premium · no auto-renew",
+    billingNote: "14 days of Premium · R179 once · no auto-renew",
     durationDays: 14,
   },
   {
     period: "QUARTER",
     label: "3 Months",
     shortLabel: "3 mo",
-    priceZar: 597, // R199 × 3
-    displayPrice: 199,
+    priceZar: 449,
+    displayPrice: 150,
     priceSuffix: "/mo",
-    billingNote: "R597 billed once for 3 months (R199 × 3)",
+    billingNote: "R449 billed once for 3 months (≈ R150/mo) · no auto-renew",
     durationDays: 90,
   },
   {
     period: "ANNUAL",
     label: "Annual",
     shortLabel: "Year",
-    priceZar: 1799,
-    displayPrice: 1799,
+    priceZar: 1399,
+    displayPrice: 1399,
     priceSuffix: "/year",
-    billingNote: "Save R589 vs 12 × R199 (was R2,388)",
-    compareAtZar: 2388,
+    billingNote: "R1399 for 12 months · save R397 vs 4 × 3-month packs",
+    compareAtZar: 1796,
     durationDays: 365,
   },
 ];
@@ -146,13 +149,14 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Create & publish a profile",
       "Browse verified listings",
       "5 messages per day",
-      "3 interests per week",
-      "20 Discover swipes per day",
+      "5 interests per week",
+      "25 Discover swipes per day",
+      "AuPair Connect peer chat (free)",
     ],
     limits: {
       messagesPerDay: 5,
-      interestsPerWeek: 3,
-      swipesPerDay: 20,
+      interestsPerWeek: 5,
+      swipesPerDay: 25,
       canSeeWhoLikedYou: false,
       featuredListing: false,
       boostsPerMonth: 0,
@@ -174,7 +178,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       "Featured listing badge",
       "Read receipts",
       "2 profile boosts / month",
-      "2 weeks, 3 months, or annual access",
+      "From R99 / 2 weeks · or R249 / 3 months",
     ],
     limits: {
       messagesPerDay: -1,
@@ -192,7 +196,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
   PREMIUM: {
     id: "PREMIUM",
     name: "Premium",
-    tagline: "Maximum visibility & priority",
+    tagline: "Maximum visibility for serious hiring",
     bestValue: true,
     features: [
       "Everything in Plus",

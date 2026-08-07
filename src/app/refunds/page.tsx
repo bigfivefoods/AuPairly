@@ -77,7 +77,7 @@ export default function RefundPolicyPage() {
 
         <Section title="3. Membership plans (Plus & Premium)">
           <p>
-            Paid memberships (for example week, 3-month, or annual access) unlock features such as
+            Paid memberships (for example 2-week, 3-month, or annual access) unlock features such as
             higher messaging and matching limits, visibility tools, and related entitlements for the
             selected period.
           </p>
