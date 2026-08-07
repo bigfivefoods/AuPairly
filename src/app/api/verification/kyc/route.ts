@@ -255,14 +255,14 @@ async function ensureVerifyNowPayment(
     };
   }
 
-  // Paystack not configured → demo free (local/dev)
+  // Paystack not configured → run VerifyNow free (dev / until payments ready)
   if (!isPaystackConfigured()) {
     const ref = `demo_kyc_${userId}_${Date.now()}`;
     await recordPayment({
       userId,
       kind: "KYC",
       amountCents: 0,
-      description: "Demo VerifyNow KYC (Paystack not configured)",
+      description: "VerifyNow SA check · fee waived (Paystack not configured)",
       provider: "demo",
       reference: ref,
       meta: { demo: true, planId, idLast4: idNumber.slice(-4) },
@@ -270,17 +270,28 @@ async function ensureVerifyNowPayment(
     return { ok: true, reference: ref, demo: true, feeCents: 0 };
   }
 
-  // Production must use live Paystack keys for real money
+  // Paystack still on test keys: do not block VerifyNow — waive fee so SA KYC works
+  // until live sk_live_ / pk_live_ are set. (Membership checkout still blocks test on prod.)
   const liveBlock = paystackLiveRequiredError();
   if (liveBlock) {
-    return NextResponse.json(
-      {
-        error: liveBlock,
-        code: "PAYSTACK_TEST_MODE",
-        paystackMode: paystackMode(),
+    const ref = `waived_kyc_${userId}_${Date.now()}`;
+    await recordPayment({
+      userId,
+      kind: "KYC",
+      amountCents: 0,
+      description:
+        "VerifyNow SA check · fee waived (Paystack TEST mode — switch to live keys for R10 Free-plan charges)",
+      provider: "demo",
+      reference: ref,
+      meta: {
+        purpose: "kyc_verifynow",
+        planId: "FREE",
+        feeWaived: true,
+        reason: "paystack_test_mode",
+        idLast4: idNumber.slice(-4),
       },
-      { status: 503 }
-    );
+    });
+    return { ok: true, reference: ref, demo: true, feeCents: 0 };
   }
 
   if (!email) {
@@ -440,10 +451,34 @@ async function runSouthAfricaKyc(
   }
 ) {
   const idNumber = String(body.idNumber || "").replace(/\D/g, "");
+  if (idNumber.length !== 13) {
+    return NextResponse.json(
+      {
+        error:
+          "Enter your full 13-digit South African ID number (numbers only).",
+      },
+      { status: 400 }
+    );
+  }
   if (!isValidSaIdNumber(idNumber)) {
     return NextResponse.json(
-      { error: "Enter a valid 13-digit South African ID number" },
+      {
+        error:
+          "That ID number fails the SA check digit. Double-check all 13 digits.",
+      },
       { status: 400 }
+    );
+  }
+
+  if (!isVerifyNowConfigured()) {
+    return NextResponse.json(
+      {
+        error:
+          "VerifyNow is not configured on this server. Set VERIFYNOW_API_KEY (vn_live_… or vn_test_…) on Vercel Production and redeploy. Until then use document upload below for manual review.",
+        code: "VERIFYNOW_NOT_CONFIGURED",
+        configured: false,
+      },
+      { status: 503 }
     );
   }
 

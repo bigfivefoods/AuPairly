@@ -387,8 +387,23 @@ export function VerificationClient({
   }
 
   async function runKyc() {
-    setKycLoading(true);
     setMessage("");
+    if (country === "ZA") {
+      if (idNumber.length !== 13) {
+        setMessage(
+          "Enter your full 13-digit South African ID number before verifying."
+        );
+        return;
+      }
+      if (!kycFee.configured) {
+        setMessage(
+          "VerifyNow is not configured on the server yet. An admin must set VERIFYNOW_API_KEY on Vercel and redeploy. You can still upload ID + selfie below for manual review."
+        );
+        return;
+      }
+    }
+
+    setKycLoading(true);
     try {
       // Persist form so we can resume after Paystack redirect
       if (country === "ZA") {
@@ -420,7 +435,15 @@ export function VerificationClient({
       });
 
       if (!res.ok) {
-        setMessage(data.error || "KYC failed");
+        setMessage(
+          data.error ||
+            data.message ||
+            (data.code === "VERIFYNOW_NOT_CONFIGURED"
+              ? "VerifyNow API key missing on server."
+              : data.code === "PAYSTACK_TEST_MODE"
+                ? "Paystack is still in test mode. Try again after deploy — fee may be waived until live keys are set."
+                : "KYC failed. Check your ID number and try again.")
+        );
         return;
       }
 
@@ -640,30 +663,61 @@ export function VerificationClient({
           </div>
         )}
 
+        {message && (
+          <div
+            role="alert"
+            className={`rounded-xl px-4 py-3 text-sm ${
+              /fail|error|invalid|not configured|must|could not|double-check/i.test(
+                message
+              )
+                ? "border border-red-200 bg-red-50 text-red-800"
+                : "border border-teal-200 bg-teal-50 text-teal-900"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
         <Button
           type="button"
           onClick={runKyc}
-          disabled={kycLoading || (country === "ZA" && idNumber.length !== 13)}
+          disabled={kycLoading}
           className="w-full sm:w-auto"
         >
           {kycLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {country === "ZA"
             ? !kycFee.configured
-              ? "VerifyNow not configured"
-              : kycFee.paystackRequired
+              ? "VerifyNow not configured — tap for help"
+              : kycFee.paystackRequired && paystackInfo.live
                 ? `Pay ${kycFee.feeLabel} & verify with VerifyNow`
-                : kycFee.free
-                  ? "Verify with VerifyNow (included free)"
+                : kycFee.free || !paystackInfo.live
+                  ? "Verify with VerifyNow (SA)"
                   : "Verify with VerifyNow (SA)"
             : "Start international verification"}
         </Button>
-        {country === "ZA" && kycFee.paystackRequired && (
+        {country === "ZA" && idNumber.length > 0 && idNumber.length < 13 && (
+          <p className="text-xs text-amber-800">
+            SA ID needs 13 digits — you have {idNumber.length}.
+          </p>
+        )}
+        {country === "ZA" && kycFee.paystackRequired && paystackInfo.live && (
           <p className="text-xs text-stone-500">
             Free accounts pay <strong>{kycFee.feeLabel}</strong> via Paystack for the automated SA
             check. Plus and Premium members get VerifyNow free. Face match runs if you upload a
             selfie.
           </p>
         )}
+        {country === "ZA" &&
+          kycFee.paystackRequired &&
+          paystackInfo.configured &&
+          !paystackInfo.live && (
+            <p className="text-xs text-amber-800">
+              Paystack is still in <strong>TEST</strong> mode — the R10 Free-plan fee is{" "}
+              <strong>waived</strong> so you can still run VerifyNow. Switch to{" "}
+              <code className="rounded bg-amber-100 px-1">sk_live_</code> keys when ready for real
+              charges.
+            </p>
+          )}
         {country === "ZA" && kycFee.free && (
           <p className="text-xs text-emerald-700">
             Your {kycFee.planId || "paid"} plan includes VerifyNow at no extra charge.
