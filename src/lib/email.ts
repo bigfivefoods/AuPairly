@@ -12,7 +12,7 @@ export async function sendEmail(opts: {
   html?: string;
 }) {
   const key = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "AuPairly <noreply@aupairly.me>";
+  const from = process.env.EMAIL_FROM || "noreply@aupairly.me";
 
   if (key) {
     const res = await fetch("https://api.resend.com/emails", {
