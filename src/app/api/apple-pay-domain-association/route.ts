@@ -3,14 +3,11 @@ import path from "node:path";
 import { NextResponse } from "next/server";
 
 /**
- * Apple Pay domain verification for Paystack.
- * Must be reachable at:
- *   https://www.aupairly.me/.well-known/apple-developer-merchantid-domain-association
- * Content-Type: text/plain (Apple/Paystack reject HTML).
- * No auth. Prefer no redirects (register www if apex → www).
+ * Serves the Apple Pay / Paystack domain verification body.
+ * Public URL (via rewrite):
+ *   /.well-known/apple-developer-merchantid-domain-association
  */
 export const dynamic = "force-static";
-export const revalidate = false;
 
 export async function GET() {
   try {
@@ -26,11 +23,13 @@ export async function GET() {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
-        // Avoid content negotiation / middleware issues
         "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {
-    return new NextResponse("Not found", { status: 404 });
+    return new NextResponse("Not found", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   }
 }
