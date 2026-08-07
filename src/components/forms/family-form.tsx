@@ -34,6 +34,7 @@ import {
   ProfileEditShell,
   ProfileSection,
 } from "@/components/profile/profile-edit-shell";
+import { CompletenessCoach } from "@/components/completeness-coach";
 
 type Initial = {
   name: string;
@@ -210,6 +211,32 @@ export function FamilyProfileForm({
 
   const body = (
     <div className="space-y-5 sm:space-y-6">
+      <CompletenessCoach
+        variant="compact"
+        input={{
+          role: "PARENT",
+          name: form.name,
+          image,
+          headline: form.headline,
+          bio: form.bio,
+          city: form.city,
+          country: form.country,
+          languages: form.languages,
+          services,
+          status: form.status,
+          isVerified: false,
+          childrenCount: form.childrenCount
+            ? Number(form.childrenCount)
+            : 0,
+          childrenAges: JSON.stringify(form.childrenAges || []),
+          pocketMoney: form.pocketMoney ? Number(form.pocketMoney) : null,
+          startDate: form.startDate || null,
+          schoolArea: form.schoolArea,
+          lifestyleNotes: form.lifestyleNotes,
+          photos: form.photos ? JSON.stringify(form.photos) : null,
+        }}
+      />
+
       <ProfileSection id="services">
       <Card className="space-y-4">
         <h2 className="font-display text-lg font-semibold">Services you need</h2>
