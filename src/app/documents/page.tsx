@@ -71,6 +71,9 @@ export default function DocumentsPage() {
     void load();
   }, [load]);
 
+  const docsDone = docs.length >= 1;
+  const docsPoints = 8;
+
   useEffect(() => {
     return () => {
       if (previewUrl?.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
@@ -175,6 +178,30 @@ export default function DocumentsPage() {
         title="Document vault"
         description="Upload passport, police clearance, first aid, and visas. Files stay in your private vault with optional expiry."
       />
+
+      <div
+        className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${
+          docsDone
+            ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+            : "border-amber-200 bg-amber-50 text-amber-950"
+        }`}
+      >
+        {docsDone ? (
+          <p className="font-semibold">
+            Document step complete · +{docsPoints} pts toward profile completion
+            ({docs.length} file{docs.length === 1 ? "" : "s"} in vault)
+          </p>
+        ) : (
+          <p className="font-semibold">
+            Upload 1 document to earn +{docsPoints} profile points
+          </p>
+        )}
+        <p className="mt-1 text-xs opacity-90">
+          Then open <a href="/dashboard" className="font-semibold underline">Dashboard</a>{" "}
+          to see your full % update. Checklist item:{" "}
+          <strong>Upload a key document</strong>.
+        </p>
+      </div>
 
       <Card>
         <form onSubmit={add} className="grid gap-4 sm:grid-cols-2">
