@@ -14,5 +14,11 @@ export default async function OnboardingPage() {
   if (user.role === "ADMIN") redirect("/admin");
   if (user.role !== "AUPAIR" && user.role !== "PARENT") redirect("/dashboard");
 
-  return <OnboardingWizard role={user.role} name={user.name} />;
+  return (
+    <OnboardingWizard
+      role={user.role}
+      name={user.name}
+      initialImage={user.image}
+    />
+  );
 }

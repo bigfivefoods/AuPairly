@@ -30,8 +30,14 @@ export const metadata: Metadata = buildPageMetadata({
   noIndex: true,
 });
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ live?: string }>;
+}) {
   const user = await requireUser();
+  const sp = await searchParams;
+  const justLive = sp.live === "1";
 
   const [aupair, family, verifications, conversations, refCount, docCount, meUser] =
     await Promise.all([
@@ -83,6 +89,26 @@ export default async function DashboardPage() {
               : "Manage what you need (childcare, house & pet sitting), verification, and messages."
         }
       />
+
+      {justLive && listingStatus === "ACTIVE" && (
+        <div className="mb-6 rounded-2xl border border-teal-200 bg-teal-50 px-5 py-4 text-teal-950 shadow-sm">
+          <p className="font-display text-lg font-semibold">You&apos;re live!</p>
+          <p className="mt-1 text-sm text-teal-900/90">
+            Your listing is published. Browse matches, get verified for the trust badge, and
+            reply fast — response time ranks you higher.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href="/discover" className="btn-primary">
+              <Search className="h-4 w-4" />
+              Discover matches
+            </Link>
+            <Link href="/verification" className="btn-secondary">
+              <Shield className="h-4 w-4" />
+              Get verified
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="mb-8 flex flex-wrap items-center gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-[var(--shadow)]">
         <UserAvatar

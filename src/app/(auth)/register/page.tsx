@@ -166,6 +166,7 @@ function RegisterForm() {
         router.push("/login");
         return;
       }
+      // Ruthless path: always land in photo → city → publish wizard
       router.push("/onboarding");
       router.refresh();
     } catch {

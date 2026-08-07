@@ -34,8 +34,13 @@ async function handle(req: Request) {
   let searchAlerts = 0;
   const searches = await prisma.savedSearch.findMany({
     where: { alertEnabled: true },
+    include: {
+      user: { select: { id: true, email: true, name: true } },
+    },
     take: 200,
   });
+
+  let searchEmails = 0;
 
   for (const s of searches) {
     // Throttle: at most one alert per search per 20 hours
@@ -55,24 +60,15 @@ async function handle(req: Request) {
     const country = filters.country || "";
     const targetFamilies = filters.target === "families";
 
+    // AND city + country filters (do not overwrite a single OR)
     const whereBase = {
       status: "ACTIVE" as const,
       createdAt: { gte: since },
       ...(city
-        ? {
-            OR: [
-              { city: { contains: city, mode: "insensitive" as const } },
-              { city: { equals: city, mode: "insensitive" as const } },
-            ],
-          }
+        ? { city: { contains: city, mode: "insensitive" as const } }
         : {}),
       ...(country
-        ? {
-            OR: [
-              { country: { contains: country, mode: "insensitive" as const } },
-              { country: { equals: country, mode: "insensitive" as const } },
-            ],
-          }
+        ? { country: { contains: country, mode: "insensitive" as const } }
         : {}),
       ...(filters.verified === "1" ? { isVerified: true } : {}),
     };
@@ -87,14 +83,38 @@ async function handle(req: Request) {
       if (city) q.set("city", city);
       if (country) q.set("country", country);
       if (filters.verified === "1") q.set("verified", "1");
+      const href = `${base}?${q.toString()}`;
+      const targetLabel = targetFamilies ? "host" : "sitter";
 
       await createNotification({
         userId: s.userId,
         type: "SYSTEM",
         title: `New matches for “${s.name}”`,
-        body: `${count} new ${targetFamilies ? "host" : "sitter"} listing(s) in the last day match your saved search.`,
-        href: `${base}?${q.toString()}`,
+        body: `${count} new ${targetLabel} listing(s) in the last day match your saved search.`,
+        href,
       });
+
+      // Email when Resend is configured
+      if (s.user?.email) {
+        try {
+          const { sendSavedSearchAlertEmail } = await import("@/lib/email");
+          const site = (
+            process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"
+          ).replace(/\/$/, "");
+          await sendSavedSearchAlertEmail({
+            toEmail: s.user.email,
+            toName: s.user.name || "there",
+            searchName: s.name,
+            count,
+            targetLabel,
+            href: `${site}${href}`,
+          });
+          searchEmails++;
+        } catch (e) {
+          console.error("[cron alerts] search email", e);
+        }
+      }
+
       await prisma.savedSearch.update({
         where: { id: s.id },
         data: { lastAlertedAt: new Date() },
@@ -174,7 +194,13 @@ async function handle(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, searchAlerts, checkInNudges, reviewNudges });
+  return NextResponse.json({
+    ok: true,
+    searchAlerts,
+    searchEmails,
+    checkInNudges,
+    reviewNudges,
+  });
 }
 
 export async function GET(req: Request) {

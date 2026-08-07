@@ -20,7 +20,10 @@ const schema = z.object({
   country: z.string().min(2).max(80),
   region: z.string().max(80).optional().nullable(),
   headline: z.string().max(120).optional().nullable(),
-  publish: z.boolean().optional(),
+  /** Required for go-live path */
+  imageUrl: z.string().url().optional().nullable(),
+  /** Always true from ruthless wizard; draft only if explicit false */
+  publish: z.boolean().optional().default(true),
 });
 
 export async function POST(req: Request) {
@@ -35,7 +38,30 @@ export async function POST(req: Request) {
     const role = session.user.role;
     const servicesJson = serializeServices(body.services as ServiceId[]);
     const continent = continentForCountry(body.country) || null;
-    const status = body.publish ? "ACTIVE" : "DRAFT";
+    const publish = body.publish !== false;
+    const status = publish ? "ACTIVE" : "DRAFT";
+
+    // Photo required to publish
+    const imageUrl = body.imageUrl?.trim() || null;
+    if (publish && !imageUrl) {
+      const existing = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { image: true },
+      });
+      if (!existing?.image) {
+        return NextResponse.json(
+          { error: "Add a profile photo before publishing." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (imageUrl) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { image: imageUrl },
+      });
+    }
 
     if (role === "AUPAIR") {
       const headline =
@@ -60,7 +86,7 @@ export async function POST(req: Request) {
           continent,
           services: servicesJson,
           headline,
-          ...(body.publish ? { status: "ACTIVE" } : {}),
+          status,
         },
       });
       await syncProfileServiceTags({
@@ -69,9 +95,7 @@ export async function POST(req: Request) {
         servicesJson,
       });
     } else if (role === "PARENT") {
-      const headline =
-        body.headline?.trim() ||
-        defaultHostHeadline(body.services);
+      const headline = body.headline?.trim() || defaultHostHeadline(body.services);
       const profile = await prisma.familyProfile.upsert({
         where: { userId },
         create: {
@@ -91,7 +115,7 @@ export async function POST(req: Request) {
           continent,
           services: servicesJson,
           headline,
-          ...(body.publish ? { status: "ACTIVE" } : {}),
+          status,
         },
       });
       await syncProfileServiceTags({
@@ -100,22 +124,25 @@ export async function POST(req: Request) {
         servicesJson,
       });
     } else {
-      return NextResponse.json({ error: "Onboarding is for hosts and sitters" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Onboarding is for hosts and sitters" },
+        { status: 400 }
+      );
     }
 
     await createNotification({
       userId,
       type: "SYSTEM",
-      title: "You're set up",
-      body: body.publish
-        ? "Your listing is live. Add a photo and bio to unlock Discover."
-        : "Profile started. Add a photo and publish when ready.",
-      href: "/profile/edit",
+      title: publish ? "You're live!" : "Profile started",
+      body: publish
+        ? "Your listing is published. Get verified to earn the trust badge and message more people."
+        : "Add a photo and publish when ready.",
+      href: publish ? "/discover" : "/profile/edit",
     }).catch(() => null);
 
     return NextResponse.json({
       ok: true,
-      next: body.publish ? "/profile/edit?onboarded=1" : "/profile/edit",
+      next: publish ? "/dashboard?live=1" : "/profile/edit",
     });
   } catch (e) {
     if (e instanceof z.ZodError) {
