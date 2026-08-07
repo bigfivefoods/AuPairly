@@ -84,8 +84,12 @@ export function ProfileEditShell({
         ? "bg-amber-100 text-amber-900"
         : "bg-stone-100 text-stone-700";
 
+  // Sit below sticky site navbar (h-14 / sm:h-16 + safe-area) so Discover /
+  // Messages / logo stay available while the teal section side-nav remains.
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#faf8f5] text-stone-900">
+    <div
+      className="fixed inset-x-0 bottom-0 z-40 flex flex-col bg-[#faf8f5] text-stone-900 top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+env(safe-area-inset-top,0px))]"
+    >
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <aside className="relative shrink-0 overflow-hidden bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 px-5 py-4 text-white sm:px-8 sm:py-5 lg:flex lg:w-[36%] lg:max-w-md lg:flex-col lg:justify-between lg:px-10 lg:py-10 xl:w-[32%]">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
@@ -93,14 +97,14 @@ export function ProfileEditShell({
 
           <div className="relative">
             <div className="flex items-center justify-between gap-3">
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-lg font-bold backdrop-blur">
-                  A
-                </span>
-                <span className="font-display text-xl font-semibold tracking-tight">
-                  Au<span className="text-teal-200">Pairly</span>
-                </span>
-              </Link>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-teal-200/90">
+                  Complete your profile
+                </p>
+                <p className="mt-0.5 truncate text-sm font-medium text-white/90 lg:hidden">
+                  {title}
+                </p>
+              </div>
               <div className="flex items-center gap-2 lg:hidden">
                 <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold", statusClass)}>
                   {statusLabel}
