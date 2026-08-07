@@ -24,7 +24,7 @@ export default async function VerificationPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-3xl px-4 pb-10 pt-6 sm:px-6 sm:pt-10 lg:px-8">
       <PageHeader
         eyebrow="Trust center"
         title="Verify your identity"

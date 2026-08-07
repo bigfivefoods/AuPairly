@@ -49,6 +49,13 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Keep in-page anchors / focus below sticky top nav (h-14 / sm:h-16 + safe area) */
+  scroll-padding-top: calc(3.5rem + env(safe-area-inset-top, 0px) + 0.5rem);
+}
+@media (min-width: 640px) {
+  html {
+    scroll-padding-top: calc(4rem + env(safe-area-inset-top, 0px) + 0.5rem);
+  }
 }
 
 body {
