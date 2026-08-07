@@ -132,6 +132,7 @@ export async function GET(req: Request) {
             placementVerified: true,
             safetyScore: true,
             videoIntroUrl: true,
+            lastActiveAt: true,
           },
         },
       },
@@ -139,6 +140,7 @@ export async function GET(req: Request) {
     });
 
     const now = Date.now();
+    const weekMs = 7 * 86400000;
     const enriched = profiles.map((p) => {
       const compat = computeCompatibility(meProfile, {
         role: "AUPAIR",
@@ -170,8 +172,18 @@ export async function GET(req: Request) {
       }
       // Verified listings rank higher
       if (a.p.isVerified !== b.p.isVerified) return a.p.isVerified ? -1 : 1;
+      // Active in last 7 days (login / message activity)
+      const aActive =
+        a.p.user.lastActiveAt && now - a.p.user.lastActiveAt.getTime() < weekMs
+          ? 1
+          : 0;
+      const bActive =
+        b.p.user.lastActiveAt && now - b.p.user.lastActiveAt.getTime() < weekMs
+          ? 1
+          : 0;
+      if (bActive !== aActive) return bActive - aActive;
       if (b.compat.score !== a.compat.score) return b.compat.score - a.compat.score;
-      // Recency: newer profiles slightly prefered when scores tie
+      // Recency: newer profiles slightly preferred when scores tie
       const aAge = a.p.createdAt?.getTime?.() ?? 0;
       const bAge = b.p.createdAt?.getTime?.() ?? 0;
       if (bAge !== aAge && Math.abs(bAge - aAge) > 86400000) return bAge - aAge;
@@ -227,6 +239,7 @@ export async function GET(req: Request) {
           image: true,
           placementVerified: true,
           safetyScore: true,
+          lastActiveAt: true,
         },
       },
     },
@@ -252,6 +265,7 @@ export async function GET(req: Request) {
 
   const myCity = (meProfile?.city || "").toLowerCase().trim();
   const now = Date.now();
+  const weekMs = 7 * 86400000;
   enriched.sort((a, b) => {
     const ab = a.p.boostedUntil && a.p.boostedUntil.getTime() > now ? 1 : 0;
     const bb = b.p.boostedUntil && b.p.boostedUntil.getTime() > now ? 1 : 0;
@@ -263,6 +277,11 @@ export async function GET(req: Request) {
       if (bLocal !== aLocal) return bLocal - aLocal;
     }
     if (a.p.isVerified !== b.p.isVerified) return a.p.isVerified ? -1 : 1;
+    const aActive =
+      a.p.user.lastActiveAt && now - a.p.user.lastActiveAt.getTime() < weekMs ? 1 : 0;
+    const bActive =
+      b.p.user.lastActiveAt && now - b.p.user.lastActiveAt.getTime() < weekMs ? 1 : 0;
+    if (bActive !== aActive) return bActive - aActive;
     if (b.compat.score !== a.compat.score) return b.compat.score - a.compat.score;
     const aAge = a.p.createdAt?.getTime?.() ?? 0;
     const bAge = b.p.createdAt?.getTime?.() ?? 0;

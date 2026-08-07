@@ -61,6 +61,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Touch lastActiveAt for Discover “active recently” ranking
+        void prisma.user
+          .update({
+            where: { id: user.id },
+            data: { lastActiveAt: new Date() },
+          })
+          .catch(() => null);
+
         return {
           id: user.id,
           email: user.email,

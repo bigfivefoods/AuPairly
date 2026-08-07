@@ -101,9 +101,31 @@ export default async function CityLandingPage({
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow={`${city.province} · South Africa`}
-        title={`Au pairs & families in ${city.name}`}
-        description={`Verified childcare matches in ${city.name}. Create a free profile, browse listings, and message with confidence.`}
+        title={`Au pairs, babysitters & hosts in ${city.name}`}
+        description={`Find verified childcare, caregiving, house sitters, and pet sitters in ${city.name}, ${city.province}. Free to join — publish a profile, message safely, and hire with confidence on AuPairly.`}
       />
+
+      <div className="mb-8 rounded-2xl border border-stone-200 bg-white p-5 text-sm text-stone-600 shadow-sm">
+        <p className="font-semibold text-stone-900">Why {city.name} on AuPairly?</p>
+        <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li>
+            Local hosts and sitters for childcare, elderly care, house sitting &amp; pet sitting
+          </li>
+          <li>ID verification options (SA VerifyNow / international Didit) for trust</li>
+          <li>In-app messaging first — meet in public places when you&apos;re ready</li>
+          <li>
+            Free to browse and list; Plus unlocks unlimited messages when you&apos;re ready to hire
+          </li>
+        </ul>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/register?role=PARENT" className="btn-primary">
+            I need help in {city.name}
+          </Link>
+          <Link href="/register?role=AUPAIR" className="btn-secondary">
+            I offer care in {city.name}
+          </Link>
+        </div>
+      </div>
 
       <div className="mb-8 flex flex-wrap gap-2">
         {SA_CITIES.map((c) => (

@@ -20,7 +20,9 @@ import { PushSettingsCard } from "@/components/pwa-provider";
 import { InviteCard } from "@/components/invite-card";
 import { ReviewPromptCard } from "@/components/review-prompt-card";
 import { NearYouRail } from "@/components/near-you-rail";
+import { ActivateNearbyStrip } from "@/components/quick-interest-card";
 import { SafetyMeetChecklist } from "@/components/safety-meet-checklist";
+import { SoftPaywall } from "@/components/soft-paywall";
 import { responseTimeLabel } from "@/lib/completeness";
 import { buildPageMetadata } from "@/lib/seo";
 import { checkAndConsume } from "@/lib/entitlements";
@@ -93,6 +95,16 @@ export default async function DashboardPage({
     isVerified?: boolean;
     badge?: string;
   }[] = [];
+  let activateItems: {
+    userId: string;
+    profileId: string;
+    href: string;
+    name: string;
+    image?: string | null;
+    headline?: string | null;
+    city?: string | null;
+    isVerified?: boolean;
+  }[] = [];
   let msgUsage: { used: number; limit: number } | null = null;
   try {
     const usage = await checkAndConsume(user.id, "MESSAGE", { consume: false });
@@ -110,8 +122,11 @@ export default async function DashboardPage({
         where: {
           status: "ACTIVE",
           city: { contains: city, mode: "insensitive" },
+          userId: { not: user.id },
         },
-        include: { user: { select: { name: true, image: true } } },
+        include: {
+          user: { select: { id: true, name: true, image: true, lastActiveAt: true } },
+        },
         orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
         take: 8,
       });
@@ -125,13 +140,26 @@ export default async function DashboardPage({
         isVerified: r.isVerified,
         badge: r.isFeatured ? "Featured" : undefined,
       }));
+      activateItems = rows.slice(0, 3).map((r) => ({
+        userId: r.userId,
+        profileId: r.id,
+        href: `/browse/aupairs/${r.id}`,
+        name: r.user.name,
+        image: r.user.image,
+        headline: r.headline,
+        city: r.city,
+        isVerified: r.isVerified,
+      }));
     } else if (city && user.role === "AUPAIR") {
       const rows = await prisma.familyProfile.findMany({
         where: {
           status: "ACTIVE",
           city: { contains: city, mode: "insensitive" },
+          userId: { not: user.id },
         },
-        include: { user: { select: { name: true, image: true } } },
+        include: {
+          user: { select: { id: true, name: true, image: true, lastActiveAt: true } },
+        },
         orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
         take: 8,
       });
@@ -144,6 +172,16 @@ export default async function DashboardPage({
         city: r.city,
         isVerified: r.isVerified,
         badge: r.isUrgent ? "Urgent" : undefined,
+      }));
+      activateItems = rows.slice(0, 3).map((r) => ({
+        userId: r.userId,
+        profileId: r.id,
+        href: `/browse/families/${r.id}`,
+        name: r.familyName || r.user.name,
+        image: r.user.image,
+        headline: r.headline,
+        city: r.city,
+        isVerified: r.isVerified,
       }));
     }
   } catch {
@@ -168,8 +206,8 @@ export default async function DashboardPage({
         <div className="mb-6 rounded-2xl border border-teal-200 bg-teal-50 px-5 py-4 text-teal-950 shadow-sm">
           <p className="font-display text-lg font-semibold">You&apos;re live!</p>
           <p className="mt-1 text-sm text-teal-900/90">
-            Your listing is published. Browse matches, get verified for the trust badge, and
-            reply fast — response time ranks you higher.
+            Your listing is published. Send interest to people nearby, get verified, and reply
+            fast — response time ranks you higher.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href="/discover" className="btn-primary">
@@ -180,8 +218,22 @@ export default async function DashboardPage({
               <Shield className="h-4 w-4" />
               Get verified
             </Link>
+            <Link href="/pricing?period=QUARTER&plan=PLUS" className="btn-secondary">
+              Unlimited matching · R249
+            </Link>
           </div>
         </div>
+      )}
+
+      {justLive && listingStatus === "ACTIVE" && activateItems.length > 0 && (
+        <ActivateNearbyStrip
+          title={
+            user.role === "PARENT"
+              ? "3 sitters near you — say hello"
+              : "3 hosts near you — say hello"
+          }
+          items={activateItems}
+        />
       )}
 
       <div className="mb-8 flex flex-wrap items-center gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-[var(--shadow)]">
@@ -381,16 +433,17 @@ export default async function DashboardPage({
       </div>
 
       {msgUsage && msgUsage.used >= Math.max(1, msgUsage.limit - 1) && (
-        <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          <p className="font-semibold">
-            {msgUsage.used}/{msgUsage.limit} free messages used today
-          </p>
-          <p className="mt-1 text-amber-900/90">
-            Unlock unlimited matching from R99 / 2 weeks.
-          </p>
-          <Link href="/pricing" className="mt-2 inline-flex text-sm font-bold text-teal-800 underline">
-            View Plus plans →
-          </Link>
+        <div className="mb-8">
+          <SoftPaywall
+            title={
+              msgUsage.used >= msgUsage.limit
+                ? "Message limit reached"
+                : "Almost at your free message limit"
+            }
+            body="Don't lose a hire mid-chat. Plus unlocks unlimited messages, interests, and Discover."
+            used={msgUsage.used}
+            limit={msgUsage.limit}
+          />
         </div>
       )}
 
