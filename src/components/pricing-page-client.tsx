@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Check, Sparkles, Zap } from "lucide-react";
-import { PageHeader } from "@/components/ui";
 import { PricingCards } from "@/components/pricing-cards";
 import { useI18n } from "@/components/i18n-provider";
 import type { PlanId } from "@/lib/plans";
@@ -20,12 +19,17 @@ export function PricingPageClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8" data-locale={locale}>
-      <div className="text-center">
+      <div className="mb-10 text-center sm:mb-12">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-teal-50 px-4 py-1.5 text-sm font-semibold text-teal-800">
           <Sparkles className="h-4 w-4" />
           {t("pricing_badge")}
         </div>
-        <PageHeader title={t("pricing_title")} description={t("pricing_desc")} />
+        <h1 className="mx-auto max-w-3xl text-balance font-display text-2xl font-semibold tracking-tight text-stone-900 sm:text-3xl md:text-4xl">
+          {t("pricing_title")}
+        </h1>
+        <p className="mx-auto mt-3 max-w-2xl text-pretty text-center text-sm leading-relaxed text-stone-500 sm:text-base">
+          {t("pricing_desc")}
+        </p>
       </div>
 
       <PricingCards role={role} currentPlan={currentPlan} isLoggedIn={isLoggedIn} />
