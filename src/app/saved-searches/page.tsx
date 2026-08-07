@@ -2,23 +2,26 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Bell, BellOff, Loader2, Search, Trash2 } from "lucide-react";
 import { Button, Card, Input, Label, PageHeader } from "@/components/ui";
 
-type Search = {
+type SearchItem = {
   id: string;
   name: string;
   filters: Record<string, string>;
   alertEnabled: boolean;
+  lastAlertedAt?: string | null;
 };
 
 export default function SavedSearchesPage() {
-  const [searches, setSearches] = useState<Search[]>([]);
+  const [searches, setSearches] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("Local matches");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("South Africa");
+  const [roleTarget, setRoleTarget] = useState<"aupairs" | "families">("aupairs");
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<Record<string, number>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,7 +43,12 @@ export default function SavedSearchesPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        filters: { city, country, verified: "1" },
+        filters: {
+          city,
+          country,
+          verified: "1",
+          target: roleTarget,
+        },
         alertEnabled: true,
       }),
     });
@@ -62,13 +70,33 @@ export default function SavedSearchesPage() {
     setSearches((s) => s.filter((x) => x.id !== id));
   }
 
-  function hrefFor(filters: Record<string, string>) {
+  async function previewCount(s: SearchItem) {
+    const target = s.filters.target === "families" ? "families" : "aupairs";
     const q = new URLSearchParams();
-    if (filters.city) q.set("q", filters.city);
+    if (s.filters.city) q.set("city", s.filters.city);
+    if (s.filters.country) q.set("country", s.filters.country);
+    if (s.filters.verified) q.set("verified", s.filters.verified);
+    // Use browse API via page count approximation: hit nearby or just open link
+    // Lightweight: count via public browse is hard; use dedicated preview endpoint
+    try {
+      const res = await fetch(
+        `/api/saved-searches/preview?city=${encodeURIComponent(s.filters.city || "")}&country=${encodeURIComponent(s.filters.country || "")}&target=${target}&verified=${s.filters.verified || ""}`
+      );
+      const data = await res.json();
+      if (res.ok) setPreview((p) => ({ ...p, [s.id]: data.count ?? 0 }));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function hrefFor(filters: Record<string, string>) {
+    const base = filters.target === "families" ? "/browse/families" : "/browse/aupairs";
+    const q = new URLSearchParams();
+    if (filters.city) q.set("city", filters.city);
     if (filters.country) q.set("country", filters.country);
     if (filters.verified) q.set("verified", filters.verified);
     if (filters.driving) q.set("driving", filters.driving);
-    return `/browse/aupairs?${q.toString()}`;
+    return `${base}?${q.toString()}`;
   }
 
   return (
@@ -76,73 +104,124 @@ export default function SavedSearchesPage() {
       <PageHeader
         eyebrow="Alerts"
         title="Saved searches"
-        description="Get notified when new families or au pairs match your filters."
+        description="Get daily in-app alerts when new sitters or hosts match your filters. Turn alerts on to never miss a local match."
       />
 
       <Card className="mb-8">
-        <form onSubmit={create} className="space-y-3">
+        <h2 className="font-display text-lg font-semibold">Create a search alert</h2>
+        <form onSubmit={create} className="mt-4 space-y-3">
           <div>
             <Label>Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <Label>City</Label>
-              <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Cape Town" />
+              <Input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Cape Town"
+              />
             </div>
             <div>
               <Label>Country</Label>
               <Input value={country} onChange={(e) => setCountry(e.target.value)} />
             </div>
           </div>
+          <div>
+            <Label>Looking for</Label>
+            <select
+              className="input-field"
+              value={roleTarget}
+              onChange={(e) => setRoleTarget(e.target.value as "aupairs" | "families")}
+            >
+              <option value="aupairs">Sitters</option>
+              <option value="families">Hosts</option>
+            </select>
+          </div>
           <Button type="submit" disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save search + enable alerts
+            Save &amp; enable alerts
           </Button>
         </form>
       </Card>
 
       {loading ? (
-        <Loader2 className="mx-auto h-6 w-6 animate-spin text-teal-600" />
+        <div className="flex justify-center py-12 text-stone-400">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : searches.length === 0 ? (
+        <p className="text-center text-sm text-stone-500">
+          No saved searches yet. Create one above to get daily match digests.
+        </p>
       ) : (
         <ul className="space-y-3">
           {searches.map((s) => (
             <li
               key={s.id}
-              className="rounded-2xl border border-stone-200 bg-white px-4 py-3"
+              className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="font-semibold">{s.name}</p>
-                  <p className="text-xs text-stone-500">
-                    {JSON.stringify(s.filters)}
+                  <p className="font-semibold text-stone-900">{s.name}</p>
+                  <p className="mt-0.5 text-xs text-stone-500">
+                    {[s.filters.city, s.filters.country].filter(Boolean).join(", ") ||
+                      "Any location"}
+                    {s.filters.target === "families" ? " · Hosts" : " · Sitters"}
+                    {s.filters.verified === "1" ? " · Verified only" : ""}
                   </p>
-                  <Link href={hrefFor(s.filters)} className="text-xs font-semibold text-teal-700">
-                    Run search →
-                  </Link>
+                  {s.lastAlertedAt && (
+                    <p className="mt-1 text-[11px] text-stone-400">
+                      Last alert: {new Date(s.lastAlertedAt).toLocaleString()}
+                    </p>
+                  )}
+                  {preview[s.id] != null && (
+                    <p className="mt-1 text-xs font-medium text-teal-700">
+                      {preview[s.id]} active listing(s) match now
+                    </p>
+                  )}
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className="text-xs font-semibold text-teal-700"
                     onClick={() => toggleAlert(s.id, !s.alertEnabled)}
+                    className="inline-flex items-center gap-1 rounded-full border border-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-600 hover:border-teal-300"
                   >
-                    Alerts: {s.alertEnabled ? "On" : "Off"}
+                    {s.alertEnabled ? (
+                      <>
+                        <Bell className="h-3.5 w-3.5 text-teal-600" /> Alerts on
+                      </>
+                    ) : (
+                      <>
+                        <BellOff className="h-3.5 w-3.5" /> Alerts off
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"
-                    className="text-xs text-red-600"
-                    onClick={() => remove(s.id)}
+                    onClick={() => previewCount(s)}
+                    className="inline-flex items-center gap-1 rounded-full border border-stone-200 px-2.5 py-1 text-xs font-semibold text-stone-600 hover:border-teal-300"
                   >
-                    Delete
+                    <Search className="h-3.5 w-3.5" /> Preview
+                  </button>
+                  <Link
+                    href={hrefFor(s.filters)}
+                    className="inline-flex items-center rounded-full bg-teal-700 px-2.5 py-1 text-xs font-semibold text-white"
+                  >
+                    Browse
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => remove(s.id)}
+                    className="rounded-full p-1.5 text-stone-400 hover:bg-red-50 hover:text-red-600"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
             </li>
           ))}
-          {searches.length === 0 && (
-            <p className="text-center text-sm text-stone-500">No saved searches yet.</p>
-          )}
         </ul>
       )}
     </div>

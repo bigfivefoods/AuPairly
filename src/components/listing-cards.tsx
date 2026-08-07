@@ -15,6 +15,8 @@ type AuPairCardProps = {
   image?: string | null;
   /** Cover / lifestyle photo when available */
   coverImage?: string | null;
+  /** Extra gallery photos (JSON array string or string[]) */
+  photos?: string | string[] | null;
   headline?: string | null;
   city?: string | null;
   region?: string | null;
@@ -50,7 +52,11 @@ export function AuPairCard(p: AuPairCardProps) {
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
     .filter(Boolean);
-  const hero = p.coverImage || p.image;
+  const gallery = (
+    Array.isArray(p.photos) ? p.photos : parseJsonArray(p.photos || "[]")
+  ).filter(Boolean) as string[];
+  const hero = p.coverImage || gallery[0] || p.image;
+  const thumbs = gallery.filter((u) => u !== hero).slice(0, 3);
 
   return (
     <Link
@@ -84,6 +90,24 @@ export function AuPairCard(p: AuPairCardProps) {
             }
           />
         </div>
+        {thumbs.length > 0 && (
+          <div className="absolute bottom-2 right-2 flex gap-1">
+            {thumbs.map((src) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={src}
+                src={src}
+                alt=""
+                className="h-9 w-9 rounded-lg border-2 border-white object-cover shadow"
+              />
+            ))}
+            {gallery.length > thumbs.length + 1 && (
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-white bg-stone-900/70 text-[10px] font-bold text-white shadow">
+                +{gallery.length - thumbs.length - 1}
+              </span>
+            )}
+          </div>
+        )}
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
           {p.isVerified && <VerifiedBadge />}
           {trust && trust !== "Verified" && (
@@ -157,7 +181,10 @@ type FamilyCardProps = {
   name: string;
   familyName?: string | null;
   image?: string | null;
+  coverImage?: string | null;
+  photos?: string | string[] | null;
   headline?: string | null;
+  isUrgent?: boolean;
   city?: string | null;
   region?: string | null;
   country?: string | null;
@@ -190,16 +217,63 @@ export function FamilyCard(p: FamilyCardProps) {
     .filter((d) => d.enabled)
     .map((d) => WEEKDAYS.find((w) => w.id === d.day)?.label)
     .filter(Boolean);
+  const gallery = (
+    Array.isArray(p.photos) ? p.photos : parseJsonArray(p.photos || "[]")
+  ).filter(Boolean) as string[];
+  const hero = p.coverImage || gallery[0] || p.image;
+  const thumbs = gallery.filter((u) => u !== hero).slice(0, 3);
+
   return (
     <Link
       href={`/browse/families/${p.id}`}
       className="card-hover group flex flex-col overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[var(--shadow)]"
     >
-      <div className="relative h-40 bg-gradient-to-br from-orange-100 via-amber-50 to-teal-50">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Avatar name={p.familyName || p.name} image={p.image} size="xl" className="!ring-4 !ring-white/80 shadow-lg" />
+      <div className="relative h-40 overflow-hidden bg-gradient-to-br from-orange-100 via-amber-50 to-teal-50">
+        {hero ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={hero}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          />
+        ) : null}
+        <div
+          className={
+            hero
+              ? "absolute inset-0 bg-gradient-to-t from-stone-900/50 via-stone-900/10 to-transparent"
+              : "absolute inset-0 flex items-center justify-center"
+          }
+        >
+          <Avatar
+            name={p.familyName || p.name}
+            image={p.image}
+            size="xl"
+            className={
+              hero
+                ? "absolute bottom-3 left-3 !h-14 !w-14 !ring-2 !ring-white shadow-lg"
+                : "!ring-4 !ring-white/80 shadow-lg"
+            }
+          />
         </div>
+        {thumbs.length > 0 && (
+          <div className="absolute bottom-2 right-2 flex gap-1">
+            {thumbs.map((src) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={src}
+                src={src}
+                alt=""
+                className="h-9 w-9 rounded-lg border-2 border-white object-cover shadow"
+              />
+            ))}
+          </div>
+        )}
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1">
+          {p.isUrgent && (
+            <span className="rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+              Urgent
+            </span>
+          )}
           {p.isVerified && <VerifiedBadge />}
           {trust && trust !== "Verified" && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-700/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow">

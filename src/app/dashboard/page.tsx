@@ -18,6 +18,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { CompletenessCoach } from "@/components/completeness-coach";
 import { PushSettingsCard } from "@/components/pwa-provider";
 import { InviteCard } from "@/components/invite-card";
+import { ReviewPromptCard } from "@/components/review-prompt-card";
 import { responseTimeLabel } from "@/lib/completeness";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -263,6 +264,7 @@ export default async function DashboardPage() {
         />
       </div>
 
+      <ReviewPromptCard />
       <InviteCard userId={user.id} userName={user.name} />
 
       <div className="grid gap-6 lg:grid-cols-3">
