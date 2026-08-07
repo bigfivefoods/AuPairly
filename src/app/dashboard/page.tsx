@@ -117,8 +117,35 @@ export default async function DashboardPage({
       msgUsage = { used: usage.used, limit: usage.limit };
     }
 
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const nowMs = Date.now();
+    const byActiveThenVerified = <
+      T extends {
+        isVerified: boolean;
+        createdAt: Date;
+        user: { lastActiveAt: Date | null };
+      },
+    >(
+      rows: T[]
+    ) =>
+      [...rows].sort((a, b) => {
+        const aActive =
+          a.user.lastActiveAt && nowMs - a.user.lastActiveAt.getTime() < weekMs
+            ? 1
+            : 0;
+        const bActive =
+          b.user.lastActiveAt && nowMs - b.user.lastActiveAt.getTime() < weekMs
+            ? 1
+            : 0;
+        if (bActive !== aActive) return bActive - aActive;
+        if (Number(b.isVerified) !== Number(a.isVerified)) {
+          return Number(b.isVerified) - Number(a.isVerified);
+        }
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      });
+
     if (city && user.role === "PARENT") {
-      const rows = await prisma.auPairProfile.findMany({
+      const raw = await prisma.auPairProfile.findMany({
         where: {
           status: "ACTIVE",
           city: { contains: city, mode: "insensitive" },
@@ -127,9 +154,9 @@ export default async function DashboardPage({
         include: {
           user: { select: { id: true, name: true, image: true, lastActiveAt: true } },
         },
-        orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
-        take: 8,
+        take: 24,
       });
+      const rows = byActiveThenVerified(raw).slice(0, 8);
       nearYou = rows.map((r) => ({
         id: r.id,
         href: `/browse/aupairs/${r.id}`,
@@ -138,7 +165,11 @@ export default async function DashboardPage({
         headline: r.headline,
         city: r.city,
         isVerified: r.isVerified,
-        badge: r.isFeatured ? "Featured" : undefined,
+        badge: r.isFeatured
+          ? "Featured"
+          : r.user.lastActiveAt && nowMs - r.user.lastActiveAt.getTime() < weekMs
+            ? "Active"
+            : undefined,
       }));
       activateItems = rows.slice(0, 3).map((r) => ({
         userId: r.userId,
@@ -151,7 +182,7 @@ export default async function DashboardPage({
         isVerified: r.isVerified,
       }));
     } else if (city && user.role === "AUPAIR") {
-      const rows = await prisma.familyProfile.findMany({
+      const raw = await prisma.familyProfile.findMany({
         where: {
           status: "ACTIVE",
           city: { contains: city, mode: "insensitive" },
@@ -160,9 +191,9 @@ export default async function DashboardPage({
         include: {
           user: { select: { id: true, name: true, image: true, lastActiveAt: true } },
         },
-        orderBy: [{ isVerified: "desc" }, { createdAt: "desc" }],
-        take: 8,
+        take: 24,
       });
+      const rows = byActiveThenVerified(raw).slice(0, 8);
       nearYou = rows.map((r) => ({
         id: r.id,
         href: `/browse/families/${r.id}`,
@@ -171,7 +202,11 @@ export default async function DashboardPage({
         headline: r.headline,
         city: r.city,
         isVerified: r.isVerified,
-        badge: r.isUrgent ? "Urgent" : undefined,
+        badge: r.isUrgent
+          ? "Urgent"
+          : r.user.lastActiveAt && nowMs - r.user.lastActiveAt.getTime() < weekMs
+            ? "Active"
+            : undefined,
       }));
       activateItems = rows.slice(0, 3).map((r) => ({
         userId: r.userId,

@@ -160,6 +160,10 @@ export async function POST(
     }
   }
 
+  const priorSent = await prisma.message.count({
+    where: { senderId: session.user.id },
+  });
+
   const message = await prisma.message.create({
     data: {
       conversationId: id,
@@ -175,6 +179,17 @@ export async function POST(
     where: { id },
     data: { lastMessageAt: new Date() },
   });
+
+  // First-ever message: in-app safety tip (once)
+  if (priorSent === 0) {
+    void createNotification({
+      userId: session.user.id,
+      type: "SYSTEM",
+      title: "First message sent 👋",
+      body: "Great start. Keep chats on AuPairly until you trust them, and meet first in a public place.",
+      href: "/safety",
+    }).catch(() => null);
+  }
 
   const otherId =
     conversation.userAId === session.user.id

@@ -210,6 +210,9 @@ export function ChatClient({
               </button>
             ))}
           </div>
+          <div className="mt-3">
+            <SafetyMeetChecklist compact />
+          </div>
         </div>
       )}
 

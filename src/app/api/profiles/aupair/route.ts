@@ -159,5 +159,17 @@ export async function PUT(req: Request) {
     });
   }
 
+  // When listing goes live, notify city waitlist (best-effort)
+  if (profile.status === "ACTIVE" && profile.city) {
+    void import("@/lib/waitlist-notify")
+      .then(({ notifyWaitlistForCity }) =>
+        notifyWaitlistForCity({
+          city: profile.city!,
+          rolePublished: "AUPAIR",
+        })
+      )
+      .catch((e) => console.error("[waitlist-notify aupair]", e));
+  }
+
   return NextResponse.json({ profile });
 }
