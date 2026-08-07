@@ -85,11 +85,6 @@ function LoginForm() {
           Create an account
         </Link>
       </p>
-      <div className="mt-6 rounded-xl bg-stone-50 p-4 text-xs text-stone-500">
-        <p className="font-semibold text-stone-700">Demo accounts</p>
-        <p className="mt-1">Parent: parent@demo.aupairly.me / demo1234</p>
-        <p>Au pair: aupair@demo.aupairly.me / demo1234</p>
-      </div>
     </Card>
   );
 }
