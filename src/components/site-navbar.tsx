@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Suspense } from "react";
-import { Avatar } from "@/components/ui";
+import { UserAvatar } from "@/components/user-avatar";
 import { NotificationBell } from "@/components/notification-bell";
 import { CategoryNavLinks } from "@/components/category-nav-links";
 import { MainNavLinks } from "@/components/nav-links";
@@ -103,7 +103,7 @@ export function SiteNavbar({
                 className="hidden items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2.5 shadow-sm transition hover:border-teal-300 sm:flex"
                 title={t("nav_dashboard")}
               >
-                <Avatar name={user.name} image={user.image} size="sm" />
+                <UserAvatar name={user.name} image={user.image} size="sm" />
                 <span className="max-w-[5.5rem] truncate text-sm font-medium text-stone-800">
                   {user.name.split(" ")[0]}
                 </span>
@@ -122,7 +122,7 @@ export function SiteNavbar({
                 className="rounded-full p-1 sm:hidden"
                 aria-label={t("nav_dashboard")}
               >
-                <Avatar name={user.name} image={user.image} size="sm" />
+                <UserAvatar name={user.name} image={user.image} size="sm" />
               </Link>
               <MobileMenu user={user} signOutAction={signOutAction} />
             </>

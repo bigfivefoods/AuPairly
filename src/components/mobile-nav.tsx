@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Compass, Home, MessageCircle, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/i18n-provider";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { UserAvatar } from "@/components/user-avatar";
 
 export function MobileNav() {
   const path = usePathname() || "";
   const { t, locale } = useI18n();
+  const { data: session, status } = useSession();
+  const loggedIn = status === "authenticated" && Boolean(session?.user);
 
   if (
     path.startsWith("/login") ||
@@ -25,6 +29,7 @@ export function MobileNav() {
     labelKey: keyof Dictionary;
     icon: typeof Home;
     match: string[];
+    profile?: boolean;
   }[] = [
     { href: "/dashboard", labelKey: "nav_home", icon: Home, match: ["/dashboard"] },
     { href: "/discover", labelKey: "nav_discover", icon: Compass, match: ["/discover"] },
@@ -40,6 +45,7 @@ export function MobileNav() {
       labelKey: "nav_you",
       icon: User,
       match: ["/profile", "/settings", "/verification", "/trust"],
+      profile: true,
     },
   ];
 
@@ -50,7 +56,7 @@ export function MobileNav() {
       data-locale={locale}
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between px-1 pt-1">
-        {items.map(({ href, labelKey, icon: Icon, match }) => {
+        {items.map(({ href, labelKey, icon: Icon, match, profile }) => {
           const active = match.some((m) => path === m || path.startsWith(m + "/"));
           return (
             <li key={href} className="flex-1">
@@ -64,10 +70,20 @@ export function MobileNav() {
                 <span
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-xl transition",
-                    active ? "bg-teal-50 text-teal-700" : ""
+                    active && !profile ? "bg-teal-50 text-teal-700" : "",
+                    active && profile ? "ring-2 ring-teal-500 ring-offset-1" : ""
                   )}
                 >
-                  <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
+                  {profile && loggedIn ? (
+                    <UserAvatar
+                      name={session?.user?.name || "You"}
+                      image={session?.user?.image}
+                      size="sm"
+                      className="!h-8 !w-8 !text-[10px]"
+                    />
+                  ) : (
+                    <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 2} />
+                  )}
                 </span>
                 <span className="max-w-full truncate px-0.5">{t(labelKey)}</span>
               </Link>

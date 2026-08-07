@@ -48,6 +48,12 @@ export function PhotoUpload({
       if (kind === "avatar" && data.url) {
         try {
           await updateSession?.({ image: data.url });
+          // Force clients that read /api/me to pick up the new URL
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(
+              new CustomEvent("aupairly:avatar-updated", { detail: { url: data.url } })
+            );
+          }
         } catch {
           // Session update is best-effort; page refresh still works
         }
