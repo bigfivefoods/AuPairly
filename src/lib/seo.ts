@@ -194,6 +194,7 @@ export function organizationJsonLd() {
     sameAs: [
       BRAND.social.facebook,
       BRAND.social.tiktok,
+      BRAND.social.instagram,
     ].filter(Boolean),
     contactPoint: [
       {

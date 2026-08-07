@@ -30,8 +30,10 @@ export const BRAND = {
   social: {
     facebook: "https://www.facebook.com/profile.php?id=61592661735626",
     tiktok: "https://www.tiktok.com/@aupairly.me",
-    /** Optional handles for OG / future X */
+    instagram: "https://www.instagram.com/aupairly.me/",
+    /** Handles for display */
     tiktokHandle: "@aupairly.me",
+    instagramHandle: "@aupairly.me",
   },
   /**
    * Product glossary — use in UI copy.
