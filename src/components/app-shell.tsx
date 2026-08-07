@@ -31,6 +31,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import Image from "next/image";
 import { BrandLogo } from "@/components/brand-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationBell } from "@/components/notification-bell";
@@ -280,9 +281,14 @@ export function AppShell({
               {expanded ? (
                 <BrandLogo className="max-w-full" priority />
               ) : (
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-teal-800 text-sm font-bold text-white shadow-sm">
-                  A
-                </span>
+                <Image
+                  src="/icons/icon-192.png"
+                  alt="AuPairly"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-full object-cover shadow-sm ring-1 ring-stone-200/80"
+                  priority
+                />
               )}
             </Link>
           </div>
