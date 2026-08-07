@@ -26,6 +26,13 @@ export const BRAND = {
   whatsapp: "+27 82 581 4215",
   whatsappE164: "27825814215",
   whatsappHref: "https://wa.me/27825814215",
+  /** Official social profiles */
+  social: {
+    facebook: "https://www.facebook.com/profile.php?id=61592661735626",
+    tiktok: "https://www.tiktok.com/@aupairly.me",
+    /** Optional handles for OG / future X */
+    tiktokHandle: "@aupairly.me",
+  },
   /**
    * Product glossary — use in UI copy.
    * Internal roles stay AUPAIR / PARENT; user-facing labels are Sitter / Host.

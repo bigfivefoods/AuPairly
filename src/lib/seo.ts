@@ -192,9 +192,9 @@ export function organizationJsonLd() {
     email: BRAND.email,
     telephone: BRAND.whatsapp,
     sameAs: [
-      "https://www.facebook.com/aupairly",
-      "https://twitter.com/aupairly",
-    ],
+      BRAND.social.facebook,
+      BRAND.social.tiktok,
+    ].filter(Boolean),
     contactPoint: [
       {
         "@type": "ContactPoint",
