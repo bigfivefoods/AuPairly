@@ -34,7 +34,7 @@ export function CategoryNavLinks({ className = "" }: { className?: string }) {
       className={cn(
         isMobileStrip
           ? "flex gap-1.5 overflow-x-auto px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          : "flex items-center gap-0.5",
+          : "flex min-w-0 items-center gap-0.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className
       )}
       data-locale={locale}
@@ -47,7 +47,7 @@ export function CategoryNavLinks({ className = "" }: { className?: string }) {
             href={`/${s.slug}`}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold transition",
+              "shrink-0 whitespace-nowrap rounded-full px-2 py-1 text-xs font-semibold transition sm:px-2.5",
               active
                 ? cn("border shadow-sm", s.activeTab)
                 : "border border-transparent text-stone-600 hover:bg-stone-100 hover:text-teal-800",

@@ -38,23 +38,25 @@ export function SiteNavbar({
         className="sticky top-0 z-[100] border-b border-stone-200/70 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]"
         data-locale={locale}
       >
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">
-          {/* Left: logo + desktop categories */}
-          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4 lg:gap-6">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
+          {/* Left: logo + one nav set only (never stack categories + Discover in one tight row) */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
             <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-base font-bold text-white shadow-sm transition group-hover:scale-105 sm:h-9 sm:w-9 sm:text-lg">
                 A
               </span>
               <BrandWordmark className="hidden text-lg font-semibold text-stone-900 min-[360px]:inline sm:text-xl" />
             </Link>
+            {/* md–lg: service categories only (Childcare … Pet sitting) */}
             <Suspense fallback={null}>
-              <CategoryNavLinks className="hidden min-w-0 md:flex" />
+              <CategoryNavLinks className="hidden min-w-0 md:flex lg:hidden" />
             </Suspense>
-            <MainNavLinks className="hidden xl:flex" />
+            {/* lg+: Discover / Sitters / Hosts / Pricing — room for logged-in right icons */}
+            <MainNavLinks className="hidden shrink-0 lg:flex" />
           </div>
 
           {/* Right: actions */}
-          <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1.5 lg:gap-2">
             <div className="hidden sm:block">
               <LanguageSwitcher />
             </div>
