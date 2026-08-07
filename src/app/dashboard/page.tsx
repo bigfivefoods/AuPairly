@@ -17,6 +17,7 @@ import { Badge, Card, PageHeader, VerifiedBadge } from "@/components/ui";
 import { UserAvatar } from "@/components/user-avatar";
 import { CompletenessCoach } from "@/components/completeness-coach";
 import { PushSettingsCard } from "@/components/pwa-provider";
+import { InviteCard } from "@/components/invite-card";
 import { responseTimeLabel } from "@/lib/completeness";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -262,23 +263,7 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Simple invite / growth */}
-      <Card className="mb-8 border-teal-100 bg-gradient-to-r from-teal-50/80 to-white">
-        <h3 className="font-display text-lg font-semibold text-stone-900">Invite someone to AuPairly</h3>
-        <p className="mt-1 text-sm text-stone-500">
-          Share AuPairly with a host or sitter. More local supply = better matches for everyone.
-        </p>
-        <p className="mt-3 break-all rounded-xl border border-teal-100 bg-white px-3 py-2 font-mono text-xs text-teal-800">
-          {(
-            process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"
-          ).replace(/\/$/, "")}
-          /register?ref={user.id.slice(0, 8)}
-        </p>
-        <p className="mt-2 text-xs text-stone-400">
-          Suggested share text: “Join me on AuPairly — trusted care for family, loved ones, home
-          &amp; pets.”
-        </p>
-      </Card>
+      <InviteCard userId={user.id} userName={user.name} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

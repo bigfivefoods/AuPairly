@@ -101,6 +101,11 @@ model User {
   householdMembers    User[]   @relation("Household")
   partnerInviteToken  String?  @unique
 
+  /// Who invited this user (register?ref=…)
+  referredById        String?
+  referredBy          User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals           User[]   @relation("UserReferrals")
+
   placementsAsParent  Placement[] @relation("PlacementParent")
   placementsAsAupair  Placement[] @relation("PlacementAupair")
   referencesRequested ReferenceRequest[] @relation("RefsRequested")

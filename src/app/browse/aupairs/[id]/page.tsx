@@ -21,6 +21,7 @@ import { InterestButton } from "@/components/interest-button";
 import { StartPlacementButton } from "@/components/start-placement-button";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { PeerConnectButton } from "@/components/peer-connect-button";
+import { ShareButtons } from "@/components/share-buttons";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { JsonLd } from "@/components/json-ld";
@@ -591,6 +592,13 @@ export default async function AuPairDetailPage({
                   Log in to connect
                 </Link>
               )}
+            </div>
+            <div className="mt-4 border-t border-stone-100 pt-4">
+              <ShareButtons
+                url={`/browse/aupairs/${profile.id}`}
+                title={`${profile.user.name} on AuPairly`}
+                text={`Check out ${profile.user.name.split(" ")[0]} on AuPairly — verified care marketplace.`}
+              />
             </div>
             {session?.user && !isOwn && (
               <div className="mt-4 border-t border-stone-100 pt-4">

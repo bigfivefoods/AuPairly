@@ -17,6 +17,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") === "PARENT" ? "PARENT" : "AUPAIR";
+  const refCode = searchParams.get("ref")?.trim() || "";
 
   const [step, setStep] = useState<Step>("email");
   const [role, setRole] = useState<"AUPAIR" | "PARENT">(initialRole);
@@ -147,6 +148,7 @@ function RegisterForm() {
           password,
           role,
           privyAccessToken,
+          ...(refCode ? { refCode } : {}),
         }),
       });
       const data = await res.json();
@@ -188,6 +190,11 @@ function RegisterForm() {
         <p className="mt-2 text-stone-500">
           Trusted care for your family, loved ones, home &amp; pets.
         </p>
+        {refCode && (
+          <p className="mt-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
+            You were invited — welcome!
+          </p>
+        )}
       </div>
 
       {/* Progress */}

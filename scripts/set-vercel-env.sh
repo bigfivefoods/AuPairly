@@ -93,9 +93,21 @@ set_env DIDIT_API_BASE "${DIDIT_API_BASE:-https://verification.didit.me/v3}"
 set_env NEXT_PUBLIC_FACEBOOK_APP_ID "${NEXT_PUBLIC_FACEBOOK_APP_ID:-${AUTH_FACEBOOK_ID:-}}"
 set_env AUTH_FACEBOOK_SECRET "${AUTH_FACEBOOK_SECRET:-${FACEBOOK_APP_SECRET:-}}"
 
+# Privy — email OTP before registration (required for /register in production)
+# NEXT_PUBLIC_* must be available at Build + Runtime on Vercel
+set_env NEXT_PUBLIC_PRIVY_APP_ID "${NEXT_PUBLIC_PRIVY_APP_ID:-${PRIVY_APP_ID:-}}"
+set_env PRIVY_APP_ID "${PRIVY_APP_ID:-${NEXT_PUBLIC_PRIVY_APP_ID:-}}"
+set_env PRIVY_APP_SECRET "${PRIVY_APP_SECRET:-}"
+set_env PRIVY_EMAIL_VERIFY_REQUIRED "${PRIVY_EMAIL_VERIFY_REQUIRED:-true}"
+set_env PRIVY_VERIFICATION_KEY "${PRIVY_VERIFICATION_KEY:-}"
+set_env NEXT_PUBLIC_PRIVY_CLIENT_ID "${NEXT_PUBLIC_PRIVY_CLIENT_ID:-}"
+
 echo "Triggering production redeploy..."
 npx vercel --prod --yes "${TOKEN_FLAG[@]}"
 
 echo ""
-echo "Done. Check: https://www.aupairly.me/verification"
+echo "Done. Check:"
+echo "  https://www.aupairly.me/verification"
+echo "  https://www.aupairly.me/register  (Privy OTP when NEXT_PUBLIC_PRIVY_APP_ID is set)"
 echo "Didit live when GET /api/verification/kyc shows didit.live=true (logged in)."
+echo "Privy: setup card gone when App ID is in the production build."

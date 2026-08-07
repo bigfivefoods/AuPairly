@@ -21,6 +21,7 @@ import { ApplyPacketButton } from "@/components/apply-packet-button";
 import { ShortlistButton } from "@/components/shortlist-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
+import { ShareButtons } from "@/components/share-buttons";
 import { JsonLd } from "@/components/json-ld";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
 import { ScheduleDisplay } from "@/components/schedule-display";
@@ -437,6 +438,13 @@ export default async function FamilyDetailPage({
                   Log in to connect
                 </Link>
               )}
+            </div>
+            <div className="mt-4 border-t border-stone-100 pt-4">
+              <ShareButtons
+                url={`/browse/families/${profile.id}`}
+                title={`${displayName} on AuPairly`}
+                text={`Host listing on AuPairly: ${displayName}. Trusted care marketplace.`}
+              />
             </div>
             {session?.user && !isOwn && (
               <div className="mt-4 border-t border-stone-100 pt-4">
