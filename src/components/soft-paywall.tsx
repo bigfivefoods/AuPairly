@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 
 /** Inline upgrade nudge when Free plan limits hit */
 export function SoftPaywall({
-  title = "Daily limit reached",
-  body = "Upgrade for unlimited messages, interests, and Discover — from R99 for 2 weeks.",
+  title = "You're getting matches — keep going",
+  body = "Free plans cap messages and interests. Unlock unlimited matching so conversations don't stop mid-hire.",
   used,
   limit,
   className,
@@ -37,7 +37,7 @@ export function SoftPaywall({
           <p className="font-display text-base font-semibold text-stone-900">{title}</p>
           {used != null && limit != null && (
             <p className="mt-0.5 text-xs font-medium text-amber-900/80">
-              {used}/{limit} used on Free today
+              {used}/{limit} used on Free
             </p>
           )}
           <p className="mt-1 text-sm text-stone-600">{body}</p>
@@ -45,14 +45,19 @@ export function SoftPaywall({
             <Link href="/pricing?period=WEEK&plan=PLUS">
               <Button type="button" variant="primary" className="min-h-9 px-4 text-sm">
                 <Sparkles className="h-3.5 w-3.5" />
-                Plus from R99 / 2 weeks
+                Try Plus · R99 / 2 weeks
+              </Button>
+            </Link>
+            <Link href="/pricing?period=QUARTER&plan=PLUS">
+              <Button type="button" variant="secondary" className="min-h-9 px-4 text-sm">
+                Best value · R249 / 3 mo
               </Button>
             </Link>
             <Link
               href="/pricing"
               className="inline-flex items-center text-sm font-semibold text-teal-800 hover:underline"
             >
-              See all plans
+              All plans
             </Link>
           </div>
         </div>

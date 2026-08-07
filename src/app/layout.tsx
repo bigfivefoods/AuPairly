@@ -8,6 +8,7 @@ import { getRequestLocale } from "@/lib/i18n/server";
 import { LOCALE_META } from "@/lib/i18n/config";
 import { PUBLIC_SITE_URL, SEO } from "@/lib/seo";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
+import { SentryClient } from "@/components/sentry-client";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -159,6 +160,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <AppChrome>{children}</AppChrome>
           <PwaProvider />
           <AnalyticsScripts />
+          <SentryClient />
         </Providers>
       </body>
     </html>

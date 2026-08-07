@@ -23,7 +23,7 @@ import { canAccessManagement, MANAGEMENT_OWNER_EMAIL } from "@/lib/management";
 import { PageHeader, Card, Badge } from "@/components/ui";
 import { buildPageMetadata } from "@/lib/seo";
 import { isPrivyConfigured } from "@/lib/privy";
-import { isPaystackConfigured } from "@/lib/paystack";
+import { isPaystackConfigured, paystackMode } from "@/lib/paystack";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPageMetadata({
@@ -306,10 +306,12 @@ export default async function ManagePage() {
       database: true,
       privy: isPrivyConfigured(),
       paystack: isPaystackConfigured(),
+      paystackMode: paystackMode(),
       resend: Boolean(process.env.RESEND_API_KEY),
-      cron: Boolean(process.env.CRON_SECRET),
+      cron: Boolean(process.env.CRON_SECRET?.trim() && process.env.CRON_SECRET.trim().length >= 16),
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || null,
       autoVerify: process.env.AUTO_VERIFY === "true",
+      webhookUrl: `${(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me").replace(/\/$/, "")}/api/billing/webhook`,
     }),
   ]);
 
@@ -482,7 +484,11 @@ export default async function ManagePage() {
           <ul className="mt-4 space-y-2 text-sm">
             <Flag ok={system.database} label="Database" />
             <Flag ok={system.privy} label="Privy (email OTP)" />
-            <Flag ok={system.paystack} label="Paystack" />
+            <Flag
+              ok={system.paystack && system.paystackMode === "live"}
+              label={`Paystack (${system.paystackMode})`}
+              warn={system.paystack && system.paystackMode === "test"}
+            />
             <Flag ok={system.resend} label="Resend (digest emails)" />
             <Flag ok={system.cron} label="CRON_SECRET" />
             <Flag ok={!system.autoVerify} label="AUTO_VERIFY off (prod safe)" warn={system.autoVerify} />
@@ -492,6 +498,21 @@ export default async function ManagePage() {
               Site URL: <span className="font-medium text-stone-700">{system.siteUrl}</span>
             </p>
           )}
+          <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 px-3 py-3 text-xs text-stone-600">
+            <p className="font-semibold text-stone-800">Paystack live checklist</p>
+            <ol className="mt-1 list-decimal space-y-1 pl-4">
+              <li>
+                Dashboard → API Keys: use <code className="text-[10px]">sk_live_</code> +{" "}
+                <code className="text-[10px]">pk_live_</code> on Vercel Production
+              </li>
+              <li>
+                Webhook URL:{" "}
+                <code className="break-all text-[10px]">{system.webhookUrl}</code>
+              </li>
+              <li>Event: charge.success · redeploy after key change</li>
+              <li>Test: /pricing → Plus R99 · confirm plan in this console</li>
+            </ol>
+          </div>
         </Card>
       </section>
 

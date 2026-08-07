@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Loader2, Check } from "lucide-react";
 import { Button, Textarea } from "@/components/ui";
+import { SoftPaywall } from "@/components/soft-paywall";
 
 export function InterestButton({
   toUserId,
@@ -20,10 +21,14 @@ export function InterestButton({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [limitHit, setLimitHit] = useState<{ used?: number; limit?: number } | null>(
+    null
+  );
 
   async function submit() {
     setLoading(true);
     setError("");
+    setLimitHit(null);
     try {
       const res = await fetch("/api/interests", {
         method: "POST",
@@ -37,6 +42,7 @@ export function InterestButton({
           return;
         }
         if (res.status === 402) {
+          setLimitHit({ used: data.used, limit: data.limit });
           setError(data.error || "Upgrade to send more interests");
           return;
         }
@@ -93,15 +99,16 @@ export function InterestButton({
             placeholder="A short note about timing, kids, languages…"
             className="min-h-[90px] bg-white"
           />
-          {error && (
-            <p className="text-sm text-red-600">
-              {error}{" "}
-              {error.toLowerCase().includes("upgrade") && (
-                <a href="/pricing" className="font-semibold underline">
-                  View plans
-                </a>
-              )}
-            </p>
+          {limitHit ? (
+            <SoftPaywall
+              compact
+              title="Weekly interest limit"
+              body="You've used free interests for this week. Unlock unlimited matching so you can contact every good fit."
+              used={limitHit.used}
+              limit={limitHit.limit}
+            />
+          ) : (
+            error && <p className="text-sm text-red-600">{error}</p>
           )}
           <div className="flex flex-wrap gap-2">
             <Button onClick={submit} disabled={loading}>

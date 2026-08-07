@@ -25,6 +25,8 @@ import {
   isPaystackConfigured,
   makeReference,
   paystackErrorResponse,
+  paystackLiveRequiredError,
+  paystackMode,
 } from "@/lib/paystack";
 
 export async function POST(req: Request) {
@@ -102,6 +104,18 @@ export async function POST(req: Request) {
   }
 
   try {
+    const liveBlock = paystackLiveRequiredError();
+    if (liveBlock) {
+      return NextResponse.json(
+        {
+          error: liveBlock,
+          paystackMode: paystackMode(),
+          upgradeUrl: "/support",
+        },
+        { status: 503 }
+      );
+    }
+
     const amountCents = priceCentsFor(plan, period);
     if (amountCents < 100) {
       return NextResponse.json({ error: "Invalid plan amount" }, { status: 400 });

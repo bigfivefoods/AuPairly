@@ -544,9 +544,17 @@ export function VerificationClient({
                   : " · SA check free (Paystack off)"}
             </p>
             {!kycFee.configured && (
-              <p className="mt-2 text-xs text-amber-800">
-                VerifyNow is not live yet. Add <code className="rounded bg-amber-100 px-1">VERIFYNOW_API_KEY</code>{" "}
-                (<code className="rounded bg-amber-100 px-1">vn_live_…</code>) on Vercel, then redeploy.
+              <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                <strong>SA ID verification is not live yet.</strong> Until{" "}
+                <code className="rounded bg-amber-100 px-1">VERIFYNOW_API_KEY=vn_live_…</code> is on
+                Vercel, use document upload for admin review. The verified badge only appears after
+                approval when <code className="rounded bg-amber-100 px-1">AUTO_VERIFY=false</code>.
+              </p>
+            )}
+            {kycFee.configured && kycFee.live && (
+              <p className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-950">
+                <strong>Live SA verification is on.</strong> Complete VerifyNow for a trust badge
+                that ranks higher in Discover. Use good lighting for the selfie.
               </p>
             )}
             {paystackInfo.mode === "test" && kycFee.paystackRequired && (
