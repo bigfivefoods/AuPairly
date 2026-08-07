@@ -18,8 +18,10 @@ export async function GET() {
 
   const privy = isPrivyConfigured();
   const paystack = isPaystackConfigured();
-  const resend = Boolean(process.env.RESEND_API_KEY);
-  const cron = Boolean(process.env.CRON_SECRET);
+  const resend = Boolean(process.env.RESEND_API_KEY?.trim());
+  // Must be non-empty after trim — empty string still counts as "set" in some UIs
+  const cronSecret = process.env.CRON_SECRET?.trim() || "";
+  const cron = cronSecret.length >= 16;
 
   const ready =
     database === "ok" &&
@@ -51,7 +53,7 @@ export async function GET() {
           : "Set RESEND_API_KEY + EMAIL_FROM for digest emails",
         cron: cron
           ? "OK"
-          : "Set CRON_SECRET for Vercel cron auth on /api/cron/*",
+          : "CRON_SECRET missing on this deployment. In Vercel: exact name CRON_SECRET, Environment=Production, then Redeploy (env vars only apply after redeploy).",
       },
     },
     { status: database === "ok" ? 200 : 503 }
