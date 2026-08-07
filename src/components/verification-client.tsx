@@ -336,9 +336,9 @@ export function VerificationClient({
               Automated identity check
             </h2>
             <p className="mt-1 text-sm text-stone-500">
-              <strong>South Africa:</strong> VerifyNow SA ID + face match.{" "}
-              <strong>International:</strong> Didit document + liveness when configured; otherwise
-              upload documents below for review.
+              <strong>South Africa:</strong> VerifyNow Standard KYC Bundle (Home Affairs ID) + face
+              match. <strong>International:</strong> Didit document + liveness when configured;
+              otherwise upload documents below for review.
             </p>
             <p className="mt-1 text-xs text-stone-400">
               Providers: VerifyNow {providers.verifynow ? "● live" : "○ not configured"} · Didit{" "}
