@@ -221,6 +221,9 @@ export default async function AccountReportPage() {
             <Link href="/billing" className="btn-secondary text-sm">
               Manage plan
             </Link>
+            <Link href="/refunds" className="btn-secondary text-sm">
+              Refund policy
+            </Link>
             <Link href="/dashboard" className="btn-primary text-sm">
               Dashboard
             </Link>

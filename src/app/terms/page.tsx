@@ -38,6 +38,10 @@ export default function TermsPage() {
             <Link href="/privacy" className="font-semibold text-teal-700 hover:underline">
               Privacy Policy
             </Link>
+            , our{" "}
+            <Link href="/refunds" className="font-semibold text-teal-700 hover:underline">
+              Refund Policy
+            </Link>
             , and our{" "}
             <Link href="/disclaimer" className="font-semibold text-teal-700 hover:underline">
               Platform Disclaimer
@@ -249,6 +253,9 @@ export default function TermsPage() {
         </Link>
         <Link href="/privacy" className="font-semibold text-teal-700 hover:underline">
           Privacy (POPIA) →
+        </Link>
+        <Link href="/refunds" className="font-semibold text-teal-700 hover:underline">
+          Refund policy →
         </Link>
         <Link href="/safety" className="font-semibold text-teal-700 hover:underline">
           Safety tips →
