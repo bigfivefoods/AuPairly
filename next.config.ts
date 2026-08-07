@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  /**
+   * Route before catch-all `[service]/[city]`.
+   * Next may not prioritize public/.well-known over dynamic segments on all deploys.
+   */
+  async rewrites() {
+    return [
+      {
+        source: "/.well-known/apple-developer-merchantid-domain-association",
+        destination: "/api/apple-pay-domain-association",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
