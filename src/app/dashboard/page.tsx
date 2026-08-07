@@ -397,12 +397,6 @@ export default async function DashboardPage() {
               desc="Passport, clearance, first aid"
             />
             <Action
-              href="/connect"
-              icon={<Sparkles className="h-5 w-5" />}
-              title="Sell with Paystack"
-              desc="List products · cards & Apple Pay (SA)"
-            />
-            <Action
               href="/verification"
               icon={<Shield className="h-5 w-5" />}
               title="Verification center"
