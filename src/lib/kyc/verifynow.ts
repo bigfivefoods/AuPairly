@@ -16,12 +16,26 @@ export function isVerifyNowConfigured() {
 }
 
 /**
- * Live vs sandbox.
- * - Explicit VERIFYNOW_MODE=production|live|sandbox|test wins
- * - Else vn_live_* keys default to production (real Home Affairs credits)
- * - Else sandbox
+ * Live vs sandbox for VerifyNow API body `mode`.
+ *
+ * Rules (in order):
+ * 1. vn_live_* keys always production — cannot be forced to sandbox unless
+ *    VERIFYNOW_FORCE_SANDBOX=true (avoids accidental free/sandbox runs with live keys)
+ * 2. vn_test_* keys always sandbox
+ * 3. Explicit VERIFYNOW_MODE=production|live|sandbox|test
+ * 4. Default sandbox
  */
 export function verifyNowMode(): "sandbox" | "production" {
+  const key = (process.env.VERIFYNOW_API_KEY || "").trim();
+  const forceSandbox = process.env.VERIFYNOW_FORCE_SANDBOX === "true";
+
+  if (key.startsWith("vn_live_")) {
+    return forceSandbox ? "sandbox" : "production";
+  }
+  if (key.startsWith("vn_test_")) {
+    return "sandbox";
+  }
+
   const explicit = (process.env.VERIFYNOW_MODE || "").trim().toLowerCase();
   if (explicit === "production" || explicit === "live" || explicit === "prod") {
     return "production";
@@ -29,8 +43,6 @@ export function verifyNowMode(): "sandbox" | "production" {
   if (explicit === "sandbox" || explicit === "test" || explicit === "dev") {
     return "sandbox";
   }
-  const key = (process.env.VERIFYNOW_API_KEY || "").trim();
-  if (key.startsWith("vn_live_")) return "production";
   return "sandbox";
 }
 
