@@ -353,91 +353,93 @@ export default async function DashboardPage({
 
       {user.role !== "ADMIN" && (
       <>
-      {/* Primary hub: next actions from completeness + live signals */}
-      <div className="mb-8 grid gap-4 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <CompletenessCoach
-            input={{
-              role: user.role,
-              name: user.name,
-              image: meUser?.image || user.image,
-              videoIntroUrl: meUser?.videoIntroUrl,
-              headline: profile?.headline,
-              bio: profile?.bio,
-              city: profile?.city,
-              country: profile?.country,
-              languages: profile?.languages,
-              services: profile?.services,
-              status: profile?.status,
-              isVerified,
-              experienceYears: aupair?.experienceYears,
-              pocketMoneyMin: aupair?.pocketMoneyMin,
-              availableFrom: aupair?.availableFrom,
-              workRights: aupair?.workRights,
-              childrenCount: family?.childrenCount,
-              childrenAges: family?.childrenAges,
-              pocketMoney: family?.pocketMoney,
-              startDate: family?.startDate,
-              schoolArea: family?.schoolArea,
-              lifestyleNotes: family?.lifestyleNotes,
-              referenceCount: refCount,
-              documentCount: docCount,
-              safetyScore: meUser?.safetyScore,
-            }}
-          />
-        </div>
-        <Card className="lg:col-span-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-            Right now
-          </p>
-          <h3 className="mt-1 font-display text-lg font-semibold text-stone-900">
-            Your next 3 moves
-          </h3>
-          <ul className="mt-4 space-y-2">
-            <li>
-              <Link
-                href="/messages"
-                className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-semibold text-stone-800 hover:border-teal-300"
-              >
-                Messages
-                <span className="text-xs font-medium text-stone-500">{conversations}</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={listingStatus === "ACTIVE" ? "/discover" : "/profile/edit"}
-                className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-semibold text-stone-800 hover:border-teal-300"
-              >
-                {listingStatus === "ACTIVE" ? "Discover matches" : "Publish your listing"}
-                <span className="text-xs font-medium text-teal-700">Go →</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={
-                  user.role === "AUPAIR"
-                    ? profile?.city
-                      ? "/community"
-                      : "/profile/edit"
-                    : isVerified
-                      ? "/browse/aupairs"
-                      : "/verification"
-                }
-                className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-semibold text-stone-800 hover:border-teal-300"
-              >
-                {user.role === "AUPAIR"
-                  ? profile?.city
-                    ? "AuPair Connect nearby"
-                    : "Add your city for friends"
-                  : isVerified
-                    ? "Browse sitters"
-                    : "Get verified"}
-                <span className="text-xs font-medium text-teal-700">Go →</span>
-              </Link>
-            </li>
-          </ul>
-        </Card>
+      {/* Profile completion — full width so progress is impossible to miss */}
+      <div className="mb-6">
+        <CompletenessCoach
+          defaultExpanded
+          input={{
+            role: user.role,
+            name: user.name,
+            image: meUser?.image || user.image,
+            videoIntroUrl: meUser?.videoIntroUrl,
+            headline: profile?.headline,
+            bio: profile?.bio,
+            city: profile?.city,
+            country: profile?.country,
+            languages: profile?.languages,
+            services: profile?.services,
+            status: profile?.status,
+            isVerified,
+            experienceYears: aupair?.experienceYears,
+            pocketMoneyMin: aupair?.pocketMoneyMin,
+            availableFrom: aupair?.availableFrom,
+            workRights: aupair?.workRights,
+            photos: aupair?.photos || family?.photos,
+            childrenCount: family?.childrenCount,
+            childrenAges: family?.childrenAges,
+            pocketMoney: family?.pocketMoney,
+            startDate: family?.startDate,
+            schoolArea: family?.schoolArea,
+            lifestyleNotes: family?.lifestyleNotes,
+            referenceCount: refCount,
+            documentCount: docCount,
+            safetyScore: meUser?.safetyScore,
+          }}
+        />
       </div>
+
+      {/* Quick moves under completion */}
+      <Card className="mb-8">
+        <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+          Right now
+        </p>
+        <h3 className="mt-1 font-display text-lg font-semibold text-stone-900">
+          Your next 3 moves
+        </h3>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-3">
+          <li>
+            <Link
+              href="/messages"
+              className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-semibold text-stone-800 hover:border-teal-300"
+            >
+              Messages
+              <span className="text-xs font-medium text-stone-500">{conversations}</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={listingStatus === "ACTIVE" ? "/discover" : "/profile/edit"}
+              className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-semibold text-stone-800 hover:border-teal-300"
+            >
+              {listingStatus === "ACTIVE" ? "Discover matches" : "Publish listing"}
+              <span className="text-xs font-medium text-teal-700">Go →</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={
+                user.role === "AUPAIR"
+                  ? profile?.city
+                    ? "/community"
+                    : "/profile/edit"
+                  : isVerified
+                    ? "/browse/aupairs"
+                    : "/verification"
+              }
+              className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm font-semibold text-stone-800 hover:border-teal-300"
+            >
+              {user.role === "AUPAIR"
+                ? profile?.city
+                  ? "AuPair Connect"
+                  : "Add your city"
+                : isVerified
+                  ? "Browse sitters"
+                  : "Get verified"}
+              <span className="text-xs font-medium text-teal-700">Go →</span>
+            </Link>
+          </li>
+        </ul>
+      </Card>
 
       {/* Activation checklist */}
       <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

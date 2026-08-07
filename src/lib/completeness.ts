@@ -53,8 +53,15 @@ export type CompletenessResult = {
   score: number;
   maxScore: number;
   percent: number;
+  /** Points still needed for 100% */
+  remainingPoints: number;
+  doneCount: number;
+  totalCount: number;
   actions: CompletenessAction[];
+  /** Highest-impact pending steps first */
   nextThree: CompletenessAction[];
+  pending: CompletenessAction[];
+  completed: CompletenessAction[];
 };
 
 function langs(input: CompletenessInput): string[] {
@@ -249,16 +256,22 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
   }
 
   const maxScore = actions.reduce((s, a) => s + a.points, 0) || 1;
-  const score = actions.filter((a) => a.done).reduce((s, a) => s + a.points, 0);
+  const completed = actions.filter((a) => a.done);
+  const score = completed.reduce((s, a) => s + a.points, 0);
   const pending = actions.filter((a) => !a.done).sort((a, b) => b.points - a.points);
-  const percent = Math.round((score / maxScore) * 100);
+  const percent = Math.min(100, Math.round((score / maxScore) * 100));
 
   return {
     score,
     maxScore,
     percent,
+    remainingPoints: Math.max(0, maxScore - score),
+    doneCount: completed.length,
+    totalCount: actions.length,
     actions,
     nextThree: pending.slice(0, 3),
+    pending,
+    completed,
   };
 }
 
