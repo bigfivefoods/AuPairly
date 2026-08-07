@@ -179,25 +179,25 @@ export function HomeBodyI18n({
         </div>
       </section>
 
-      {/* Featured sitters */}
-      {featuredAupairs.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="mb-10 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">
-                {t("home_featured")}
-              </p>
-              <h2 className="mt-1 font-display text-3xl font-semibold text-stone-900">
-                {t("home_featured_sitters")}
-              </h2>
-            </div>
-            <Link
-              href="/browse/aupairs"
-              className="hidden items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800 sm:inline-flex"
-            >
-              {t("home_view_all")} <ArrowRight className="h-4 w-4" />
-            </Link>
+      {/* Featured sitters — or invite first listings when empty */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mb-10 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-teal-700">
+              {t("home_featured")}
+            </p>
+            <h2 className="mt-1 font-display text-3xl font-semibold text-stone-900">
+              {t("home_featured_sitters")}
+            </h2>
           </div>
+          <Link
+            href="/browse/aupairs"
+            className="hidden items-center gap-1 text-sm font-semibold text-teal-700 hover:text-teal-800 sm:inline-flex"
+          >
+            {t("home_view_all")} <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        {featuredAupairs.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featuredAupairs.map((a) => (
               <AuPairCard
@@ -205,6 +205,7 @@ export function HomeBodyI18n({
                 id={a.id}
                 name={a.user.name}
                 image={a.user.image}
+                coverImage={a.coverImage}
                 headline={a.headline}
                 city={a.city}
                 country={a.country}
@@ -223,8 +224,26 @@ export function HomeBodyI18n({
               />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="rounded-3xl border border-dashed border-teal-200 bg-gradient-to-br from-teal-50 to-white px-6 py-12 text-center">
+            <p className="font-display text-xl font-semibold text-stone-900">
+              Be among the first verified sitters
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-stone-600">
+              New marketplace — publish your listing, get verified, and meet hosts (and friends via
+              AuPair Connect when you&apos;re abroad).
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <Link href="/register?role=AUPAIR" className="btn-primary">
+                Join as a sitter
+              </Link>
+              <Link href="/how-it-works" className="btn-secondary">
+                How it works
+              </Link>
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* Featured hosts */}
       {featuredFamilies.length > 0 && (

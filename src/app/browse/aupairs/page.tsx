@@ -12,14 +12,14 @@ import { serviceFromParam, SERVICES } from "@/lib/services";
 import { profileIdsForService } from "@/lib/service-tags";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Find verified sitters & au pairs",
+  title: "Find verified sitters & care providers",
   description:
-    "Browse verified au pairs, babysitters, caregivers, house sitters, and pet sitters. Filter by city, services, and availability on AuPairly.",
+    "Browse verified sitters, babysitters, caregivers, house sitters, and pet sitters. Filter by city, services, and availability on AuPairly.",
   path: "/browse/aupairs",
-  keywords: ["find au pair", "hire babysitter", "caregiver listings"],
+  keywords: ["find au pair", "hire babysitter", "caregiver listings", "find sitter"],
 });
 
 type SearchParams = Promise<{
@@ -300,6 +300,7 @@ export default async function BrowseAupairsPage({
                 id={a.id}
                 name={a.user.name}
                 image={a.user.image}
+                coverImage={a.coverImage}
                 headline={a.headline}
                 city={a.city}
                 region={a.region}
@@ -317,6 +318,12 @@ export default async function BrowseAupairsPage({
                 weeklyHours={a.weeklyHours}
                 scheduleJson={a.scheduleJson}
                 services={a.services}
+                safetyScore={a.user.safetyScore}
+                responseLabel={
+                  a.user.avgResponseMinutes != null
+                    ? `Usually replies in ~${Math.max(1, Math.round(a.user.avgResponseMinutes))}m`
+                    : null
+                }
               />
             ))}
           </div>

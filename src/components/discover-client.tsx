@@ -247,18 +247,33 @@ export function DiscoverClient({
       <div>
         {filterBar}
         <div className="rounded-3xl border border-dashed border-stone-300 bg-white px-6 py-16 text-center">
-          <p className="font-display text-xl font-semibold text-stone-800">No more cards</p>
+          <p className="font-display text-xl font-semibold text-stone-800">
+            You&apos;re all caught up
+          </p>
           <p className="mt-2 text-sm text-stone-500">
             {service
-              ? "No more people in this category. Try another service or browse all listings."
-              : "You've seen everyone for now. Check back later or browse the full marketplace."}
+              ? "No more people in this category. Try another service, widen filters, or browse the marketplace."
+              : "You've seen everyone for now. Browse listings, complete your profile, or check back tomorrow."}
           </p>
-          <Link
-            href={role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
-            className="btn-primary mt-6 inline-flex"
-          >
-            Browse all listings
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href={role === "AUPAIR" ? "/browse/families" : "/browse/aupairs"}
+              className="btn-primary inline-flex"
+            >
+              Browse marketplace
+            </Link>
+            <Link href="/profile/edit" className="btn-secondary inline-flex">
+              Complete profile
+            </Link>
+            {role === "AUPAIR" && (
+              <Link href="/community" className="btn-secondary inline-flex">
+                AuPair Connect
+              </Link>
+            )}
+            <Link href="/saved-searches" className="text-sm font-semibold text-teal-700 underline">
+              Saved searches
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -397,11 +412,24 @@ export function DiscoverClient({
                 type="button"
                 className="text-xs font-semibold text-stone-600 hover:text-teal-700"
                 onClick={async () => {
-                  await fetch("/api/shortlist", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ targetUserId: card.userId }),
-                  });
+                  try {
+                    const res = await fetch("/api/shortlist", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ targetUserId: card.userId }),
+                    });
+                    if (res.ok) {
+                      setUpgradeMsg("");
+                      // lightweight feedback via match-adjacent banner
+                      setUpgradeMsg("Saved to shortlist ✓");
+                      setTimeout(() => setUpgradeMsg(""), 2500);
+                    } else {
+                      const d = await res.json().catch(() => ({}));
+                      setUpgradeMsg(d.error || "Could not shortlist");
+                    }
+                  } catch {
+                    setUpgradeMsg("Could not shortlist");
+                  }
                 }}
               >
                 + Shortlist

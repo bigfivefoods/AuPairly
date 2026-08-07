@@ -12,14 +12,14 @@ import { serviceFromParam, SERVICES } from "@/lib/services";
 import { profileIdsForService } from "@/lib/service-tags";
 import { buildPageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Find host families & care jobs",
+  title: "Find hosts & care jobs",
   description:
-    "Browse families and hosts seeking childcare, caregiving, house sitting, or pet sitting. Apply and message securely on AuPairly.",
+    "Browse hosts seeking childcare, caregiving, house sitting, or pet sitting. Apply and message securely on AuPairly.",
   path: "/browse/families",
-  keywords: ["au pair jobs", "babysitting jobs", "house sitting jobs"],
+  keywords: ["au pair jobs", "babysitting jobs", "house sitting jobs", "find host family"],
 });
 
 type SearchParams = Promise<{

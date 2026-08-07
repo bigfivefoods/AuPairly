@@ -4,6 +4,8 @@ import { MessageCircle } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { Avatar, EmptyState, PageHeader, Badge } from "@/components/ui";
+import { roleLabel } from "@/lib/brand";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Messages" };
@@ -21,6 +23,13 @@ export default async function MessagesPage() {
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
+        select: {
+          id: true,
+          body: true,
+          createdAt: true,
+          senderId: true,
+          status: true,
+        },
       },
     },
     orderBy: { lastMessageAt: "desc" },
@@ -52,6 +61,9 @@ export default async function MessagesPage() {
               >
                 Browse marketplace
               </Link>
+              <Link href="/discover" className="btn-secondary">
+                Discover
+              </Link>
               {user.role === "AUPAIR" && (
                 <Link href="/community" className="btn-secondary">
                   AuPair Connect
@@ -65,19 +77,48 @@ export default async function MessagesPage() {
           {conversations.map((c) => {
             const other = c.userAId === user.id ? c.userB : c.userA;
             const last = c.messages[0];
+            const unread =
+              Boolean(last) &&
+              last!.senderId !== user.id &&
+              last!.status === "SENT";
             return (
               <Link
                 key={c.id}
                 href={`/messages/${c.id}`}
-                className="flex items-center gap-4 px-5 py-4 transition hover:bg-stone-50"
+                className={cn(
+                  "flex items-center gap-4 px-5 py-4 transition hover:bg-stone-50",
+                  unread && "bg-teal-50/40"
+                )}
               >
-                <Avatar name={other.name} image={other.image} size="md" />
+                <div className="relative">
+                  <Avatar name={other.name} image={other.image} size="md" />
+                  {unread && (
+                    <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-teal-600 ring-2 ring-white" />
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate font-semibold text-stone-900">{other.name}</p>
-                    <Badge>{other.role === "AUPAIR" ? "Sitter" : "Host"}</Badge>
+                    <p
+                      className={cn(
+                        "truncate text-stone-900",
+                        unread ? "font-bold" : "font-semibold"
+                      )}
+                    >
+                      {other.name}
+                    </p>
+                    <Badge>{roleLabel(other.role)}</Badge>
+                    {unread && (
+                      <span className="rounded-full bg-teal-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                        New
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-0.5 truncate text-sm text-stone-500">
+                  <p
+                    className={cn(
+                      "mt-0.5 truncate text-sm",
+                      unread ? "font-medium text-stone-800" : "text-stone-500"
+                    )}
+                  >
                     {last?.body || "No messages yet"}
                   </p>
                 </div>

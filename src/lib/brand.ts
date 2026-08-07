@@ -26,4 +26,25 @@ export const BRAND = {
   whatsapp: "+27 82 581 4215",
   whatsappE164: "27825814215",
   whatsappHref: "https://wa.me/27825814215",
+  /**
+   * Product glossary — use in UI copy.
+   * Internal roles stay AUPAIR / PARENT; user-facing labels are Sitter / Host.
+   * “Au pair” is a childcare service type, not the account name.
+   */
+  roles: {
+    sitter: "Sitter",
+    host: "Host",
+    sitterAlt: "Sitter / care provider",
+    hostAlt: "Host / family",
+    peerCommunity: "AuPair Connect",
+  },
 } as const;
+
+/** Map Auth.js / Prisma role to UI label */
+export function roleLabel(role?: string | null): string {
+  const r = (role || "").toUpperCase();
+  if (r === "AUPAIR") return BRAND.roles.sitter;
+  if (r === "PARENT") return BRAND.roles.host;
+  if (r === "ADMIN") return "Admin";
+  return "Member";
+}

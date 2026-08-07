@@ -257,7 +257,16 @@ export default async function AuPairDetailPage({
       <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="lg:col-span-2 space-y-6">
           <Card className="!p-0 overflow-hidden">
-            <div className="h-36 bg-gradient-to-br from-teal-100 via-teal-50 to-orange-50" />
+            <div className="relative h-36 bg-gradient-to-br from-teal-100 via-teal-50 to-orange-50">
+              {(profile.coverImage || photos[0]) && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.coverImage || photos[0]}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              )}
+            </div>
             <div className="relative px-6 pb-6">
               <div className="-mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex items-end gap-4">
@@ -275,9 +284,29 @@ export default async function AuPairDetailPage({
                       {profile.isVerified && <VerifiedBadge />}
                     </div>
                     <p className="mt-1 text-stone-500">{profile.headline}</p>
-                    {replyLabel && (
-                      <p className="mt-1 text-xs font-medium text-teal-700">{replyLabel}</p>
-                    )}
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {profile.isVerified && (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                          Verified
+                        </span>
+                      )}
+                      {replyLabel && (
+                        <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-semibold text-teal-800">
+                          {replyLabel}
+                        </span>
+                      )}
+                      {typeof profile.user.safetyScore === "number" &&
+                        profile.user.safetyScore >= 60 && (
+                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-700">
+                            Safety {profile.user.safetyScore}
+                          </span>
+                        )}
+                      {profile.rating > 0 && (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
+                          {profile.rating.toFixed(1)} · {profile.reviewCount} reviews
+                        </span>
+                      )}
+                    </div>
                     {profile.workRights && (
                       <p className="mt-1 text-xs text-stone-500">
                         Work rights: {profile.workRights}
@@ -301,7 +330,7 @@ export default async function AuPairDetailPage({
           <Card>
             <h2 className="font-display text-xl font-semibold">About</h2>
             <p className="mt-3 whitespace-pre-wrap leading-relaxed text-stone-600">
-              {profile.bio || "This au pair has not added a bio yet."}
+              {profile.bio || "This sitter has not added a bio yet."}
             </p>
           </Card>
 
