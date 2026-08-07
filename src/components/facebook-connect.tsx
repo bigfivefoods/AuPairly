@@ -8,9 +8,11 @@ import { Button, Badge, Card } from "@/components/ui";
 type Status = {
   linked: boolean;
   config?: {
+    enabled?: boolean;
     configured?: boolean;
     appId?: string | null;
     clientReady?: boolean;
+    redirectUri?: string | null;
   };
   profile?: {
     name?: string;
@@ -21,18 +23,26 @@ type Status = {
   user?: { name?: string; image?: string | null };
 };
 
+/**
+ * Optional Facebook profile import. Not required for verification or launch.
+ * Hide entirely with FACEBOOK_OAUTH_ENABLED=false on Vercel.
+ */
 export function FacebookConnect({
   returnTo = "/settings/connections",
   compact = false,
+  /** When true, show collapsed “optional” treatment (verification page) */
+  optional = false,
 }: {
   returnTo?: string;
   compact?: boolean;
+  optional?: boolean;
 }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [status, setStatus] = useState<Status | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [open, setOpen] = useState(!optional);
 
   const oauthHref = `/api/social/facebook/oauth?returnTo=${encodeURIComponent(returnTo)}`;
 
@@ -65,18 +75,19 @@ export function FacebookConnect({
     const fb = sp.get("fb");
     if (fb === "linked") {
       setMessage("Facebook connected — name and photo imported where missing.");
+      setOpen(true);
       void refresh();
       router.refresh();
     } else if (fb === "error") {
       setMessage(sp.get("message") || "Facebook connect failed");
       setLoading(false);
+      setOpen(true);
     }
   }, [sp, router]);
 
   function startOAuth() {
     setMessage("");
     setLoading(true);
-    // Full navigation — more reliable than fetch for OAuth redirect + cookies
     window.location.assign(oauthHref);
   }
 
@@ -101,13 +112,17 @@ export function FacebookConnect({
     }
   }
 
+  // Feature flag: hide completely when disabled on server
+  if (status?.config?.enabled === false) {
+    return null;
+  }
+
   const configured =
     status?.config?.configured === true ||
     status?.config?.clientReady === true ||
     Boolean(process.env.NEXT_PUBLIC_FACEBOOK_APP_ID);
   const linked = status?.linked;
   const picture = status?.profile?.picture || status?.user?.image;
-  // Never hard-disable for “not configured” — let OAuth route explain the error
   const busy = loading;
 
   const body = (
@@ -123,19 +138,20 @@ export function FacebookConnect({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold text-stone-900">Facebook / Meta</h3>
+            <h3 className="font-semibold text-stone-900">Facebook (optional)</h3>
             {linked && (
               <Badge variant="success">
                 <CheckCircle2 className="h-3 w-3" /> Linked
               </Badge>
             )}
+            <Badge variant="default">Not required</Badge>
           </div>
           <p className="mt-1 text-sm text-stone-500">
-            Import your public name and profile photo.{" "}
-            <strong className="font-medium text-stone-600">
-              Not identity verification
+            Only imports public name/photo.{" "}
+            <strong className="font-medium text-stone-700">
+              Skip this anytime
             </strong>{" "}
-            — still complete ID checks for a Verified badge.
+            — use photo upload + VerifyNow / ID documents for a real Verified badge.
           </p>
           {linked && status?.profile?.name && (
             <p className="mt-1 text-xs text-stone-400">
@@ -144,10 +160,9 @@ export function FacebookConnect({
             </p>
           )}
           {status && !configured && (
-            <p className="mt-2 text-xs text-amber-800">
-              Meta App keys may be missing on this server. Admins: set{" "}
-              <code className="rounded bg-amber-100 px-1">NEXT_PUBLIC_FACEBOOK_APP_ID</code> and{" "}
-              <code className="rounded bg-amber-100 px-1">AUTH_FACEBOOK_SECRET</code>.
+            <p className="mt-2 text-xs text-stone-500">
+              Facebook is not fully configured. You can ignore this — the rest of AuPairly works
+              without it.
             </p>
           )}
         </div>
@@ -155,21 +170,13 @@ export function FacebookConnect({
       <div className="flex shrink-0 flex-wrap gap-2">
         <Button
           type="button"
-          variant={linked ? "secondary" : "primary"}
+          variant={linked ? "secondary" : "secondary"}
           disabled={busy}
           onClick={startOAuth}
         >
           {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-          {linked ? "Re-sync Facebook" : "Connect Facebook"}
+          {linked ? "Re-sync Facebook" : "Try Connect Facebook"}
         </Button>
-        {/* Fallback plain link if JS onClick is blocked */}
-        <a
-          href={oauthHref}
-          className="sr-only"
-          onClick={() => setLoading(true)}
-        >
-          Connect Facebook via Meta OAuth
-        </a>
         {linked && (
           <Button type="button" variant="ghost" disabled={busy} onClick={unlink}>
             <Unlink className="h-4 w-4" />
@@ -178,10 +185,40 @@ export function FacebookConnect({
         )}
       </div>
       {message && (
-        <p className="w-full rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-900">{message}</p>
+        <p
+          className={`w-full rounded-xl px-3 py-2 text-sm ${
+            /fail|error|invalid|not |domain|can't|cant/i.test(message)
+              ? "border border-amber-200 bg-amber-50 text-amber-950"
+              : "bg-teal-50 text-teal-900"
+          }`}
+        >
+          {message}
+          {/domain|can't load url|cant load url/i.test(message) && (
+            <span className="mt-1 block text-xs">
+              Meta app settings are still wrong, or Facebook can wait. Upload a photo under
+              Profile instead — verification does not need Facebook.
+            </span>
+          )}
+        </p>
       )}
     </>
   );
+
+  if (optional && !open && !linked) {
+    return (
+      <Card className="border-dashed border-stone-200 bg-stone-50/50">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="w-full text-left text-sm text-stone-600 hover:text-stone-900"
+        >
+          <span className="font-semibold text-stone-700">Optional:</span> Connect Facebook for
+          name/photo import —{" "}
+          <span className="font-medium text-teal-700">not required · click to expand</span>
+        </button>
+      </Card>
+    );
+  }
 
   if (compact) {
     return (

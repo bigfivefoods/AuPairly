@@ -14,6 +14,7 @@ import {
   facebookOAuthDialogUrl,
   facebookOAuthRedirectUri,
   facebookOAuthSiteUrl,
+  isFacebookOAuthEnabled,
 } from "@/lib/facebook";
 import { randomBytes } from "node:crypto";
 
@@ -40,9 +41,16 @@ export async function GET(req: Request) {
     );
   }
 
+  if (!isFacebookOAuthEnabled()) {
+    const msg = encodeURIComponent(
+      "Facebook connect is turned off. Use a profile photo upload instead — Facebook is optional."
+    );
+    return NextResponse.redirect(`${site}${returnTo}?fb=error&message=${msg}`);
+  }
+
   if (!facebookAppId() || !facebookAppSecret()) {
     const msg = encodeURIComponent(
-      "Facebook App not fully configured. Set NEXT_PUBLIC_FACEBOOK_APP_ID and AUTH_FACEBOOK_SECRET on the server."
+      "Facebook App not fully configured. Set NEXT_PUBLIC_FACEBOOK_APP_ID and AUTH_FACEBOOK_SECRET on the server — or skip Facebook (optional)."
     );
     return NextResponse.redirect(`${site}${returnTo}?fb=error&message=${msg}`);
   }
