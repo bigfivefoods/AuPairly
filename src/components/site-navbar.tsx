@@ -6,7 +6,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { NotificationBell } from "@/components/notification-bell";
 import { CategoryNavLinks } from "@/components/category-nav-links";
 import { MainNavLinks } from "@/components/nav-links";
-import { BrandWordmark } from "@/components/brand-wordmark";
+import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { MobileMenu } from "@/components/mobile-menu";
 import { useI18n } from "@/components/i18n-provider";
@@ -41,11 +41,12 @@ export function SiteNavbar({
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6 lg:gap-4 lg:px-8">
           {/* Left: logo + one nav set only (never stack categories + Discover in one tight row) */}
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 lg:gap-4">
-            <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-base font-bold text-white shadow-sm transition group-hover:scale-105 sm:h-9 sm:w-9 sm:text-lg">
-                A
-              </span>
-              <BrandWordmark className="hidden text-lg font-semibold text-stone-900 min-[360px]:inline sm:text-xl" />
+            <Link
+              href="/"
+              className="group flex min-w-0 shrink-0 items-center transition hover:opacity-90"
+              aria-label="AuPairly home"
+            >
+              <BrandLogo priority className="max-w-[9.5rem] sm:max-w-[11rem]" />
             </Link>
             {/* md–lg: service categories only (Childcare … Pet sitting) */}
             <Suspense fallback={null}>

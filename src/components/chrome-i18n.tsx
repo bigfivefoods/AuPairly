@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { BrandWordmark } from "@/components/brand-wordmark";
+import { BrandLogo } from "@/components/brand-logo";
 import { useI18n } from "@/components/i18n-provider";
 import { ContactUs } from "@/components/contact-us";
 
@@ -25,11 +25,8 @@ export function FooterI18n() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-sm font-bold text-white">
-                A
-              </span>
-              <BrandWordmark className="text-lg font-semibold text-stone-900" />
+            <div className="flex items-center">
+              <BrandLogo className="max-w-[10.5rem]" />
             </div>
             <p className="mt-3 text-sm leading-relaxed text-stone-500">{t("footer_blurb")}</p>
           </div>
