@@ -41,6 +41,12 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         label: "Interests",
         match: ["/interests", "/shortlist", "/matches"],
       },
+      {
+        href: "/community",
+        label: "AuPair Connect",
+        match: ["/community"],
+        roles: ["AUPAIR"],
+      },
     ],
   },
   {

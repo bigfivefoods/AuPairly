@@ -65,6 +65,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/browse/families": Home,
   "/messages": MessageCircle,
   "/interests": Heart,
+  "/community": Users,
   "/profile/edit": UserCog,
   "/availability": Calendar,
   "/documents": FileText,

@@ -20,6 +20,7 @@ import { ContactButton } from "@/components/contact-button";
 import { InterestButton } from "@/components/interest-button";
 import { StartPlacementButton } from "@/components/start-placement-button";
 import { ShortlistButton } from "@/components/shortlist-button";
+import { PeerConnectButton } from "@/components/peer-connect-button";
 import { ReviewSection } from "@/components/review-section";
 import { ReportButton } from "@/components/report-button";
 import { JsonLd } from "@/components/json-ld";
@@ -142,47 +143,66 @@ export default async function AuPairDetailPage({
   const photos = parseJsonArray(profile.photos);
   const isOwn = session?.user?.id === profile.userId;
 
-  const [reviews, conversation, myReview, myInterest] = await Promise.all([
-    prisma.review.findMany({
-      where: { targetId: profile.userId },
-      include: {
-        author: { select: { id: true, name: true, image: true, role: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
-    session?.user
-      ? prisma.conversation.findFirst({
-          where: {
-            OR: [
-              { userAId: session.user.id, userBId: profile.userId },
-              { userAId: profile.userId, userBId: session.user.id },
-            ],
-          },
-          include: { messages: { take: 1 } },
-        })
-      : null,
-    session?.user
-      ? prisma.review.findUnique({
-          where: {
-            authorId_targetId: {
-              authorId: session.user.id,
-              targetId: profile.userId,
+  const isPeerViewer = session?.user?.role === "AUPAIR" && !isOwn;
+
+  const [reviews, conversation, myReview, myInterest, myPeerConnect] =
+    await Promise.all([
+      prisma.review.findMany({
+        where: { targetId: profile.userId },
+        include: {
+          author: { select: { id: true, name: true, image: true, role: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+      session?.user
+        ? prisma.conversation.findFirst({
+            where: {
+              OR: [
+                { userAId: session.user.id, userBId: profile.userId },
+                { userAId: profile.userId, userBId: session.user.id },
+              ],
             },
-          },
-        })
-      : null,
-    session?.user
-      ? prisma.interest.findUnique({
-          where: {
-            fromUserId_toUserId: {
-              fromUserId: session.user.id,
-              toUserId: profile.userId,
+            include: { messages: { take: 1 } },
+          })
+        : null,
+      session?.user
+        ? prisma.review.findUnique({
+            where: {
+              authorId_targetId: {
+                authorId: session.user.id,
+                targetId: profile.userId,
+              },
             },
-          },
-        })
-      : null,
-  ]);
+          })
+        : null,
+      session?.user
+        ? prisma.interest.findUnique({
+            where: {
+              fromUserId_toUserId: {
+                fromUserId: session.user.id,
+                toUserId: profile.userId,
+              },
+            },
+          })
+        : null,
+      isPeerViewer
+        ? prisma.peerConnect.findFirst({
+            where: {
+              OR: [
+                {
+                  fromUserId: session!.user!.id,
+                  toUserId: profile.userId,
+                },
+                {
+                  fromUserId: profile.userId,
+                  toUserId: session!.user!.id,
+                },
+              ],
+            },
+          })
+        : null,
+    ]);
 
   const canReview = Boolean(
     session?.user &&
@@ -462,16 +482,53 @@ export default async function AuPairDetailPage({
                 </Link>
               ) : session?.user ? (
                 <>
-                  {session.user.role === "PARENT" && (
-                    <InterestButton
-                      toUserId={profile.userId}
-                      toName={profile.user.name}
-                      initialStatus={myInterest?.status}
-                    />
+                  {isPeerViewer && profile.openToPeerConnect ? (
+                    <>
+                      <PeerConnectButton
+                        toUserId={profile.userId}
+                        toName={profile.user.name}
+                        initialStatus={
+                          (myPeerConnect?.status as
+                            | "PENDING"
+                            | "ACCEPTED"
+                            | "DECLINED"
+                            | "WITHDRAWN"
+                            | undefined) || "NONE"
+                        }
+                        conversationId={conversation?.id}
+                      />
+                      {profile.peerIntro && (
+                        <p className="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-900">
+                          <span className="font-semibold">Looking for friends: </span>
+                          {profile.peerIntro}
+                        </p>
+                      )}
+                      <Link
+                        href="/community"
+                        className="block text-center text-sm font-medium text-teal-700 hover:underline"
+                      >
+                        Browse AuPair Connect nearby
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      {session.user.role === "PARENT" && (
+                        <InterestButton
+                          toUserId={profile.userId}
+                          toName={profile.user.name}
+                          initialStatus={myInterest?.status}
+                        />
+                      )}
+                      <ContactButton
+                        recipientId={profile.userId}
+                        recipientName={profile.user.name}
+                      />
+                      <ShortlistButton targetUserId={profile.userId} />
+                      {session.user.role === "PARENT" && (
+                        <StartPlacementButton otherUserId={profile.userId} />
+                      )}
+                    </>
                   )}
-                  <ContactButton recipientId={profile.userId} recipientName={profile.user.name} />
-                  <ShortlistButton targetUserId={profile.userId} />
-                  <StartPlacementButton otherUserId={profile.userId} />
                 </>
               ) : (
                 <Link href="/login" className="btn-primary w-full">

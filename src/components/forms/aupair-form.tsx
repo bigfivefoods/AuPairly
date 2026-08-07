@@ -70,6 +70,8 @@ type Initial = {
   services?: string | ServiceId[] | null;
   petTypes?: string[];
   houseSittingNotes?: string;
+  openToPeerConnect?: boolean;
+  peerIntro?: string;
   status: "DRAFT" | "ACTIVE" | "PAUSED";
 };
 
@@ -80,6 +82,7 @@ const AUPAIR_SECTIONS = [
   { id: "languages", label: "Languages" },
   { id: "skills", label: "Skills" },
   { id: "location", label: "Location" },
+  { id: "community", label: "AuPair Connect" },
   { id: "availability", label: "Availability" },
   { id: "schedule", label: "Schedule" },
 ];
@@ -375,6 +378,39 @@ export function AuPairProfileForm({
             }))
           }
         />
+      </Card>
+      </ProfileSection>
+
+      <ProfileSection id="community">
+      <Card className="space-y-4">
+        <h2 className="font-display text-lg font-semibold">AuPair Connect</h2>
+        <p className="text-sm text-stone-500">
+          Meet other sitters in your area — great when you&apos;re abroad and looking for
+          friends, not just a host family.
+        </p>
+        <label className="flex items-start gap-3 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            checked={form.openToPeerConnect !== false}
+            onChange={(e) => set("openToPeerConnect", e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-stone-300 text-teal-600"
+          />
+          <span>
+            <span className="font-semibold">Show me in AuPair Connect</span>
+            <span className="mt-0.5 block text-stone-500">
+              Other sitters nearby can say hi and connect as friends.
+            </span>
+          </span>
+        </label>
+        <div>
+          <Label>Friend intro (optional)</Label>
+          <Textarea
+            value={form.peerIntro || ""}
+            onChange={(e) => set("peerIntro", e.target.value)}
+            placeholder="e.g. New in Cape Town from Spain — love coffee, beach walks & weekend markets"
+            maxLength={280}
+          />
+        </div>
       </Card>
       </ProfileSection>
 

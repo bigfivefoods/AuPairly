@@ -9,6 +9,7 @@ import {
   Eye,
   AlertCircle,
   Sparkles,
+  Users,
 } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
@@ -235,6 +236,14 @@ export default async function DashboardPage() {
               title="Discover"
               desc="Swipe to match with families or au pairs"
             />
+            {user.role === "AUPAIR" && (
+              <Action
+                href="/community"
+                icon={<Users className="h-5 w-5" />}
+                title="AuPair Connect"
+                desc="Make friends with sitters nearby while abroad"
+              />
+            )}
             <Action
               href="/shortlist"
               icon={<Sparkles className="h-5 w-5" />}

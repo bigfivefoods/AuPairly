@@ -65,6 +65,8 @@ export default async function EditProfilePage() {
       services: parseServices(profile?.services),
       petTypes: parseJsonArray(profile?.petTypes),
       houseSittingNotes: profile?.houseSittingNotes ?? "",
+      openToPeerConnect: profile?.openToPeerConnect ?? true,
+      peerIntro: profile?.peerIntro ?? "",
       status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",
     };
 

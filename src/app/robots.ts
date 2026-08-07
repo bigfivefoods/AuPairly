@@ -35,6 +35,8 @@ export default function robots(): MetadataRoute.Robots {
           "/placements/",
           "/interests",
           "/interests/",
+          "/community",
+          "/community/",
           "/shortlist",
           "/shortlist/",
           "/matches",

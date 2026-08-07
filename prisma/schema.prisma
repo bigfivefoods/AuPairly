@@ -40,6 +40,14 @@ enum InterestStatus {
   WITHDRAWN
 }
 
+/// Peer friendship requests (au pair ↔ au pair community)
+enum PeerConnectStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -63,6 +71,8 @@ model User {
   reviewsReceived Review[]      @relation("ReviewsReceived")
   interestsSent     Interest[]  @relation("InterestsSent")
   interestsReceived Interest[]  @relation("InterestsReceived")
+  peerConnectsSent     PeerConnect[] @relation("PeerConnectSent")
+  peerConnectsReceived PeerConnect[] @relation("PeerConnectReceived")
   notifications     Notification[]
   subscription      Subscription?
   swipes            Swipe[]    @relation("SwipesFrom")
@@ -175,6 +185,11 @@ model AuPairProfile {
   relocateCities  String        @default("[]") // JSON
   certificates    String        @default("[]") // JSON labels e.g. First aid cert
 
+  /// AuPair Connect: visible to other sitters looking for local friends
+  openToPeerConnect Boolean     @default(true)
+  /// Short blurb for community (e.g. “new in Cape Town, love coffee & weekend hikes”)
+  peerIntro       String?
+
   status          ListingStatus @default(DRAFT)
   isVerified      Boolean       @default(false)
   isFeatured      Boolean       @default(false)
@@ -195,6 +210,7 @@ model AuPairProfile {
   @@index([city])
   @@index([services])
   @@index([status, services])
+  @@index([openToPeerConnect, status, city])
 }
 
 model FamilyProfile {
@@ -428,6 +444,23 @@ model Interest {
   @@unique([fromUserId, toUserId])
   @@index([toUserId, status])
   @@index([fromUserId])
+}
+
+/// AuPair Connect — peer friendship between sitters (not host matching)
+model PeerConnect {
+  id          String            @id @default(cuid())
+  fromUserId  String
+  fromUser    User              @relation("PeerConnectSent", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId    String
+  toUser      User              @relation("PeerConnectReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  message     String?
+  status      PeerConnectStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([toUserId, status])
+  @@index([fromUserId, status])
 }
 
 model Notification {
