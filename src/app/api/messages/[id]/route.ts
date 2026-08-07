@@ -113,6 +113,40 @@ export async function POST(
   if (!peer) {
     const limit = await checkAndConsume(session.user.id, "MESSAGE");
     if (!limit.ok) {
+      // Best-effort upgrade nudge email (throttled via notification title)
+      try {
+        const recent = await prisma.notification.findFirst({
+          where: {
+            userId: session.user.id,
+            title: "Message limit — upgrade",
+            createdAt: { gte: new Date(Date.now() - 20 * 60 * 60 * 1000) },
+          },
+        });
+        if (!recent) {
+          await createNotification({
+            userId: session.user.id,
+            type: "BILLING",
+            title: "Message limit — upgrade",
+            body: `You've used ${limit.used}/${limit.limit} free messages. Plus starts at R99 / 2 weeks.`,
+            href: "/pricing",
+          });
+          const me = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { email: true, name: true },
+          });
+          if (me?.email) {
+            const { sendUpgradeNudgeEmail } = await import("@/lib/email");
+            void sendUpgradeNudgeEmail({
+              toEmail: me.email,
+              toName: me.name,
+              used: limit.used,
+              limit: limit.limit,
+            }).catch(() => null);
+          }
+        }
+      } catch {
+        /* non-fatal */
+      }
       return NextResponse.json(
         {
           error: limit.reason,

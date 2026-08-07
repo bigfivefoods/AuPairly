@@ -21,20 +21,22 @@ export function icebreakers(ctx: IcebreakerContext): string[] {
 
   if (ctx.myRole === "PARENT") {
     return [
-      `Hi ${name}! We're a family${place} looking for a caring au pair.${lang} Would you like a short intro call this week?`,
-      `Hello ${name} — your profile stood out. We have ${ctx.childrenCount || "young"} kid(s). What ages have you cared for most?`,
-      `Hi ${name}, do you prefer live-in or live-out, and when could you start?`,
-      `Hi ${name}! School runs are important for us. Are you comfortable driving / public transport here?`,
-      `Hello ${name} — we'd love to hear about a typical day when you cared for children.`,
+      `Hi ${name}! We're looking for trusted help${place}.${lang} Open to a short intro call this week?`,
+      `Hello ${name} — your profile stood out. We need support with ${ctx.childrenCount ? `${ctx.childrenCount} kid(s)` : "our household"}. What experience fits best?`,
+      `Hi ${name}, when could you start, and are you free evenings/weekends?`,
+      `Hi ${name}! Do you drive / use public transport, and which services do you offer most?`,
+      `Hello ${name} — we'd love a typical day example (childcare, caregiving, house or pets).`,
+      `Hi ${name}, we can chat on AuPairly first — then meet in a public place if it feels right.`,
     ];
   }
 
   return [
-    `Hi ${name}! I'm an au pair interested in your family${place}.${lang} Open to a quick video hello?`,
-    `Hello ${name}, I have ${ctx.experienceYears ?? "several"} year(s) of childcare experience. What are your kids' favourite activities?`,
-    `Hi ${name} — when are you hoping someone can start, and is the role live-in?`,
-    `Hi ${name}! Happy to share references and my first-aid / driving details. What matters most to you?`,
-    `Hello ${name}, I'd love to learn more about your daily routine and expectations.`,
+    `Hi ${name}! I'm interested in helping your household${place}.${lang} Open to a quick video hello?`,
+    `Hello ${name}, I have ${ctx.experienceYears ?? "several"} year(s) of care experience. What matters most to you?`,
+    `Hi ${name} — when are you hoping someone can start? Happy to share refs.`,
+    `Hi ${name}! I offer childcare / caregiving / house & pet sitting — which do you need most?`,
+    `Hello ${name}, I'd love to learn your daily routine and expectations.`,
+    `Hi ${name} — we can stay on AuPairly until we both feel comfortable meeting publicly.`,
   ];
 }
 

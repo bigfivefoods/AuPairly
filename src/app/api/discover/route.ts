@@ -156,12 +156,25 @@ export async function GET(req: Request) {
       return { p, compat };
     });
 
+    const myCity = (meProfile?.city || "").toLowerCase().trim();
     enriched.sort((a, b) => {
       const ab = a.p.boostedUntil && a.p.boostedUntil.getTime() > now ? 1 : 0;
       const bb = b.p.boostedUntil && b.p.boostedUntil.getTime() > now ? 1 : 0;
       if (bb !== ab) return bb - ab;
       if (a.p.isFeatured !== b.p.isFeatured) return a.p.isFeatured ? -1 : 1;
+      // Same city / local first
+      if (myCity) {
+        const aLocal = (a.p.city || "").toLowerCase().includes(myCity) ? 1 : 0;
+        const bLocal = (b.p.city || "").toLowerCase().includes(myCity) ? 1 : 0;
+        if (bLocal !== aLocal) return bLocal - aLocal;
+      }
+      // Verified listings rank higher
+      if (a.p.isVerified !== b.p.isVerified) return a.p.isVerified ? -1 : 1;
       if (b.compat.score !== a.compat.score) return b.compat.score - a.compat.score;
+      // Recency: newer profiles slightly prefered when scores tie
+      const aAge = a.p.createdAt?.getTime?.() ?? 0;
+      const bAge = b.p.createdAt?.getTime?.() ?? 0;
+      if (bAge !== aAge && Math.abs(bAge - aAge) > 86400000) return bAge - aAge;
       if (plan.limits.prioritySearch && a.p.rating !== b.p.rating) return b.p.rating - a.p.rating;
       return b.p.rating - a.p.rating;
     });
@@ -237,9 +250,23 @@ export async function GET(req: Request) {
     return { p, compat };
   });
 
+  const myCity = (meProfile?.city || "").toLowerCase().trim();
+  const now = Date.now();
   enriched.sort((a, b) => {
+    const ab = a.p.boostedUntil && a.p.boostedUntil.getTime() > now ? 1 : 0;
+    const bb = b.p.boostedUntil && b.p.boostedUntil.getTime() > now ? 1 : 0;
+    if (bb !== ab) return bb - ab;
     if (a.p.isFeatured !== b.p.isFeatured) return a.p.isFeatured ? -1 : 1;
+    if (myCity) {
+      const aLocal = (a.p.city || "").toLowerCase().includes(myCity) ? 1 : 0;
+      const bLocal = (b.p.city || "").toLowerCase().includes(myCity) ? 1 : 0;
+      if (bLocal !== aLocal) return bLocal - aLocal;
+    }
+    if (a.p.isVerified !== b.p.isVerified) return a.p.isVerified ? -1 : 1;
     if (b.compat.score !== a.compat.score) return b.compat.score - a.compat.score;
+    const aAge = a.p.createdAt?.getTime?.() ?? 0;
+    const bAge = b.p.createdAt?.getTime?.() ?? 0;
+    if (bAge !== aAge && Math.abs(bAge - aAge) > 86400000) return bAge - aAge;
     return b.p.rating - a.p.rating;
   });
 

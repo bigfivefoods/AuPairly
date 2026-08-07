@@ -67,6 +67,54 @@ export function AdminVerificationQueue({
     }
   }
 
+  async function suspendUser(userId: string, reason?: string) {
+    setLoadingId(userId);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          action: "suspend",
+          reason: reason || "Open safety report",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Suspend failed");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function unsuspendUser(userId: string) {
+    setLoadingId(userId);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, action: "unsuspend" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Unsuspend failed");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
   return (
     <div className="space-y-8">
       {error && (
@@ -165,6 +213,22 @@ export function AdminVerificationQueue({
                 {r.details && (
                   <p className="mt-1 text-sm text-stone-500">{r.details}</p>
                 )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="danger"
+                    disabled={loadingId === r.targetId}
+                    onClick={() =>
+                      suspendUser(r.targetId, `Report: ${r.reason}`)
+                    }
+                  >
+                    {loadingId === r.targetId ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
+                    Suspend target
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>

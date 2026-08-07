@@ -194,6 +194,63 @@ export async function sendSavedSearchAlertEmail(opts: {
   });
 }
 
+/** Day-1 activation — photo, city, publish, nearby people */
+export async function sendDay1ActivationEmail(opts: {
+  toEmail: string;
+  toName: string;
+  role: string;
+  city?: string | null;
+  nearbyCount?: number;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const cityBit = opts.city ? ` near ${opts.city}` : "";
+  const nearby =
+    opts.nearbyCount && opts.nearbyCount > 0
+      ? `${opts.nearbyCount} people${cityBit} are already on AuPairly.`
+      : `Publish your listing so people${cityBit || " nearby"} can find you.`;
+  const dash = `${site()}/dashboard`;
+  const discover = `${site()}/discover`;
+  const text = `Hi ${first},\n\nDay 1 on AuPairly — make it count.\n\n1) Photo + city + publish (if you haven’t)\n2) Send 3 interests or messages\n3) Get verified for the trust badge\n\n${nearby}\n\nDashboard: ${dash}\nDiscover: ${discover}\n\n— AuPairly`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `Your Day 1 checklist${opts.city ? ` · ${opts.city}` : ""}`,
+    text,
+    html: wrapHtml(
+      `Day 1 checklist, ${escapeHtml(first)}`,
+      `<p style="line-height:1.6;color:#44403c">${escapeHtml(nearby)}</p>
+       <ol style="line-height:1.7;color:#44403c;padding-left:18px">
+         <li>Photo → city → publish listing</li>
+         <li>Send 3 interests or messages</li>
+         <li>Get verified for the trust badge</li>
+       </ol>
+       <p style="margin-top:20px"><a href="${dash}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">Open dashboard</a>
+       <a href="${discover}" style="display:inline-block;margin-left:8px;color:#0d9488;font-weight:600">Discover →</a></p>`
+    ),
+  });
+}
+
+/** Soft nudge when free message limit is hit (optional outbound) */
+export async function sendUpgradeNudgeEmail(opts: {
+  toEmail: string;
+  toName: string;
+  used: number;
+  limit: number;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/pricing`;
+  const text = `Hi ${first},\n\nYou've used ${opts.used}/${opts.limit} free messages today on AuPairly.\n\nUnlock unlimited matching from R99 / 2 weeks:\n${href}\n\n— AuPairly`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: "Unlock unlimited messages — from R99",
+    text,
+    html: wrapHtml(
+      `Keep the conversation going`,
+      `<p style="line-height:1.6;color:#44403c">You've used <strong>${opts.used}/${opts.limit}</strong> free messages today.</p>
+       <p style="margin-top:20px"><a href="${href}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">See Plus from R99</a></p>`
+    ),
+  });
+}
+
 function escapeHtml(s: string) {
   return s
     .replace(/&/g, "&amp;")
