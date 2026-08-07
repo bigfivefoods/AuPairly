@@ -7,7 +7,7 @@ import { buildPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildPageMetadata({
   title: "Pricing — Free, Plus & Premium plans",
   description:
-    "AuPairly pricing for hosts and sitters. Free to join; Plus and Premium unlock more messages, boosts, and free VerifyNow identity checks. Transparent ZAR plans.",
+    "AuPairly pricing for hosts and sitters. Free to join; Plus from R99 / 2 weeks or R249 for 3 months. Premium for max visibility. Once-off ZAR via Paystack — no auto-renew.",
   path: "/pricing",
   keywords: ["au pair pricing", "childcare platform cost", "AuPairly plans"],
 });

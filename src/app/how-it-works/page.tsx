@@ -55,7 +55,7 @@ export default function HowItWorksPage() {
           {
             icon: <Sparkles className="h-6 w-6" />,
             title: "5. Upgrade when you're serious",
-            body: "Plus and Premium (Paystack) unlock unlimited messages, interests, Discover swipes, and featured visibility — one clear upgrade path.",
+            body: "Plus from R99 / 2 weeks or R249 for 3 months unlocks unlimited messages, interests, and Discover. Premium adds priority placement and more boosts — once-off via Paystack.",
           },
         ].map((step, i) => (
           <div

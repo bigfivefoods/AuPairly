@@ -112,7 +112,7 @@ export function PricingCards({
                 {PERIOD_LABELS[p].label}
                 {p === "QUARTER" && (
                   <span className="ml-1.5 hidden text-[10px] font-bold uppercase text-teal-600 sm:inline">
-                    min
+                    popular
                   </span>
                 )}
                 {p === "ANNUAL" && (
@@ -199,6 +199,11 @@ export function PricingCards({
                         {t("pricing_pay_today", { amount: String(charge) })}
                       </p>
                     )}
+                    {period !== "QUARTER" && (
+                      <p className="mt-1 text-xs text-teal-800">
+                        Pay R{charge} once · no auto-renew
+                      </p>
+                    )}
                     <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-stone-400">
                       {PERIOD_LABELS[period].label} · {pp?.durationDays} days access
                     </p>
@@ -236,6 +241,7 @@ export function PricingCards({
                     ? t("pricing_get_free")
                     : t("pricing_get_plan", {
                         name: plan.name,
+                        amount: String(charge),
                         period: PERIOD_LABELS[period].shortLabel,
                       })}
               </Button>

@@ -48,12 +48,14 @@ export function PricingPageClient({
             {[
               ["Marketplace browse", "Yes", "Yes", "Yes"],
               ["AuPair Connect (sitter friends)", "Yes", "Yes", "Yes"],
-              ["Messages / day (host matching)", "5", "Higher", "Unlimited"],
-              ["Interests / week", "3", "Higher", "Unlimited"],
-              ["Discover swipes / day", "20", "Higher", "Unlimited"],
-              ["Profile boosts", "—", "Included", "More / month"],
+              ["Messages / day (host matching)", "5", "Unlimited", "Unlimited"],
+              ["Interests / week", "5", "Unlimited", "Unlimited"],
+              ["Discover swipes / day", "25", "Unlimited", "Unlimited"],
+              ["Profile boosts / month", "—", "2", "4"],
               ["See who liked you", "—", "Yes", "Yes"],
               ["Featured listing", "—", "Yes", "Yes"],
+              ["Priority in search & Discover", "—", "—", "Yes"],
+              ["Partner / co-parent seat", "—", "—", "Yes"],
               ["Safety / abuse support tickets", "Free", "Free", "Free"],
               ["Priority product support", "—", "Yes", "Yes"],
             ].map(([feature, free, plus, prem]) => (

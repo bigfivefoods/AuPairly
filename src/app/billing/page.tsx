@@ -22,7 +22,7 @@ export default async function BillingPage({
       <PageHeader
         eyebrow="Membership"
         title="Billing & plan"
-        description="Free, Plus, or Premium — choose week, 3 months, or annual when you upgrade."
+        description="Free, Plus, or Premium — 2 weeks, 3 months, or annual once-off. Plus from R99 / 2 weeks or R249 / 3 months."
         action={
           <Link href="/account" className="btn-secondary text-sm">
             Account report &amp; history
