@@ -24,6 +24,7 @@ import { SafetyMeetChecklist } from "@/components/safety-meet-checklist";
 import { responseTimeLabel } from "@/lib/completeness";
 import { buildPageMetadata } from "@/lib/seo";
 import { checkAndConsume } from "@/lib/entitlements";
+import { canAccessManagement } from "@/lib/management";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPageMetadata({
@@ -216,10 +217,15 @@ export default async function DashboardPage({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {user.role === "ADMIN" ? (
-            <Link href="/admin" className="btn-primary">
-              Open admin console
-            </Link>
+          {canAccessManagement(user) ? (
+            <>
+              <Link href="/manage" className="btn-primary">
+                Management console
+              </Link>
+              <Link href="/admin" className="btn-secondary">
+                Verification queue
+              </Link>
+            </>
           ) : (
             <>
               <Link href="/onboarding" className="btn-secondary">
@@ -241,15 +247,20 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {user.role === "ADMIN" && (
-        <Card className="mb-10">
-          <h3 className="font-display text-lg font-semibold">Admin shortcuts</h3>
-          <p className="mt-2 text-sm text-stone-500">
-            Approve identity checks and review community reports.
+      {canAccessManagement(user) && (
+        <Card className="mb-10 border-teal-200 bg-teal-50/40">
+          <h3 className="font-display text-lg font-semibold">Owner console</h3>
+          <p className="mt-2 text-sm text-stone-600">
+            Signups, listings, revenue, queues, and system health for AuPairly.
           </p>
-          <Link href="/admin" className="btn-secondary mt-4 inline-flex">
-            Go to verification queue
-          </Link>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/manage" className="btn-primary inline-flex">
+              Open management stats
+            </Link>
+            <Link href="/admin" className="btn-secondary inline-flex">
+              Verifications &amp; reports
+            </Link>
+          </div>
         </Card>
       )}
 

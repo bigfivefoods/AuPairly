@@ -113,6 +113,13 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
       },
       { href: "/support", label: "Support", match: ["/support"] },
       {
+        href: "/manage",
+        label: "Management",
+        match: ["/manage"],
+        roles: ["ADMIN"],
+        badge: "admin",
+      },
+      {
         href: "/admin",
         label: "Admin",
         match: ["/admin"],
@@ -125,8 +132,17 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
 
 export function navItemVisible(
   item: AppNavItem,
-  role?: string | null
+  role?: string | null,
+  email?: string | null
 ): boolean {
+  // Owner management console: always show manage/admin for allowlisted emails
+  if (
+    (item.href === "/manage" || item.href === "/admin") &&
+    email &&
+    email.toLowerCase() === "craig@bigfivegroup.africa"
+  ) {
+    return true;
+  }
   if (!item.roles?.length) return true;
   const r = (role || "").toUpperCase();
   return item.roles.some((allowed) => allowed === r);

@@ -11,9 +11,11 @@ import { SERVICE_LIST } from "@/lib/services";
 import { LOCALES, LOCALE_META, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/user-avatar";
+import { canAccessManagement } from "@/lib/management";
 
 type NavUser = {
   name: string;
+  email?: string | null;
   image?: string | null;
   role?: string;
 } | null;
@@ -183,17 +185,29 @@ export function MobileMenu({
                       <ChevronRight className="h-4 w-4 text-stone-300" />
                     </Link>
                   </li>
-                  {user.role === "ADMIN" && (
-                    <li>
-                      <Link
-                        href="/admin"
-                        className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-50"
-                        onClick={() => setOpen(false)}
-                      >
-                        {t("nav_admin")}
-                        <ChevronRight className="h-4 w-4 text-stone-300" />
-                      </Link>
-                    </li>
+                  {canAccessManagement(user) && (
+                    <>
+                      <li>
+                        <Link
+                          href="/manage"
+                          className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium text-teal-800 hover:bg-teal-50"
+                          onClick={() => setOpen(false)}
+                        >
+                          Management
+                          <ChevronRight className="h-4 w-4 text-stone-300" />
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/admin"
+                          className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-50"
+                          onClick={() => setOpen(false)}
+                        >
+                          {t("nav_admin")}
+                          <ChevronRight className="h-4 w-4 text-stone-300" />
+                        </Link>
+                      </li>
+                    </>
                   )}
                 </>
               )}
