@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isPrivyConfigured } from "@/lib/privy";
 import { isPaystackConfigured, paystackMode } from "@/lib/paystack";
+import { isVerifyNowConfigured, verifyNowMode } from "@/lib/kyc/verifynow";
 
 /**
  * Public readiness probe — no secrets.
@@ -24,6 +25,8 @@ export async function GET() {
   const cronSecret = process.env.CRON_SECRET?.trim() || "";
   const cron = cronSecret.length >= 16;
   const autoVerify = process.env.AUTO_VERIFY === "true";
+  const verifynow = isVerifyNowConfigured();
+  const vnMode = verifynow ? verifyNowMode() : "off";
   const onVercelProd =
     process.env.VERCEL_ENV === "production" ||
     (process.env.VERCEL === "1" && process.env.NODE_ENV === "production");
@@ -43,6 +46,8 @@ export async function GET() {
         paystackConfigured: paystack,
         paystackMode: psMode,
         paystackLive: psMode === "live",
+        verifynowConfigured: verifynow,
+        verifynowMode: vnMode,
         resendConfigured: resend,
         cronSecretSet: cron,
         autoVerify,
@@ -72,6 +77,9 @@ export async function GET() {
             : autoVerify
               ? "AUTO_VERIFY on (ok for local/demo)"
               : "OK — manual verification review",
+        verifynow: verifynow
+          ? `OK — VerifyNow ${vnMode}`
+          : "Set VERIFYNOW_API_KEY on Vercel (vn_live_… or vn_test_…) + redeploy for SA ID checks",
       },
     },
     { status: database === "ok" ? 200 : 503 }
