@@ -14,16 +14,24 @@ export function SocialFollowStrip() {
             Tips, sitter stories &amp; city updates
           </h2>
           <p className="mt-1 max-w-xl text-sm text-stone-500">
-            Join us on TikTok &amp; Facebook — then create a free profile for verified care or
-            AuPair Connect friends nearby.
+            Join us on Instagram, TikTok &amp; Facebook — then create a free profile for verified
+            care or AuPair Connect friends nearby.
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <a
-            href={BRAND.social.tiktok}
+            href={BRAND.social.instagram}
             target="_blank"
             rel="noopener noreferrer me"
             className="btn-primary !px-4 !py-2 text-sm"
+          >
+            Instagram {BRAND.social.instagramHandle}
+          </a>
+          <a
+            href={BRAND.social.tiktok}
+            target="_blank"
+            rel="noopener noreferrer me"
+            className="btn-secondary !px-4 !py-2 text-sm"
           >
             TikTok {BRAND.social.tiktokHandle}
           </a>

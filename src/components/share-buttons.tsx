@@ -32,6 +32,7 @@ export function ShareButtons({
   const facebookHref = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${absolute}`)}`;
   const tiktokProfile = BRAND.social.tiktok;
+  const instagramProfile = BRAND.social.instagram;
 
   async function copyLink() {
     try {
@@ -97,6 +98,15 @@ export function ShareButtons({
         className={btn}
       >
         WhatsApp
+      </a>
+      <a
+        href={instagramProfile}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        title="Follow AuPairly on Instagram"
+      >
+        Instagram
       </a>
       <a
         href={tiktokProfile}

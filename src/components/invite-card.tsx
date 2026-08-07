@@ -70,6 +70,15 @@ export function InviteCard({
         Suggested text: “Join me on AuPairly — trusted care for family, loved ones, home
         &amp; pets.” Also follow us on{" "}
         <a
+          href={BRAND.social.instagram}
+          className="font-semibold text-teal-700 hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Instagram
+        </a>
+        ,{" "}
+        <a
           href={BRAND.social.facebook}
           className="font-semibold text-teal-700 hover:underline"
           target="_blank"
