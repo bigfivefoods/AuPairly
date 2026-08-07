@@ -295,6 +295,12 @@ export default async function DashboardPage() {
               desc="Install PWA · enable message notifications"
             />
             <Action
+              href="/settings/connections"
+              icon={<Sparkles className="h-5 w-5" />}
+              title="Connected accounts"
+              desc="Link Facebook for name & photo import"
+            />
+            <Action
               href="/placements"
               icon={<Sparkles className="h-5 w-5" />}
               title="Placements"
