@@ -115,9 +115,9 @@ export function OnboardingWizard({
     else void finish();
   }
 
-  // Keep sticky site navbar visible for easy site navigation
+  // Below app top bar; leave room for global side nav on lg+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col bg-[#faf8f5] text-stone-900 top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+env(safe-area-inset-top,0px))]">
+    <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col bg-[#faf8f5] text-stone-900 top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+env(safe-area-inset-top,0px))] lg:left-60 xl:left-64">
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {/* Brand rail — full height on desktop */}
         <aside className="relative shrink-0 overflow-hidden bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 px-5 py-5 text-white sm:px-8 sm:py-6 lg:flex lg:w-[40%] lg:max-w-xl lg:flex-col lg:justify-between lg:px-12 lg:py-10">

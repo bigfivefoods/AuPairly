@@ -84,11 +84,10 @@ export function ProfileEditShell({
         ? "bg-amber-100 text-amber-900"
         : "bg-stone-100 text-stone-700";
 
-  // Sit below sticky site navbar (h-14 / sm:h-16 + safe-area) so Discover /
-  // Messages / logo stay available while the teal section side-nav remains.
+  // Below sticky app top bar; leave room for global side nav on lg+
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-40 flex flex-col bg-[#faf8f5] text-stone-900 top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+env(safe-area-inset-top,0px))]"
+      className="fixed inset-x-0 bottom-0 z-40 flex flex-col bg-[#faf8f5] text-stone-900 top-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:top-[calc(4rem+env(safe-area-inset-top,0px))] lg:left-60 xl:left-64"
     >
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <aside className="relative shrink-0 overflow-hidden bg-gradient-to-br from-teal-800 via-teal-700 to-teal-900 px-5 py-4 text-white sm:px-8 sm:py-5 lg:flex lg:w-[36%] lg:max-w-md lg:flex-col lg:justify-between lg:px-10 lg:py-10 xl:w-[32%]">
