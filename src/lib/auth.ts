@@ -26,8 +26,6 @@ declare module "@auth/core/jwt" {
     role: Role;
     /** Profile photo URL from User.image */
     image?: string | null;
-    /** Whether image has been loaded into the token (null is a valid value). */
-    imageSynced?: boolean;
   }
 }
 
@@ -75,7 +73,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id!;
         token.role = user.role;
         token.image = user.image ?? null;
-        token.imageSynced = true;
         if (user.name) token.name = user.name;
       }
 
@@ -84,26 +81,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const s = session as { image?: string | null; name?: string };
         if ("image" in s) {
           token.image = s.image ?? null;
-          token.imageSynced = true;
         }
         if (typeof s.name === "string" && s.name) {
           token.name = s.name;
         }
       }
 
-      // Existing sessions: hydrate photo from DB once so initials don't stick
-      if (token.id && !token.imageSynced) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { image: true, name: true, role: true },
-        });
-        if (dbUser) {
-          token.image = dbUser.image;
-          token.imageSynced = true;
-          if (dbUser.name) token.name = dbUser.name;
-          if (dbUser.role) token.role = dbUser.role;
-        } else {
-          token.imageSynced = true;
+      // Always refresh photo from DB so uploads show after login/reload
+      // (JWT alone can stay stuck with null image from the pre-upload session).
+      if (token.id) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { image: true, name: true, role: true },
+          });
+          if (dbUser) {
+            token.image = dbUser.image ?? null;
+            if (dbUser.name) token.name = dbUser.name;
+            if (dbUser.role) token.role = dbUser.role;
+          }
+        } catch (e) {
+          console.warn("[auth jwt] failed to refresh user image", e);
         }
       }
 

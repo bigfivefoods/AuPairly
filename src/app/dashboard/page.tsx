@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { requireUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { Avatar, Badge, Card, PageHeader, VerifiedBadge } from "@/components/ui";
+import { Badge, Card, PageHeader, VerifiedBadge } from "@/components/ui";
+import { UserAvatar } from "@/components/user-avatar";
 import { CompletenessCoach } from "@/components/completeness-coach";
 import { PushSettingsCard } from "@/components/pwa-provider";
 import { responseTimeLabel } from "@/lib/completeness";
@@ -74,7 +75,11 @@ export default async function DashboardPage() {
       />
 
       <div className="mb-8 flex flex-wrap items-center gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-[var(--shadow)]">
-        <Avatar name={user.name} image={meUser?.image || user.image} size="lg" />
+        <UserAvatar
+          name={user.name}
+          image={meUser?.image || user.image}
+          size="lg"
+        />
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-xl font-semibold">{user.name}</h2>

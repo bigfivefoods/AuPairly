@@ -10,6 +10,7 @@ import { serviceLabel } from "@/lib/i18n/service-label";
 import { SERVICE_LIST } from "@/lib/services";
 import { LOCALES, LOCALE_META, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/user-avatar";
 
 type NavUser = {
   name: string;
@@ -110,9 +111,7 @@ export function MobileMenu({
                 className="mb-4 flex items-center gap-3 rounded-2xl border border-stone-100 bg-stone-50 px-3 py-3"
                 onClick={() => setOpen(false)}
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-100 text-sm font-bold text-teal-800">
-                  {user.name.charAt(0).toUpperCase()}
-                </span>
+                <UserAvatar name={user.name} image={user.image} size="md" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold text-stone-900">
                     {user.name.split(" ")[0]}
