@@ -2,10 +2,8 @@
  * GET /api/social/facebook/oauth
  * Starts Meta OAuth (redirect) for the logged-in user.
  *
- * Query: ?returnTo=/verification  (optional safe path)
- *
- * redirect_uri is built from the *request host* (not a stale env URL)
- * so it matches Meta App Domains for www.aupairly.me.
+ * redirect_uri is always https://www.aupairly.me/api/social/facebook/callback
+ * in production so it matches Meta App Domains + Valid OAuth Redirect URIs.
  */
 
 import { NextResponse } from "next/server";
@@ -14,8 +12,8 @@ import {
   facebookAppId,
   facebookAppSecret,
   facebookOAuthDialogUrl,
+  facebookOAuthSiteUrl,
 } from "@/lib/facebook";
-import { getRequestSiteUrl } from "@/lib/paystack";
 import { randomBytes } from "node:crypto";
 
 function safeReturnTo(raw: string | null): string {
@@ -31,7 +29,7 @@ function safeReturnTo(raw: string | null): string {
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const returnTo = safeReturnTo(url.searchParams.get("returnTo"));
-  const site = getRequestSiteUrl(req);
+  const site = facebookOAuthSiteUrl(req);
 
   const session = await auth();
   if (!session?.user) {
@@ -48,7 +46,7 @@ export async function GET(req: Request) {
     return NextResponse.redirect(`${site}${returnTo}?fb=error&message=${msg}`);
   }
 
-  // Must exactly match a Valid OAuth Redirect URI in Meta
+  // Exact string Meta must allow under Valid OAuth Redirect URIs
   const redirectUri = `${site}/api/social/facebook/callback`;
   const state = randomBytes(16).toString("hex");
 
@@ -69,7 +67,6 @@ export async function GET(req: Request) {
   };
   res.cookies.set("fb_oauth_state", state, cookieBase);
   res.cookies.set("fb_oauth_return", returnTo, cookieBase);
-  // Same redirect_uri must be used on code exchange
   res.cookies.set("fb_oauth_redirect_uri", redirectUri, cookieBase);
   return res;
 }

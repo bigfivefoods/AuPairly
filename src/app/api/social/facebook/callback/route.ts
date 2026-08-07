@@ -9,12 +9,12 @@ import { prisma } from "@/lib/prisma";
 import {
   exchangeFacebookCode,
   fetchFacebookProfile,
+  facebookOAuthSiteUrl,
 } from "@/lib/facebook";
-import { getRequestSiteUrl } from "@/lib/paystack";
 import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
-  const site = getRequestSiteUrl(req);
+  const site = facebookOAuthSiteUrl(req);
   const session = await auth();
   const jar = await cookies();
   const returnTo = jar.get("fb_oauth_return")?.value || "/settings/connections";
@@ -65,7 +65,6 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Must match the redirect_uri used when starting OAuth
     const accessToken = await exchangeFacebookCode({
       code,
       redirectUri: storedRedirect,

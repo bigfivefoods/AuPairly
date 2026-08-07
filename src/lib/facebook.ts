@@ -136,6 +136,54 @@ export async function exchangeFacebookCode(input: {
   return data.access_token;
 }
 
+/**
+ * Canonical public site for Facebook OAuth redirect_uri.
+ * Always use https://www.aupairly.me in production so Meta App Domains match
+ * (Domain Manager alone is not enough — Basic → App Domains must list aupairly.me).
+ */
+export function facebookOAuthSiteUrl(req?: Request | null): string {
+  const env = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.AUTH_URL ||
+    ""
+  )
+    .trim()
+    .replace(/\/$/, "");
+
+  // Production product host — force www so redirect_uri never drifts
+  if (
+    env.includes("aupairly.me") ||
+    process.env.VERCEL_ENV === "production" ||
+    process.env.NODE_ENV === "production"
+  ) {
+    // Prefer configured site if it's already aupairly; else hard default
+    if (env.startsWith("https://www.aupairly.me")) return "https://www.aupairly.me";
+    if (env.startsWith("https://aupairly.me")) return "https://www.aupairly.me";
+    if (process.env.VERCEL_ENV === "production" || env.includes("aupairly.me")) {
+      return "https://www.aupairly.me";
+    }
+  }
+
+  // Local / preview: use request host or env
+  if (req) {
+    const host =
+      req.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+      req.headers.get("host")?.trim() ||
+      "";
+    if (host.includes("localhost") || host.startsWith("127.")) {
+      const proto = req.headers.get("x-forwarded-proto") || "http";
+      return `${proto}://${host}`.replace(/\/$/, "");
+    }
+    // Preview deployments on vercel.app — still prefer product domain for OAuth
+    if (host.includes("aupairly.me")) {
+      return "https://www.aupairly.me";
+    }
+  }
+
+  if (env) return env;
+  return "http://localhost:3000";
+}
+
 export function facebookOAuthDialogUrl(input: {
   redirectUri: string;
   state: string;
@@ -148,7 +196,9 @@ export function facebookOAuthDialogUrl(input: {
     state: input.state,
     scope: "public_profile,email",
     response_type: "code",
-    auth_type: "rerequest",
+    // Use page display (web) — avoid desktop/native app mode quirks
+    display: "page",
   });
-  return `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
+  // Unversioned dialog URL is more widely accepted for Login
+  return `https://www.facebook.com/dialog/oauth?${params.toString()}`;
 }
