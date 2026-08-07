@@ -104,38 +104,35 @@ export function Avatar({
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
+  // Fixed square box — must not rely on <img> height (globals set img { height: auto })
   const sizes = {
-    sm: "h-8 w-8 text-xs",
-    md: "h-11 w-11 text-sm",
-    lg: "h-16 w-16 text-lg",
-    xl: "h-24 w-24 text-2xl",
+    sm: "h-8 w-8 min-h-8 min-w-8 text-xs",
+    md: "h-11 w-11 min-h-11 min-w-11 text-sm",
+    lg: "h-16 w-16 min-h-16 min-w-16 text-lg",
+    xl: "h-24 w-24 min-h-24 min-w-24 text-2xl",
   };
   // Prefer uploaded profile photo over initials whenever a URL is present
   const src = typeof image === "string" && image.trim() ? image.trim() : null;
 
-  if (src) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={name}
-        className={cn(
-          "rounded-full object-cover ring-2 ring-white shadow-sm",
-          sizes[size],
-          className
-        )}
-      />
-    );
-  }
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-700 font-semibold text-white shadow-sm ring-2 ring-white",
+        "relative inline-flex shrink-0 aspect-square items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-teal-500 to-teal-700 font-semibold text-white shadow-sm ring-2 ring-white",
         sizes[size],
         className
       )}
+      aria-label={name}
     >
-      {initials(name)}
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={name}
+          className="absolute inset-0 !h-full !w-full max-w-none rounded-full object-cover object-center"
+        />
+      ) : (
+        <span className="select-none">{initials(name)}</span>
+      )}
     </div>
   );
 }
