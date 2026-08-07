@@ -3,7 +3,11 @@
  *
  * South Africa (VerifyNow):
  *   { country: "ZA", idNumber, selfieBase64?, referenceImageBase64?, paymentReference? }
- *   Requires Paystack payment of R69 (KYC_VERIFYNOW_FEE_CENTS) when Paystack is configured.
+ *
+ * Pricing:
+ *   FREE plan  → R10 via Paystack (KYC_VERIFYNOW_FEE_CENTS, default 1000)
+ *   PLUS/PREMIUM (active) → free, included with membership
+ *   Paystack not configured → demo free path
  *
  * International (Didit hosted, or manual fallback):
  *   { country: "US" | "GB" | ... }
@@ -36,11 +40,40 @@ import {
   verifyTransaction,
 } from "@/lib/paystack";
 import { formatZar, recordPayment } from "@/lib/payments";
+import { getUserPlan } from "@/lib/entitlements";
+import { isPaidPlanId, type PlanId } from "@/lib/plans";
 
-/** VerifyNow SA automated check fee (R69 default). */
-export const KYC_VERIFYNOW_FEE_CENTS = Number(
-  process.env.KYC_VERIFYNOW_FEE_CENTS || "6900"
-);
+/** Free-plan VerifyNow fee in cents (R10 default). Paid plans: R0. */
+export function freePlanVerifyNowFeeCents(): number {
+  const n = Number(process.env.KYC_VERIFYNOW_FEE_CENTS || "1000");
+  return Number.isFinite(n) && n >= 0 ? Math.round(n) : 1000;
+}
+
+export function resolveVerifyNowFee(planId: PlanId): {
+  feeCents: number;
+  free: boolean;
+  planId: PlanId;
+  label: string;
+  reason: string;
+} {
+  if (isPaidPlanId(planId)) {
+    return {
+      feeCents: 0,
+      free: true,
+      planId,
+      label: "Free",
+      reason: "Included with Plus/Premium",
+    };
+  }
+  const feeCents = freePlanVerifyNowFeeCents();
+  return {
+    feeCents,
+    free: feeCents === 0,
+    planId: "FREE",
+    label: feeCents === 0 ? "Free" : formatZar(feeCents),
+    reason: feeCents === 0 ? "No fee configured" : "Free plan VerifyNow fee",
+  };
+}
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -105,14 +138,23 @@ export async function GET(req: Request) {
     }
   }
 
+  const { planId } = await getUserPlan(session.user.id);
+  const fee = resolveVerifyNowFee(planId);
+  const paystackRequired =
+    isPaystackConfigured() && !fee.free && fee.feeCents > 0;
+
   return NextResponse.json({
     providers: kycProvidersStatus(),
     verifynow: {
       mode: process.env.VERIFYNOW_MODE === "production" ? "production" : "sandbox",
       credits,
-      feeCents: KYC_VERIFYNOW_FEE_CENTS,
-      feeLabel: formatZar(KYC_VERIFYNOW_FEE_CENTS),
-      paystackRequired: isPaystackConfigured(),
+      feeCents: fee.feeCents,
+      feeLabel: fee.label,
+      free: fee.free,
+      feeReason: fee.reason,
+      planId: fee.planId,
+      paystackRequired,
+      configured: isVerifyNowConfigured(),
     },
     didit: {
       configured: isDiditConfigured(),
@@ -160,17 +202,48 @@ export async function POST(req: Request) {
 }
 
 /**
- * Ensure R69 Paystack payment for VerifyNow. Returns:
- * - { ok: true, reference } when paid
- * - NextResponse for checkout redirect / errors
+ * Ensure payment (or complimentary access) for VerifyNow.
+ * FREE plan → R10 Paystack when configured.
+ * PLUS/PREMIUM → free.
  */
 async function ensureVerifyNowPayment(
   userId: string,
   email: string,
   idNumber: string,
   paymentReference?: string
-): Promise<{ ok: true; reference: string; demo?: boolean } | NextResponse> {
-  // Free path when Paystack is not configured (local/demo)
+): Promise<
+  | { ok: true; reference: string; demo?: boolean; complimentary?: boolean; feeCents: number }
+  | NextResponse
+> {
+  const { planId } = await getUserPlan(userId);
+  const fee = resolveVerifyNowFee(planId);
+
+  // Paid membership: free VerifyNow
+  if (fee.free || fee.feeCents === 0) {
+    const ref = `included_kyc_${userId}_${Date.now()}`;
+    await recordPayment({
+      userId,
+      kind: "KYC",
+      amountCents: 0,
+      description: `VerifyNow SA identity check · free (${fee.reason})`,
+      provider: isPaidPlanId(planId) ? "membership" : "demo",
+      reference: ref,
+      meta: {
+        purpose: "kyc_verifynow",
+        planId,
+        complimentary: true,
+        idLast4: idNumber.slice(-4),
+      },
+    });
+    return {
+      ok: true,
+      reference: ref,
+      complimentary: true,
+      feeCents: 0,
+    };
+  }
+
+  // Paystack not configured → demo free (local/dev)
   if (!isPaystackConfigured()) {
     const ref = `demo_kyc_${userId}_${Date.now()}`;
     await recordPayment({
@@ -180,9 +253,9 @@ async function ensureVerifyNowPayment(
       description: "Demo VerifyNow KYC (Paystack not configured)",
       provider: "demo",
       reference: ref,
-      meta: { demo: true, idLast4: idNumber.slice(-4) },
+      meta: { demo: true, planId, idLast4: idNumber.slice(-4) },
     });
-    return { ok: true, reference: ref, demo: true };
+    return { ok: true, reference: ref, demo: true, feeCents: 0 };
   }
 
   if (!email) {
@@ -191,6 +264,8 @@ async function ensureVerifyNowPayment(
       { status: 400 }
     );
   }
+
+  const requiredCents = fee.feeCents;
 
   // Already paid this reference?
   if (paymentReference) {
@@ -202,22 +277,27 @@ async function ensureVerifyNowPayment(
       existing.userId === userId &&
       existing.kind === "KYC" &&
       existing.status === "SUCCESS" &&
-      existing.amountCents >= KYC_VERIFYNOW_FEE_CENTS
+      existing.amountCents >= requiredCents
     ) {
-      return { ok: true, reference: paymentReference };
+      return { ok: true, reference: paymentReference, feeCents: existing.amountCents };
     }
 
     try {
       const tx = await verifyTransaction(paymentReference);
       if (tx.status !== "success") {
         return NextResponse.json(
-          { error: "Payment not completed yet. Finish Paystack checkout, then try again." },
+          {
+            error:
+              "Payment not completed yet. Finish Paystack checkout, then try again.",
+          },
           { status: 402 }
         );
       }
-      if (Number(tx.amount) < KYC_VERIFYNOW_FEE_CENTS) {
+      if (Number(tx.amount) < requiredCents) {
         return NextResponse.json(
-          { error: `Payment amount too low. VerifyNow costs ${formatZar(KYC_VERIFYNOW_FEE_CENTS)}.` },
+          {
+            error: `Payment amount too low. VerifyNow costs ${formatZar(requiredCents)} on Free.`,
+          },
           { status: 402 }
         );
       }
@@ -226,47 +306,65 @@ async function ensureVerifyNowPayment(
           ? (tx.metadata as Record<string, unknown>)
           : {};
       if (meta.userId && String(meta.userId) !== userId) {
-        return NextResponse.json({ error: "Payment belongs to another account" }, { status: 403 });
+        return NextResponse.json(
+          { error: "Payment belongs to another account" },
+          { status: 403 }
+        );
       }
       if (meta.purpose && String(meta.purpose) !== "kyc_verifynow") {
-        return NextResponse.json({ error: "Payment is not for identity verification" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Payment is not for identity verification" },
+          { status: 400 }
+        );
       }
 
       await recordPayment({
         userId,
         kind: "KYC",
-        amountCents: Number(tx.amount || KYC_VERIFYNOW_FEE_CENTS),
+        amountCents: Number(tx.amount || requiredCents),
         currency: String(tx.currency || "ZAR").toUpperCase(),
-        description: `VerifyNow SA identity check · ${formatZar(KYC_VERIFYNOW_FEE_CENTS)}`,
+        description: `VerifyNow SA identity check · ${formatZar(requiredCents)}`,
         reference: paymentReference,
         provider: "paystack",
-        meta: { purpose: "kyc_verifynow", idLast4: idNumber.slice(-4) },
+        meta: {
+          purpose: "kyc_verifynow",
+          planId: "FREE",
+          idLast4: idNumber.slice(-4),
+        },
       });
-      return { ok: true, reference: paymentReference };
+      return {
+        ok: true,
+        reference: paymentReference,
+        feeCents: Number(tx.amount || requiredCents),
+      };
     } catch (err) {
-      const { error, code, status } = paystackErrorResponse(err, "Could not verify payment");
+      const { error, code, status } = paystackErrorResponse(
+        err,
+        "Could not verify payment"
+      );
       return NextResponse.json({ error, code }, { status });
     }
   }
 
-  // Start Paystack checkout for R69
+  // Start Paystack checkout (Free plan → R10)
   try {
     const site = getSiteUrl();
     const reference = makeReference("kyc");
     const init = await initializeTransaction({
       email,
-      amountCents: KYC_VERIFYNOW_FEE_CENTS,
+      amountCents: requiredCents,
       reference,
       callbackUrl: `${site}/verification?kyc_paid=1&reference=${encodeURIComponent(reference)}`,
       metadata: {
         purpose: "kyc_verifynow",
         userId,
+        planId: "FREE",
         idLast4: idNumber.slice(-4),
         custom_fields: [
           {
             display_name: "Product",
             variable_name: "product",
-            value: "VerifyNow SA identity check",
+            value: `VerifyNow SA identity check (${formatZar(requiredCents)})`,
           },
         ],
       },
@@ -276,22 +374,28 @@ async function ensureVerifyNowPayment(
     await recordPayment({
       userId,
       kind: "KYC",
-      amountCents: KYC_VERIFYNOW_FEE_CENTS,
-      description: `VerifyNow SA identity check · pending · ${formatZar(KYC_VERIFYNOW_FEE_CENTS)}`,
+      amountCents: requiredCents,
+      description: `VerifyNow SA identity check · pending · ${formatZar(requiredCents)}`,
       reference,
       provider: "paystack",
       status: "PENDING",
-      meta: { purpose: "kyc_verifynow", idLast4: idNumber.slice(-4) },
+      meta: {
+        purpose: "kyc_verifynow",
+        planId: "FREE",
+        idLast4: idNumber.slice(-4),
+      },
     });
 
     return NextResponse.json({
       ok: true,
       needsPayment: true,
-      feeCents: KYC_VERIFYNOW_FEE_CENTS,
-      feeLabel: formatZar(KYC_VERIFYNOW_FEE_CENTS),
+      feeCents: requiredCents,
+      feeLabel: formatZar(requiredCents),
+      free: false,
+      planId: "FREE",
       reference,
       url: init.authorization_url,
-      message: `Pay ${formatZar(KYC_VERIFYNOW_FEE_CENTS)} securely with Paystack to run VerifyNow.`,
+      message: `Pay ${formatZar(requiredCents)} with Paystack to run VerifyNow (free on Plus/Premium).`,
     });
   } catch (err) {
     const { error, code, status } = paystackErrorResponse(err);
@@ -426,9 +530,15 @@ async function runSouthAfricaKyc(
     provider: isVerifyNowConfigured() ? "verifynow" : "demo",
     payment: {
       reference: paid.reference,
-      feeCents: paid.demo ? 0 : KYC_VERIFYNOW_FEE_CENTS,
-      feeLabel: paid.demo ? "Demo (free)" : formatZar(KYC_VERIFYNOW_FEE_CENTS),
+      feeCents: paid.feeCents,
+      feeLabel:
+        paid.complimentary
+          ? "Free (Plus/Premium)"
+          : paid.demo
+            ? "Demo (free)"
+            : formatZar(paid.feeCents),
       demo: Boolean(paid.demo),
+      complimentary: Boolean(paid.complimentary),
     },
     id: {
       ok: true,
