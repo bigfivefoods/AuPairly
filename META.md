@@ -11,25 +11,45 @@ It is **not** government ID verification — users still complete VerifyNow (SA)
 4. Add product: **Facebook Login** → **Web**
 5. Site URL: `https://www.aupairly.me`
 
-## 2. Facebook Login settings
+## 2. Facebook Login settings (required for “Can't load URL”)
 
-**Facebook Login → Settings:**
-
-| Setting | Value |
-|---------|--------|
-| Client OAuth login | Yes |
-| Web OAuth login | Yes |
-| Strict Mode | Yes (recommended) |
-| Valid OAuth Redirect URIs | `https://www.aupairly.me/api/social/facebook/callback` |
-| | `http://localhost:3000/api/social/facebook/callback` (local) |
+If Meta shows **“The domain of this URL isn't included in the app's domains”**, fix **all** of these:
 
 **App settings → Basic:**
 
 | Setting | Value |
 |---------|--------|
-| App Domains | `aupairly.me`, `www.aupairly.me`, `localhost` |
+| **App Domains** | `aupairly.me` only (root domain — do **not** put `https://` or paths) |
 | Privacy Policy URL | `https://www.aupairly.me/privacy` |
 | Terms of Service URL | `https://www.aupairly.me/terms` |
+
+**Add platform → Website** (if missing):
+
+| Setting | Value |
+|---------|--------|
+| Site URL | `https://www.aupairly.me` |
+
+**Facebook Login → Settings:**
+
+| Setting | Value |
+|---------|--------|
+| Client OAuth login | **Yes** |
+| Web OAuth login | **Yes** |
+| Strict Mode | Yes (recommended) |
+| Valid OAuth Redirect URIs | `https://www.aupairly.me/api/social/facebook/callback` |
+| | `https://aupairly.me/api/social/facebook/callback` (apex, if used) |
+| | `http://localhost:3000/api/social/facebook/callback` (local) |
+
+Save after each section. Wait ~1 minute, then try Connect again.
+
+**Vercel env (must match the domain users open):**
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://www.aupairly.me
+AUTH_URL=https://www.aupairly.me
+NEXT_PUBLIC_FACEBOOK_APP_ID=...
+AUTH_FACEBOOK_SECRET=...
+```
 
 ## 3. Permissions
 

@@ -10,19 +10,23 @@ import {
   exchangeFacebookCode,
   fetchFacebookProfile,
 } from "@/lib/facebook";
-import { getSiteUrl } from "@/lib/paystack";
+import { getRequestSiteUrl } from "@/lib/paystack";
 import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
-  const site = getSiteUrl();
+  const site = getRequestSiteUrl(req);
   const session = await auth();
   const jar = await cookies();
   const returnTo = jar.get("fb_oauth_return")?.value || "/settings/connections";
   const expectedState = jar.get("fb_oauth_state")?.value || "";
+  const storedRedirect =
+    jar.get("fb_oauth_redirect_uri")?.value ||
+    `${site}/api/social/facebook/callback`;
 
   const clear = (res: NextResponse) => {
     res.cookies.set("fb_oauth_state", "", { path: "/", maxAge: 0 });
     res.cookies.set("fb_oauth_return", "", { path: "/", maxAge: 0 });
+    res.cookies.set("fb_oauth_redirect_uri", "", { path: "/", maxAge: 0 });
     return res;
   };
 
@@ -33,7 +37,8 @@ export async function GET(req: Request) {
   }
 
   const url = new URL(req.url);
-  const err = url.searchParams.get("error_description") || url.searchParams.get("error");
+  const err =
+    url.searchParams.get("error_description") || url.searchParams.get("error");
   if (err) {
     return clear(
       NextResponse.redirect(
@@ -60,8 +65,11 @@ export async function GET(req: Request) {
   }
 
   try {
-    const redirectUri = `${site}/api/social/facebook/callback`;
-    const accessToken = await exchangeFacebookCode({ code, redirectUri });
+    // Must match the redirect_uri used when starting OAuth
+    const accessToken = await exchangeFacebookCode({
+      code,
+      redirectUri: storedRedirect,
+    });
     const fb = await fetchFacebookProfile(accessToken);
 
     const existing = await prisma.user.findFirst({
@@ -103,9 +111,7 @@ export async function GET(req: Request) {
       },
     });
 
-    return clear(
-      NextResponse.redirect(`${site}${returnTo}?fb=linked`)
-    );
+    return clear(NextResponse.redirect(`${site}${returnTo}?fb=linked`));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Facebook link failed";
     return clear(
