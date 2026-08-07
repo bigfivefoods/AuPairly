@@ -169,6 +169,31 @@ export async function sendInterestUpdateEmail(opts: {
   });
 }
 
+/** Daily saved-search digest email */
+export async function sendSavedSearchAlertEmail(opts: {
+  toEmail: string;
+  toName: string;
+  searchName: string;
+  count: number;
+  targetLabel: string;
+  href: string;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const text = `Hi ${first},\n\n${opts.count} new ${opts.targetLabel} listing(s) match your saved search “${opts.searchName}” on AuPairly.\n\nView matches:\n${opts.href}\n\n— AuPairly`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `${opts.count} new match${opts.count === 1 ? "" : "es"} for “${opts.searchName}”`,
+    text,
+    html: wrapHtml(
+      `New matches for “${escapeHtml(opts.searchName)}”`,
+      `<p style="line-height:1.6;color:#44403c">Hi ${escapeHtml(first)},</p>
+       <p style="line-height:1.6;color:#44403c"><strong>${opts.count}</strong> new ${escapeHtml(opts.targetLabel)} listing(s) match your saved search.</p>
+       <p style="margin-top:20px"><a href="${opts.href}" style="display:inline-block;background:#0d9488;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">View matches</a></p>
+       <p style="margin-top:16px;font-size:12px;color:#78716c">Manage alerts in Saved searches on AuPairly.</p>`
+    ),
+  });
+}
+
 function escapeHtml(s: string) {
   return s
     .replace(/&/g, "&amp;")
