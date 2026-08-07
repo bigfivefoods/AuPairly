@@ -110,13 +110,20 @@ export function Avatar({
     lg: "h-16 w-16 text-lg",
     xl: "h-24 w-24 text-2xl",
   };
-  if (image) {
+  // Prefer uploaded profile photo over initials whenever a URL is present
+  const src = typeof image === "string" && image.trim() ? image.trim() : null;
+
+  if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={image}
+        src={src}
         alt={name}
-        className={cn("rounded-full object-cover ring-2 ring-white shadow-sm", sizes[size], className)}
+        className={cn(
+          "rounded-full object-cover ring-2 ring-white shadow-sm",
+          sizes[size],
+          className
+        )}
       />
     );
   }
