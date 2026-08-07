@@ -96,6 +96,8 @@ export const metadata: Metadata = {
   },
   other: {
     "mobile-web-app-capable": "yes",
+    // Meta Business / Facebook domain verification
+    "facebook-domain-verification": "6j1kqmmu5bfwfwrxshraad5s0h71f1",
   },
 };
 
