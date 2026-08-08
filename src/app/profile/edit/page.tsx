@@ -48,6 +48,14 @@ export default async function EditProfilePage() {
       experienceYears: profile?.experienceYears?.toString() ?? "0",
       childcareSkills: parseJsonArray(profile?.childcareSkills),
       education: profile?.education ?? "",
+      studyStatus:
+        (profile as { studyStatus?: string | null } | null)?.studyStatus ?? "",
+      studyingTowards:
+        (profile as { studyingTowards?: string | null } | null)
+          ?.studyingTowards ?? "",
+      qualifications:
+        (profile as { qualifications?: string | null } | null)?.qualifications ??
+        "[]",
       drivingLicense: profile?.drivingLicense ?? false,
       firstAid: profile?.firstAid ?? false,
       swimming: profile?.swimming ?? false,

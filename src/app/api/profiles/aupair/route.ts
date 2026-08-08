@@ -39,6 +39,16 @@ export async function PUT(req: Request) {
       experienceYears: Number(body.experienceYears ?? 0),
       childcareSkills: toJsonArray(body.childcareSkills ?? []),
       education: body.education,
+      studyStatus: body.studyStatus || null,
+      studyingTowards: body.studyingTowards?.trim()
+        ? String(body.studyingTowards).slice(0, 200)
+        : null,
+      qualifications:
+        typeof body.qualifications === "string"
+          ? body.qualifications
+          : Array.isArray(body.qualifications)
+            ? JSON.stringify(body.qualifications)
+            : "[]",
       drivingLicense: Boolean(body.drivingLicense),
       firstAid: Boolean(body.firstAid),
       swimming: Boolean(body.swimming),
@@ -86,6 +96,22 @@ export async function PUT(req: Request) {
       experienceYears: body.experienceYears !== undefined ? Number(body.experienceYears) : undefined,
       childcareSkills: body.childcareSkills ? toJsonArray(body.childcareSkills) : undefined,
       education: body.education,
+      studyStatus:
+        body.studyStatus !== undefined ? body.studyStatus || null : undefined,
+      studyingTowards:
+        body.studyingTowards !== undefined
+          ? body.studyingTowards?.trim()
+            ? String(body.studyingTowards).slice(0, 200)
+            : null
+          : undefined,
+      qualifications:
+        body.qualifications !== undefined
+          ? typeof body.qualifications === "string"
+            ? body.qualifications
+            : Array.isArray(body.qualifications)
+              ? JSON.stringify(body.qualifications)
+              : "[]"
+          : undefined,
       drivingLicense: body.drivingLicense !== undefined ? Boolean(body.drivingLicense) : undefined,
       firstAid: body.firstAid !== undefined ? Boolean(body.firstAid) : undefined,
       swimming: body.swimming !== undefined ? Boolean(body.swimming) : undefined,

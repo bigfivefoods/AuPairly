@@ -35,6 +35,13 @@ import {
   ProfileSection,
 } from "@/components/profile/profile-edit-shell";
 import { CompletenessCoach } from "@/components/completeness-coach";
+import { QualificationsEditor } from "@/components/qualifications-editor";
+import {
+  parseQualifications,
+  serializeQualifications,
+  STUDY_STATUS_OPTIONS,
+  type QualificationItem,
+} from "@/lib/qualifications";
 
 type Initial = {
   name: string;
@@ -49,6 +56,9 @@ type Initial = {
   experienceYears: string;
   childcareSkills: string[];
   education: string;
+  studyStatus?: string;
+  studyingTowards?: string;
+  qualifications?: QualificationItem[] | string | null;
   drivingLicense: boolean;
   firstAid: boolean;
   swimming: boolean;
@@ -88,6 +98,7 @@ const AUPAIR_SECTIONS = [
   { id: "services", label: "Services" },
   { id: "photos", label: "Photos" },
   { id: "basics", label: "Basics" },
+  { id: "qualifications", label: "Qualifications" },
   { id: "languages", label: "Languages" },
   { id: "skills", label: "Skills" },
   { id: "location", label: "Where you are" },
@@ -128,6 +139,13 @@ export function AuPairProfileForm({
   const [error, setError] = useState("");
   const [documentCount, setDocumentCount] = useState(initial.documentCount ?? 0);
   const [referenceCount] = useState(initial.referenceCount ?? 0);
+  const [qualifications, setQualifications] = useState<QualificationItem[]>(() =>
+    Array.isArray(initial.qualifications)
+      ? initial.qualifications
+      : parseQualifications(
+          typeof initial.qualifications === "string" ? initial.qualifications : "[]"
+        )
+  );
   /** Draft location for multi-select “willing to work” places */
   const [workLocDraft, setWorkLocDraft] = useState<LocationValue>({
     continent: "",
@@ -220,6 +238,9 @@ export function AuPairProfileForm({
           services,
           petTypes,
           houseSittingNotes,
+          qualifications: serializeQualifications(qualifications),
+          studyStatus: form.studyStatus || null,
+          studyingTowards: form.studyingTowards || null,
           status: status ?? form.status,
         }),
       });
@@ -388,8 +409,86 @@ export function AuPairProfileForm({
             <Input type="number" min={0} value={form.experienceYears} onChange={(e) => set("experienceYears", e.target.value)} />
           </div>
           <div>
-            <Label>Education</Label>
-            <Input value={form.education} onChange={(e) => set("education", e.target.value)} placeholder="e.g. Early childhood diploma" />
+            <Label>Highest education (summary)</Label>
+            <Input
+              value={form.education}
+              onChange={(e) => set("education", e.target.value)}
+              placeholder="e.g. Matric, ECD diploma, BEd"
+            />
+          </div>
+        </div>
+      </Card>
+      </ProfileSection>
+
+      <ProfileSection id="qualifications">
+      <Card className="space-y-5">
+        <div>
+          <h2 className="font-display text-lg font-semibold">
+            Qualifications &amp; studies
+          </h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Tell hosts what you have completed and what you are studying towards.
+            Attach certificates or proof as PDF/image — files also go into your
+            private document vault.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label>Study status</Label>
+            <Select
+              value={form.studyStatus || ""}
+              onChange={(e) => set("studyStatus", e.target.value)}
+            >
+              <option value="">Select…</option>
+              {STUDY_STATUS_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Studying towards (if applicable)</Label>
+            <Input
+              value={form.studyingTowards || ""}
+              onChange={(e) => set("studyingTowards", e.target.value)}
+              placeholder="e.g. BEd Foundation Phase, Nursing auxiliary"
+              disabled={form.studyStatus === "NOT_STUDYING"}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label className="mb-2 block">Qualifications list</Label>
+          <QualificationsEditor
+            items={qualifications}
+            onChange={setQualifications}
+          />
+        </div>
+
+        <div>
+          <Label>Quick certificate chips</Label>
+          <p className="mt-0.5 text-xs text-stone-400">
+            Tap to flag common certs (add full details above if you have files).
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[
+              "First aid",
+              "CPR",
+              "Police clearance",
+              "Driver's licence",
+              "Teaching cert",
+              "ECD / childcare cert",
+              "Au pair training",
+            ].map((c) => (
+              <ChipToggle
+                key={c}
+                label={c}
+                selected={form.certificates.includes(c)}
+                onClick={() => toggle("certificates", c)}
+              />
+            ))}
           </div>
         </div>
       </Card>
@@ -660,19 +759,6 @@ export function AuPairProfileForm({
               <option value="SEEKING">Seeking visa / sponsorship</option>
               <option value="UNKNOWN">Prefer not to say</option>
             </Select>
-          </div>
-        </div>
-        <div>
-          <Label>Certificates</Label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {["First aid", "CPR", "Police clearance", "Driver's licence", "Teaching cert"].map((c) => (
-              <ChipToggle
-                key={c}
-                label={c}
-                selected={form.certificates.includes(c)}
-                onClick={() => toggle("certificates", c)}
-              />
-            ))}
           </div>
         </div>
       </Card>

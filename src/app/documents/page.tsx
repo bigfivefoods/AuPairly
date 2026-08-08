@@ -25,6 +25,8 @@ const TYPE_LABELS: Record<string, string> = {
   PASSPORT: "Passport",
   POLICE: "Police clearance",
   FIRST_AID: "First aid",
+  QUALIFICATION: "Qualification / diploma",
+  CERTIFICATE: "Certificate",
   VISA: "Visa",
   OTHER: "Other",
 };
@@ -215,6 +217,8 @@ export default function DocumentsPage() {
               <option value="PASSPORT">Passport</option>
               <option value="POLICE">Police clearance</option>
               <option value="FIRST_AID">First aid</option>
+              <option value="QUALIFICATION">Qualification / diploma</option>
+              <option value="CERTIFICATE">Certificate</option>
               <option value="VISA">Visa</option>
               <option value="OTHER">Other</option>
             </Select>

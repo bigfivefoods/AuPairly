@@ -248,6 +248,17 @@ export default async function AuPairDetailPage({
 
   const replyLabel = responseTimeLabel(profile.user.avgResponseMinutes);
   const certs = parseJsonArray(profile.certificates);
+  const {
+    parseQualifications,
+    studyStatusLabel,
+    qualStatusLabel,
+  } = await import("@/lib/qualifications");
+  const qualifications = parseQualifications(
+    (profile as { qualifications?: string | null }).qualifications
+  );
+  const studyStatus = (profile as { studyStatus?: string | null }).studyStatus;
+  const studyingTowards = (profile as { studyingTowards?: string | null })
+    .studyingTowards;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
@@ -422,15 +433,72 @@ export default async function AuPairDetailPage({
           />
 
           <Card>
-            <h2 className="font-display text-xl font-semibold">Qualifications</h2>
+            <h2 className="font-display text-xl font-semibold">Qualifications &amp; studies</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <Qual icon={<Languages className="h-4 w-4" />} label="Languages" value={languages.join(", ") || "—"} />
               <Qual icon={<GraduationCap className="h-4 w-4" />} label="Education" value={profile.education || "—"} />
+              <Qual
+                icon={<GraduationCap className="h-4 w-4" />}
+                label="Study status"
+                value={studyStatusLabel(studyStatus) || "—"}
+              />
+              {studyingTowards && (
+                <Qual
+                  icon={<GraduationCap className="h-4 w-4" />}
+                  label="Studying towards"
+                  value={studyingTowards}
+                />
+              )}
               <Qual icon={<Car className="h-4 w-4" />} label="Driving license" value={profile.drivingLicense ? "Yes" : "No"} />
               <Qual icon={<HeartPulse className="h-4 w-4" />} label="First aid" value={profile.firstAid ? "Yes" : "No"} />
               <Qual icon={<Waves className="h-4 w-4" />} label="Swimming" value={profile.swimming ? "Yes" : "No"} />
               <Qual icon={<CigaretteOff className="h-4 w-4" />} label="Non-smoker" value={profile.nonSmoker ? "Yes" : "No"} />
             </div>
+
+            {qualifications.length > 0 && (
+              <ul className="mt-5 space-y-2">
+                {qualifications.map((q) => (
+                  <li
+                    key={q.id}
+                    className="rounded-xl border border-stone-100 bg-stone-50 px-3 py-2.5 text-sm"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-stone-900">{q.title}</p>
+                        <p className="text-xs text-stone-500">
+                          {[q.institution, q.year, qualStatusLabel(q.status)]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
+                      {q.documentUrl && (
+                        <a
+                          href={q.documentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-semibold text-teal-700 hover:underline"
+                        >
+                          View attachment
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {certs.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {certs.map((c) => (
+                  <span
+                    key={c}
+                    className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-900"
+                  >
+                    {c}
+                  </span>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
 

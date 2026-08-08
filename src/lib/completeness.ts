@@ -29,8 +29,13 @@ export type CompletenessInput = {
   drivingLicense?: boolean | null;
   firstAid?: boolean | null;
   workRights?: string | null;
+  education?: string | null;
   /** Gallery photos: JSON string or string[] */
   photos?: string | string[] | null;
+  studyStatus?: string | null;
+  studyingTowards?: string | null;
+  /** JSON string or count of qualifications */
+  qualifications?: string | unknown[] | null;
   // family
   childrenCount?: number | null;
   childrenAges?: string | string[] | null;
@@ -239,6 +244,20 @@ export function computeCompleteness(input: CompletenessInput): CompletenessResul
           String(input.workRights).trim() &&
           input.workRights !== "UNKNOWN"
       ),
+    });
+    push({
+      id: "qualifications",
+      label: "Add qualifications or studies",
+      detail: "Study status, courses, or attach a certificate.",
+      href: "/profile/edit",
+      points: 8,
+      done:
+        Boolean(input.studyStatus) ||
+        Boolean((input.studyingTowards || "").trim()) ||
+        Boolean((input.education || "").trim()) ||
+        (Array.isArray(input.qualifications)
+          ? input.qualifications.length > 0
+          : parseJsonArray(input.qualifications || "[]").length > 0),
     });
   } else if (role === "PARENT") {
     push({
