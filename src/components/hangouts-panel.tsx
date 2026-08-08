@@ -56,11 +56,14 @@ export function HangoutsPanel({
     setPosting(true);
     setError("");
     try {
+      // Always prefer profile location for hangout city
+      const hangoutCity =
+        (defaultCity || "").trim() || city.trim() || "Anywhere";
       const res = await fetch("/api/community/hangouts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          city: city.trim() || defaultCity || "Anywhere",
+          city: hangoutCity,
           country: defaultCountry || undefined,
           title,
           body,

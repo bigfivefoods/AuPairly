@@ -20,9 +20,9 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const cityFilter = searchParams.get("city")?.trim() || "";
-  const regionFilter = searchParams.get("region")?.trim() || "";
-  const countryFilter = searchParams.get("country")?.trim() || "";
+  const cityParam = searchParams.get("city")?.trim() || "";
+  const regionParam = searchParams.get("region")?.trim() || "";
+  const countryParam = searchParams.get("country")?.trim() || "";
   const q = searchParams.get("q")?.trim() || "";
   const take = Math.min(Number(searchParams.get("limit") || 48) || 48, 60);
 
@@ -43,6 +43,12 @@ export async function GET(req: Request) {
     continent?: string | null;
   } = me?.aupairProfile ?? {};
 
+  // Default filters always come from the viewer's profile location
+  const cityFilter = cityParam || myLoc.city?.trim() || "";
+  const regionFilter = regionParam || (!cityParam ? myLoc.region?.trim() || "" : "");
+  const countryFilter =
+    countryParam || (!cityParam && !regionParam ? myLoc.country?.trim() || "" : "");
+
   const peers = await prisma.auPairProfile.findMany({
     where: {
       status: "ACTIVE",
@@ -56,7 +62,7 @@ export async function GET(req: Request) {
             ],
           }
         : {}),
-      ...(regionFilter
+      ...(regionFilter && !cityFilter
         ? {
             OR: [
               { region: { equals: regionFilter, mode: "insensitive" } },
@@ -64,38 +70,14 @@ export async function GET(req: Request) {
             ],
           }
         : {}),
-      ...(countryFilter
+      ...(countryFilter && !cityFilter && !regionFilter
         ? {
             OR: [
               { country: { equals: countryFilter, mode: "insensitive" } },
               { country: { contains: countryFilter, mode: "insensitive" } },
             ],
           }
-        : !cityFilter && !regionFilter && myLoc.country
-          ? {
-              // Default: prefer same country when no explicit filter
-              OR: [
-                { country: { equals: myLoc.country, mode: "insensitive" } },
-                { country: { contains: myLoc.country, mode: "insensitive" } },
-                ...(myLoc.city
-                  ? [
-                      {
-                        city: {
-                          equals: myLoc.city,
-                          mode: "insensitive" as const,
-                        },
-                      },
-                      {
-                        city: {
-                          contains: myLoc.city,
-                          mode: "insensitive" as const,
-                        },
-                      },
-                    ]
-                  : []),
-              ],
-            }
-          : {}),
+        : {}),
       ...(q
         ? {
             OR: [

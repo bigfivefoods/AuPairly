@@ -81,21 +81,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
     }
 
-    const toUser = await prisma.user.findUnique({
-      where: { id: body.toUserId },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        aupairProfile: {
-          select: {
-            status: true,
-            openToPeerConnect: true,
-            city: true,
+    const [toUser, fromProfile] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: body.toUserId },
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          aupairProfile: {
+            select: {
+              status: true,
+              openToPeerConnect: true,
+              city: true,
+              region: true,
+              country: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.auPairProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { city: true, region: true, country: true },
+      }),
+    ]);
 
     if (!toUser || toUser.role !== "AUPAIR") {
       return NextResponse.json(
@@ -113,6 +121,12 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Always use the connector's own profile location (not free-typed search)
+    const myCity = fromProfile?.city?.trim() || null;
+    const myPlace = [fromProfile?.city, fromProfile?.country]
+      .filter(Boolean)
+      .join(", ");
 
     const connect = await prisma.peerConnect.upsert({
       where: {
@@ -137,7 +151,9 @@ export async function POST(req: Request) {
       userId: body.toUserId,
       type: "PEER_CONNECT",
       title: "New AuPair Connect",
-      body: `${session.user.name?.split(" ")[0] || "A sitter"} wants to connect as friends nearby`,
+      body: myPlace
+        ? `${session.user.name?.split(" ")[0] || "A sitter"} (${myPlace}) wants to connect as friends`
+        : `${session.user.name?.split(" ")[0] || "A sitter"} wants to connect as friends nearby`,
       href: "/community?tab=requests",
     });
 
@@ -147,7 +163,7 @@ export async function POST(req: Request) {
       const first = toUser.name.split(" ")[0] || "there";
       const text =
         body.message?.trim() ||
-        peerIcebreaker(first, toUser.aupairProfile.city);
+        peerIcebreaker(first, myCity, toUser.aupairProfile.city);
 
       const [userAId, userBId] =
         session.user.id < body.toUserId

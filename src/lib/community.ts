@@ -49,11 +49,23 @@ export function peerProximity(
   return "any";
 }
 
-export function peerIcebreaker(firstName: string, city?: string | null): string {
+/**
+ * Icebreaker when connecting as friends.
+ * Always use **your** profile city (fromUser), not the other person's.
+ */
+export function peerIcebreaker(
+  firstName: string,
+  myCity?: string | null,
+  theirCity?: string | null
+): string {
   const name = firstName.split(" ")[0] || "there";
-  const place = city?.trim();
-  if (place) {
-    return `Hi ${name}! I'm also a sitter near ${place} and would love to connect — always nice to make friends when you're abroad. Hope you're settling in well 😊`;
+  const mine = myCity?.trim();
+  const theirs = theirCity?.trim();
+  if (mine && theirs && mine.toLowerCase() !== theirs.toLowerCase()) {
+    return `Hi ${name}! I'm a sitter based in ${mine} (I see you're near ${theirs}) and would love to connect as friends — always nice to know someone on a similar journey. Hope you're settling in well 😊`;
+  }
+  if (mine) {
+    return `Hi ${name}! I'm a sitter based in ${mine} and would love to connect — always nice to make friends nearby when you're abroad. Hope you're settling in well 😊`;
   }
   return `Hi ${name}! I'm also an au pair / sitter and would love to connect as friends — always good to know someone who's on a similar journey. Hope you're doing well 😊`;
 }

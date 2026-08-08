@@ -73,8 +73,10 @@ export function CommunityClient({
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || initialTab;
 
+  const profileCity = meLocation.city?.trim() || "";
   const [q, setQ] = useState("");
-  const [city, setCity] = useState(meLocation.city || "");
+  /** City search always defaults to profile location */
+  const [city, setCity] = useState(profileCity);
   const [items, setItems] = useState<NearbyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -82,13 +84,23 @@ export function CommunityClient({
   const [sent, setSent] = useState<ConnectRow[]>([]);
   const [reqLoading, setReqLoading] = useState(false);
 
+  // Keep filter in sync if profile location loads/changes
+  useEffect(() => {
+    if (profileCity && !city) setCity(profileCity);
+  }, [profileCity, city]);
+
   const loadNearby = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const params = new URLSearchParams();
       if (q.trim()) params.set("q", q.trim());
-      if (city.trim()) params.set("city", city.trim());
+      // Prefer explicit city field, else profile city; always send country from profile
+      const cityQ = city.trim() || profileCity;
+      if (cityQ) params.set("city", cityQ);
+      if (meLocation.region?.trim()) params.set("region", meLocation.region.trim());
+      if (meLocation.country?.trim())
+        params.set("country", meLocation.country.trim());
       const res = await fetch(`/api/community/nearby?${params.toString()}`);
       const data = await res.json();
       if (!res.ok) {
@@ -102,7 +114,7 @@ export function CommunityClient({
     } finally {
       setLoading(false);
     }
-  }, [q, city]);
+  }, [q, city, profileCity, meLocation.region, meLocation.country]);
 
   const loadRequests = useCallback(async () => {
     setReqLoading(true);
@@ -222,12 +234,28 @@ export function CommunityClient({
             }}
           >
             <label className="flex-1 text-sm">
-              <span className="mb-1 block font-medium text-stone-600">City</span>
+              <span className="mb-1 block font-medium text-stone-600">
+                City{" "}
+                {profileCity ? (
+                  <span className="font-normal text-stone-400">
+                    (from your profile: {profileCity})
+                  </span>
+                ) : null}
+              </span>
               <Input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder={meLocation.city || "e.g. Cape Town"}
+                placeholder={profileCity || "Set city on your profile"}
               />
+              {profileCity && city.trim() && city.trim() !== profileCity && (
+                <button
+                  type="button"
+                  className="mt-1 text-xs font-semibold text-teal-700 hover:underline"
+                  onClick={() => setCity(profileCity)}
+                >
+                  Reset to profile location
+                </button>
+              )}
             </label>
             <label className="flex-1 text-sm">
               <span className="mb-1 block font-medium text-stone-600">Search</span>
