@@ -56,6 +56,11 @@ export async function loadCompletenessInput(
     pocketMoneyMin: aupair?.pocketMoneyMin,
     availableFrom: aupair?.availableFrom,
     workRights: aupair?.workRights,
+    studyStatus: (aupair as { studyStatus?: string | null } | null)?.studyStatus,
+    studyingTowards: (aupair as { studyingTowards?: string | null } | null)
+      ?.studyingTowards,
+    qualifications: (aupair as { qualifications?: string | null } | null)
+      ?.qualifications,
     childrenCount: family?.childrenCount,
     childrenAges: family?.childrenAges,
     pocketMoney: family?.pocketMoney,

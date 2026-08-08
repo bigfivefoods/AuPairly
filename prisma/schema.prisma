@@ -161,6 +161,12 @@ model AuPairProfile {
   experienceYears Int           @default(0)
   childcareSkills String        @default("[]") // JSON array
   education       String?
+  /// NOT_STUDYING | STUDYING | COMPLETED
+  studyStatus     String?
+  /// e.g. "BEd Foundation Phase", "ECD NQF 4"
+  studyingTowards String?
+  /// JSON: [{ id, title, institution?, year?, status: COMPLETED|IN_PROGRESS|PLANNED, documentUrl? }]
+  qualifications  String        @default("[]")
   drivingLicense  Boolean       @default(false)
   firstAid        Boolean       @default(false)
   swimming        Boolean       @default(false)
