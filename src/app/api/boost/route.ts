@@ -20,28 +20,9 @@ export async function POST() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Gate: require solid profile before boost spend / demo boost
-  const { marketplaceReady } = await import("@/lib/gates");
-  const me = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      image: true,
-      aupairProfile: true,
-      familyProfile: true,
-    },
-  });
-  const prof = me?.aupairProfile || me?.familyProfile;
-  const gate = marketplaceReady({
-    role: session.user.role,
-    image: me?.image,
-    headline: prof?.headline,
-    bio: prof?.bio,
-    city: prof?.city,
-    country: prof?.country,
-    status: prof?.status,
-    services: prof?.services,
-    isVerified: prof?.isVerified,
-  });
+  // Gate: same completeness input as Dashboard / Discover
+  const { loadMarketplaceGate } = await import("@/lib/completeness-load");
+  const gate = await loadMarketplaceGate(session.user.id);
   if (!gate.ok) {
     return NextResponse.json(
       {
