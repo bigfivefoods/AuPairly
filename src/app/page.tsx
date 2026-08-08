@@ -9,6 +9,7 @@ import {
   buildPageMetadata,
   faqJsonLd,
   organizationJsonLd,
+  softwareApplicationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
 
@@ -49,6 +50,16 @@ const HOME_FAQS = [
     answer:
       "Yes — create a free account to browse and build your profile. Paid plans unlock more messaging, boosts, and free identity checks depending on your plan.",
   },
+  {
+    question: "Where does AuPairly work?",
+    answer:
+      "Worldwide. South Africa is a launch focus (Cape Town, Johannesburg, Pretoria, Durban and more), with hosts and sitters listing globally.",
+  },
+  {
+    question: "What services can I list?",
+    answer:
+      "Childcare (au pairs, babysitting, nannies), caregiving for adults and the elderly, house sitting, and pet sitting — one account.",
+  },
 ];
 
 export default async function HomePage() {
@@ -84,6 +95,7 @@ export default async function HomePage() {
         data={[
           organizationJsonLd(),
           websiteJsonLd(),
+          softwareApplicationJsonLd(),
           faqJsonLd(HOME_FAQS),
         ]}
       />

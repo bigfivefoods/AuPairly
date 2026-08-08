@@ -1,0 +1,49 @@
+# AuPairly
+
+> Trusted marketplace for childcare, caregiving, house sitting, and pet sitting — verified people, one account, worldwide.
+
+Site: https://www.aupairly.me
+Contact: hello@aupairly.me
+X: https://x.com/aupairly
+Instagram: https://www.instagram.com/aupairly.me/
+
+## Primary pages
+
+- https://www.aupairly.me/
+- https://www.aupairly.me/how-it-works
+- https://www.aupairly.me/pricing
+- https://www.aupairly.me/safety
+- https://www.aupairly.me/guides
+- https://www.aupairly.me/browse/aupairs
+- https://www.aupairly.me/browse/families
+- https://www.aupairly.me/childcare
+- https://www.aupairly.me/caregiving
+- https://www.aupairly.me/house-sitting
+- https://www.aupairly.me/pet-sitting
+- https://www.aupairly.me/register
+
+## City landings (South Africa)
+
+- https://www.aupairly.me/cities/cape-town
+- https://www.aupairly.me/cities/johannesburg
+- https://www.aupairly.me/cities/pretoria
+- https://www.aupairly.me/cities/durban
+- https://www.aupairly.me/cities/sandton
+- https://www.aupairly.me/cities/stellenbosch
+
+## Guides (long-form)
+
+- https://www.aupairly.me/guides/find-au-pair-south-africa
+- https://www.aupairly.me/guides/babysitter-vs-au-pair-vs-nanny
+- https://www.aupairly.me/guides/elderly-caregiver-at-home
+- https://www.aupairly.me/guides/house-sitter-checklist
+- https://www.aupairly.me/guides/pet-sitter-near-me
+- https://www.aupairly.me/guides/cape-town-au-pair-guide
+- https://www.aupairly.me/guides/johannesburg-childcare
+- https://www.aupairly.me/guides/pocket-money-au-pair-south-africa
+
+## Notes for crawlers
+
+- Public marketplace; user dashboards and messages are private (noindex).
+- Full sitemap: https://www.aupairly.me/sitemap.xml
+- Free to join; paid memberships via Paystack (ZAR).
