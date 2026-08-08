@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { checkAndConsume, getUserPlan } from "@/lib/entitlements";
 import { createNotification } from "@/lib/notifications";
 import { computeCompatibility, type MatchProfile } from "@/lib/matching";
-import { marketplaceReady } from "@/lib/gates";
 import { isServiceId, type ServiceId } from "@/lib/services";
 import { profileIdsForService } from "@/lib/service-tags";
+import { loadMarketplaceGate } from "@/lib/completeness-load";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -27,25 +27,11 @@ export async function GET(req: Request) {
       ? (serviceRaw.toUpperCase().replace(/-/g, "_") as ServiceId)
       : null;
 
-  const meUser = await prisma.user.findUnique({
-    where: { id: me.id },
-    select: { image: true, videoIntroUrl: true, safetyScore: true },
-  });
+  // Same full profile input as Dashboard — keep % identical
+  const gate = await loadMarketplaceGate(me.id);
   const myAupair = await prisma.auPairProfile.findUnique({ where: { userId: me.id } });
   const myFamily = await prisma.familyProfile.findUnique({ where: { userId: me.id } });
   const profile = myAupair || myFamily;
-
-  const gate = marketplaceReady({
-    role: me.role,
-    image: meUser?.image || me.image,
-    headline: profile?.headline,
-    bio: profile?.bio,
-    city: profile?.city,
-    country: profile?.country,
-    status: profile?.status,
-    services: profile?.services,
-    isVerified: profile?.isVerified,
-  });
 
   if (!gate.ok) {
     return NextResponse.json({
