@@ -320,6 +320,7 @@ ${BRAND.email}
     <p style="font-family:system-ui,sans-serif;font-size:12px;color:${STONE_MUTED};margin:16px 0 0">
       <a href="${BRAND.social.instagram}" style="color:${TEAL};text-decoration:none">Instagram</a>
       · <a href="${BRAND.social.tiktok}" style="color:${TEAL};text-decoration:none">TikTok</a>
+      · <a href="${BRAND.social.x}" style="color:${TEAL};text-decoration:none">X</a>
       · <a href="${BRAND.social.facebook}" style="color:${TEAL};text-decoration:none">Facebook</a>
       · <a href="${safety}" style="color:${TEAL};text-decoration:none">Safety tips</a>
     </p>

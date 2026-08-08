@@ -55,6 +55,14 @@ export function FooterI18n() {
               >
                 TikTok
               </a>
+              <a
+                href={BRAND.social.x}
+                target="_blank"
+                rel="noopener noreferrer me"
+                className="inline-flex items-center rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-teal-300 hover:text-teal-800"
+              >
+                X
+              </a>
             </div>
           </div>
           <div>

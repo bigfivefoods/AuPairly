@@ -90,8 +90,8 @@ export function InviteCard({
           rel="noreferrer"
         >
           Facebook
-        </a>{" "}
-        &amp;{" "}
+        </a>
+        ,{" "}
         <a
           href={BRAND.social.tiktok}
           className="font-semibold text-teal-700 hover:underline"
@@ -99,6 +99,15 @@ export function InviteCard({
           rel="noreferrer"
         >
           TikTok
+        </a>{" "}
+        &amp;{" "}
+        <a
+          href={BRAND.social.x}
+          className="font-semibold text-teal-700 hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          X
         </a>
         .
       </p>

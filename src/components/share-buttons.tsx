@@ -31,8 +31,10 @@ export function ShareButtons({
 
   const facebookHref = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
   const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${absolute}`)}`;
+  const xShareHref = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}`;
   const tiktokProfile = BRAND.social.tiktok;
   const instagramProfile = BRAND.social.instagram;
+  const xProfile = BRAND.social.x;
 
   async function copyLink() {
     try {
@@ -100,6 +102,15 @@ export function ShareButtons({
         WhatsApp
       </a>
       <a
+        href={xShareHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        title="Share on X"
+      >
+        X
+      </a>
+      <a
         href={instagramProfile}
         target="_blank"
         rel="noopener noreferrer"
@@ -117,6 +128,15 @@ export function ShareButtons({
       >
         <Link2 className="h-3.5 w-3.5" />
         TikTok
+      </a>
+      <a
+        href={xProfile}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        title="Follow AuPairly on X"
+      >
+        {BRAND.social.xHandle}
       </a>
     </div>
   );
