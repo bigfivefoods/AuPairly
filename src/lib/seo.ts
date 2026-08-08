@@ -28,24 +28,41 @@ export const SEO = {
   defaultTitle: BRAND.ogTitle,
   titleTemplate: `%s · ${BRAND.name}`,
   defaultDescription: `${BRAND.tagline} ${BRAND.description}`,
-  /** Primary keyword clusters */
+  /** Primary keyword clusters (intent + geographic) */
   keywords: [
     "au pair",
     "au pairs",
+    "find au pair",
+    "hire au pair",
     "childcare",
     "babysitter",
+    "babysitter near me",
     "nanny",
+    "hire nanny",
+    "after school care",
     "caregiving",
     "elderly care",
+    "elderly caregiver",
+    "companion care",
     "house sitting",
     "house sitter",
+    "find house sitter",
     "pet sitting",
     "pet sitter",
+    "dog sitter",
     "verified care",
+    "verified babysitter",
     "AuPairly",
     "South Africa au pair",
+    "au pair Cape Town",
+    "au pair Johannesburg",
+    "babysitter Cape Town",
+    "babysitter Johannesburg",
+    "nanny Sandton",
     "global childcare marketplace",
     "trusted caregiver",
+    "live-in childcare",
+    "cultural exchange childcare",
   ],
   locale: "en_US",
   twitter: "@aupairly",
@@ -78,6 +95,11 @@ export const PUBLIC_INDEX_PATHS = [
   "/disclaimer",
   "/register",
   "/login",
+  "/cities/cape-town",
+  "/cities/johannesburg",
+  "/cities/pretoria",
+  "/cities/durban",
+  "/cities/sandton",
 ] as const;
 
 /** Prefixes that must stay out of search indexes */
@@ -335,4 +357,106 @@ export function faqJsonLd(
 
 export function serviceLandingPaths() {
   return SERVICE_LIST.map((s) => `/${s.slug}`);
+}
+
+/** SoftwareApplication schema — helps product/app rich understanding */
+export function softwareApplicationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: BRAND.name,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: PUBLIC_SITE_URL,
+    description: BRAND.description,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "ZAR",
+      description: "Free to join; paid Plus plans available",
+    },
+    provider: {
+      "@type": "Organization",
+      name: BRAND.name,
+      url: PUBLIC_SITE_URL,
+    },
+  };
+}
+
+/** HowTo schema for process pages */
+export function howToJsonLd(input: {
+  name: string;
+  description: string;
+  steps: Array<{ name: string; text: string }>;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: input.name,
+    description: input.description,
+    step: input.steps.map((s, i) => ({
+      "@type": "HowToStep",
+      position: i + 1,
+      name: s.name,
+      text: s.text,
+    })),
+  };
+}
+
+/** ItemList for city / browse result hubs */
+export function itemListJsonLd(input: {
+  name: string;
+  description?: string;
+  path: string;
+  items: Array<{ name: string; path: string }>;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      url: absoluteUrl(item.path),
+    })),
+  };
+}
+
+/** Article schema for guides */
+export function articleJsonLd(input: {
+  title: string;
+  description: string;
+  path: string;
+  datePublished?: string;
+  dateModified?: string;
+}) {
+  const published = input.datePublished || "2026-01-15";
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: input.title,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    mainEntityOfPage: absoluteUrl(input.path),
+    datePublished: published,
+    dateModified: input.dateModified || published,
+    author: {
+      "@type": "Organization",
+      name: BRAND.name,
+      url: PUBLIC_SITE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: BRAND.name,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/icons/icon-512.png"),
+      },
+    },
+    image: absoluteUrl(SEO.ogImage.url),
+  };
 }
