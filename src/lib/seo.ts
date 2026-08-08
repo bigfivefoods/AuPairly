@@ -195,6 +195,7 @@ export function organizationJsonLd() {
       BRAND.social.facebook,
       BRAND.social.tiktok,
       BRAND.social.instagram,
+      BRAND.social.x,
     ].filter(Boolean),
     contactPoint: [
       {
