@@ -5,7 +5,10 @@
 export type IcebreakerContext = {
   myRole: "AUPAIR" | "PARENT" | string;
   theirName: string;
+  /** Their listing city (host household / their base) */
   city?: string | null;
+  /** Your profile city — used so sitters introduce themselves from their base */
+  myCity?: string | null;
   sharedLanguages?: string[];
   childrenCount?: number | null;
   experienceYears?: number | null;
@@ -13,7 +16,10 @@ export type IcebreakerContext = {
 
 export function icebreakers(ctx: IcebreakerContext): string[] {
   const name = ctx.theirName?.split(" ")[0] || "there";
-  const place = ctx.city ? ` in ${ctx.city}` : "";
+  const theirPlace = ctx.city?.trim();
+  const myPlace = ctx.myCity?.trim();
+  const place = theirPlace ? ` in ${theirPlace}` : "";
+  const based = myPlace ? ` I'm based in ${myPlace}.` : "";
   const lang =
     ctx.sharedLanguages && ctx.sharedLanguages.length
       ? ` We both speak ${ctx.sharedLanguages[0]}.`
@@ -22,7 +28,7 @@ export function icebreakers(ctx: IcebreakerContext): string[] {
   if (ctx.myRole === "PARENT") {
     return [
       `Hi ${name}! We're looking for trusted help${place}.${lang} Open to a short intro call this week?`,
-      `Hello ${name} — your profile stood out. We need support with ${ctx.childrenCount ? `${ctx.childrenCount} kid(s)` : "our household"}. What experience fits best?`,
+      `Hello ${name} — your profile stood out. We need support with ${ctx.childrenCount ? `${ctx.childrenCount} kid(s)` : "our household"}${place}. What experience fits best?`,
       `Hi ${name}, when could you start, and are you free evenings/weekends?`,
       `Hi ${name}! Do you drive / use public transport, and which services do you offer most?`,
       `Hello ${name} — we'd love a typical day example (childcare, caregiving, house or pets).`,
@@ -31,12 +37,12 @@ export function icebreakers(ctx: IcebreakerContext): string[] {
   }
 
   return [
-    `Hi ${name}! I'm interested in helping your household${place}.${lang} Open to a quick video hello?`,
-    `Hello ${name}, I have ${ctx.experienceYears ?? "several"} year(s) of care experience. What matters most to you?`,
-    `Hi ${name} — when are you hoping someone can start? Happy to share refs.`,
-    `Hi ${name}! I offer childcare / caregiving / house & pet sitting — which do you need most?`,
-    `Hello ${name}, I'd love to learn your daily routine and expectations.`,
-    `Hi ${name} — we can stay on AuPairly until we both feel comfortable meeting publicly.`,
+    `Hi ${name}!${based} I'm interested in helping your household${place}.${lang} Open to a quick video hello?`,
+    `Hello ${name}, I have ${ctx.experienceYears ?? "several"} year(s) of care experience.${based} What matters most to you?`,
+    `Hi ${name} — when are you hoping someone can start? Happy to share refs.${based}`,
+    `Hi ${name}! I offer childcare / caregiving / house & pet sitting — which do you need most?${based}`,
+    `Hello ${name}, I'd love to learn your daily routine and expectations.${based}`,
+    `Hi ${name} — we can stay on AuPairly until we both feel comfortable meeting publicly.${based}`,
   ];
 }
 

@@ -25,6 +25,7 @@ export function ChatClient({
   myRole = "PARENT",
   theirName = "there",
   city,
+  myCity,
   sharedLanguages,
 }: {
   conversationId: string;
@@ -32,7 +33,10 @@ export function ChatClient({
   initialMessages: Msg[];
   myRole?: string;
   theirName?: string;
+  /** Their profile / household city */
   city?: string | null;
+  /** Your profile city (for sitters introducing themselves) */
+  myCity?: string | null;
   sharedLanguages?: string[];
 }) {
   const [messages, setMessages] = useState(initialMessages);
@@ -52,6 +56,7 @@ export function ChatClient({
     myRole,
     theirName,
     city,
+    myCity,
     sharedLanguages,
   });
 

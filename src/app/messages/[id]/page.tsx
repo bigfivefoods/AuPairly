@@ -96,6 +96,7 @@ export default async function ConversationPage({
         myRole={user.role}
         theirName={other.name}
         city={theirProfile?.city}
+        myCity={myProfile?.city}
         sharedLanguages={shared}
         initialMessages={conversation.messages.map((m) => ({
           id: m.id,

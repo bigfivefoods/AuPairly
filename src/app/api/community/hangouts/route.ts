@@ -71,11 +71,21 @@ export async function POST(req: Request) {
 
   try {
     const body = createSchema.parse(await req.json());
+    // Prefer author's profile location so hangouts stay tied to where they are based
+    const profile = await prisma.auPairProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { city: true, country: true },
+    });
+    const city =
+      profile?.city?.trim() || body.city.trim() || "Anywhere";
+    const country =
+      profile?.country?.trim() || body.country?.trim() || null;
+
     const hangout = await prisma.cityHangout.create({
       data: {
         authorId: session.user.id,
-        city: body.city.trim(),
-        country: body.country?.trim() || null,
+        city,
+        country,
         title: body.title.trim(),
         body: body.body.trim(),
       },
