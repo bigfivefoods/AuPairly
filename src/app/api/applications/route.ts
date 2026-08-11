@@ -129,6 +129,20 @@ export async function POST(req: Request) {
     href: "/applications",
   });
 
+  const recipient = await prisma.user.findUnique({
+    where: { id: toUserId },
+    select: { email: true, name: true },
+  });
+  if (recipient?.email) {
+    const { sendApplicationEmail } = await import("@/lib/email");
+    void sendApplicationEmail({
+      toEmail: recipient.email,
+      toName: recipient.name || "there",
+      fromName: me.name,
+      message: (body.message as string)?.trim() || null,
+    }).catch((e) => console.error("[email] application", e));
+  }
+
   return NextResponse.json({ ok: true, application: { ...app, packet } });
 }
 
@@ -160,6 +174,24 @@ export async function PATCH(req: Request) {
       body: `Your application was ${status.toLowerCase()}.`,
       href: "/applications?box=sent",
     });
+
+    const applicant = await prisma.user.findUnique({
+      where: { id: app.fromUserId },
+      select: { email: true, name: true },
+    });
+    const reviewer = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true },
+    });
+    if (applicant?.email) {
+      const { sendInterestUpdateEmail } = await import("@/lib/email");
+      void sendInterestUpdateEmail({
+        toEmail: applicant.email,
+        toName: applicant.name || "there",
+        fromName: reviewer?.name || "A host",
+        status: status as "ACCEPTED" | "DECLINED",
+      }).catch((e) => console.error("[email] application update", e));
+    }
   }
 
   return NextResponse.json({ ok: true, application: updated });

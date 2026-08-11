@@ -87,6 +87,7 @@ export async function POST(req: Request) {
         select: {
           id: true,
           name: true,
+          email: true,
           role: true,
           aupairProfile: {
             select: {
@@ -200,6 +201,17 @@ export async function POST(req: Request) {
       });
 
       conversationId = conversation.id;
+    }
+
+    if (toUser.email) {
+      const { sendPeerConnectEmail } = await import("@/lib/email");
+      void sendPeerConnectEmail({
+        toEmail: toUser.email,
+        toName: toUser.name,
+        fromName: session.user.name?.split(" ")[0] || "A sitter",
+        place: myPlace || null,
+        conversationId,
+      }).catch((err) => console.error("[email] peer connect", err));
     }
 
     return NextResponse.json({

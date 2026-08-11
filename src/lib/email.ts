@@ -578,6 +578,242 @@ export async function sendUpgradeNudgeEmail(opts: {
   });
 }
 
+/** New application packet alert */
+export async function sendApplicationEmail(opts: {
+  toEmail: string;
+  toName: string;
+  fromName: string;
+  message?: string | null;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/applications`;
+  const text = `Hi ${first},\n\n${opts.fromName} sent you a full application packet on AuPairly (profile, video, docs summary & references).\n${opts.message ? `\nNote: ${opts.message}\n` : ""}\nReview: ${href}\n\n— AuPairly`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `Application from ${opts.fromName}`,
+    text,
+    html: wrapHtml(
+      `New application packet`,
+      `<p style="line-height:1.6;color:#44403c"><strong>${escapeHtml(opts.fromName)}</strong> sent a full application (profile, intro video, docs summary &amp; references).</p>
+       ${opts.message ? `<blockquote style="margin:16px 0;padding:12px 16px;background:#f5f5f4;border-radius:12px">${escapeHtml(opts.message)}</blockquote>` : ""}
+       <p style="margin-top:20px">${ctaButton(href, "Review applications")}</p>`
+    ),
+  });
+}
+
+/** AuPair Connect / wave 👋 */
+export async function sendPeerConnectEmail(opts: {
+  toEmail: string;
+  toName: string;
+  fromName: string;
+  place?: string | null;
+  conversationId?: string | null;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = opts.conversationId
+    ? `${site()}/messages/${opts.conversationId}`
+    : `${site()}/community?tab=requests`;
+  const place = opts.place ? ` (${opts.place})` : "";
+  const text = `Hi ${first},\n\n👋 ${opts.fromName}${place} wants to connect as friends on AuPair Connect.\n\nOpen: ${href}\n\n— AuPairly`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `👋 ${opts.fromName} waved hello on AuPair Connect`,
+    text,
+    html: wrapHtml(
+      `👋 New friend request`,
+      `<p style="line-height:1.6;color:#44403c"><strong>${escapeHtml(opts.fromName)}</strong>${escapeHtml(place)} wants to connect on AuPair Connect.</p>
+       <p style="margin-top:20px">${ctaButton(href, "Open Connect")}</p>`
+    ),
+  });
+}
+
+/** Verification approved / rejected */
+export async function sendVerificationResultEmail(opts: {
+  toEmail: string;
+  toName: string;
+  type: string;
+  approved: boolean;
+  notes?: string | null;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/verification`;
+  const label = opts.type.replace(/_/g, " ");
+  if (opts.approved) {
+    const text = `Hi ${first},\n\nYour ${label} verification was approved on AuPairly.\n\n${href}\n\n— AuPairly`;
+    return sendEmail({
+      to: opts.toEmail,
+      subject: `Verified: ${label} approved`,
+      text,
+      html: wrapHtml(
+        `You're verified ✨`,
+        `<p style="line-height:1.6;color:#44403c">Your <strong>${escapeHtml(label)}</strong> check was approved. Trust badges help you get more matches.</p>
+         <p style="margin-top:20px">${ctaButton(href, "View verification")}</p>`
+      ),
+    });
+  }
+  const text = `Hi ${first},\n\nYour ${label} verification needs attention on AuPairly.${opts.notes ? `\n\nNote: ${opts.notes}` : ""}\n\n${href}\n\n— AuPairly`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `Verification update: ${label}`,
+    text,
+    html: wrapHtml(
+      `Verification update`,
+      `<p style="line-height:1.6;color:#44403c">Your <strong>${escapeHtml(label)}</strong> check was not approved yet.${opts.notes ? ` ${escapeHtml(opts.notes)}` : ""} You can re-upload clearer documents.</p>
+       <p style="margin-top:20px">${ctaButton(href, "Fix verification")}</p>`
+    ),
+  });
+}
+
+/** Review released publicly (after owner moderation) */
+export async function sendReviewReleasedEmail(opts: {
+  toEmail: string;
+  toName: string;
+  rating: number;
+  forAuthor: boolean;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/reviews`;
+  if (opts.forAuthor) {
+    return sendEmail({
+      to: opts.toEmail,
+      subject: "Your review was published on AuPairly",
+      text: `Hi ${first},\n\nYour review is now public. Thank you for helping the community.\n\n${href}\n`,
+      html: wrapHtml(
+        `Review published`,
+        `<p style="line-height:1.6;color:#44403c">Your star rating and written review are now public. Thanks for building trust on AuPairly.</p>
+         <p style="margin-top:20px">${ctaButton(href, "View reviews")}</p>`
+      ),
+    });
+  }
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `New ${opts.rating}★ public review on AuPairly`,
+    text: `Hi ${first},\n\nA ${opts.rating}★ review about you was released on AuPairly.\n\n${href}\n`,
+    html: wrapHtml(
+      `New public review`,
+      `<p style="line-height:1.6;color:#44403c">A <strong>${opts.rating}★</strong> review about you was released after moderation.</p>
+       <p style="margin-top:20px">${ctaButton(href, "Read reviews")}</p>`
+    ),
+  });
+}
+
+/** Nudge to leave a placement review */
+export async function sendReviewNudgeEmail(opts: {
+  toEmail: string;
+  toName: string;
+  count: number;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/reviews`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `Leave ${opts.count} review${opts.count === 1 ? "" : "s"} on AuPairly`,
+    text: `Hi ${first},\n\nYou have ${opts.count} placement review(s) waiting. Mutual feedback builds trust.\n\n${href}\n`,
+    html: wrapHtml(
+      `Reviews waiting`,
+      `<p style="line-height:1.6;color:#44403c">You have <strong>${opts.count}</strong> placement review(s) waiting. Star + written feedback is checked by AuPairly before it goes public.</p>
+       <p style="margin-top:20px">${ctaButton(href, "Leave reviews")}</p>`
+    ),
+  });
+}
+
+/** Placement day 7 / 30 check-in */
+export async function sendPlacementCheckInEmail(opts: {
+  toEmail: string;
+  toName: string;
+  dayOffset: number;
+  placementId: string;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/placements/${opts.placementId}`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `Day ${opts.dayOffset} placement check-in`,
+    text: `Hi ${first},\n\nHow is the placement going? A quick Day ${opts.dayOffset} update helps us support you.\n\n${href}\n`,
+    html: wrapHtml(
+      `Day ${opts.dayOffset} check-in`,
+      `<p style="line-height:1.6;color:#44403c">How is the placement going? A quick update on Day ${opts.dayOffset} helps AuPairly support both of you.</p>
+       <p style="margin-top:20px">${ctaButton(href, "Open placement")}</p>`
+    ),
+  });
+}
+
+/** Daily ops digest for app owners */
+export async function sendOwnerDailyDigestEmail(opts: {
+  toEmail: string;
+  stats: {
+    signups24h: number;
+    sittersActive: number;
+    hostsActive: number;
+    pendingVerifications: number;
+    pendingReviews: number;
+    openReports: number;
+    messages24h: number;
+    applications24h: number;
+  };
+}) {
+  const s = opts.stats;
+  const manage = `${site()}/manage`;
+  const admin = `${site()}/admin`;
+  const text = `AuPairly daily ops
+
+Last 24h signups: ${s.signups24h}
+Messages (24h): ${s.messages24h}
+Applications (24h): ${s.applications24h}
+Active sitters: ${s.sittersActive}
+Active hosts: ${s.hostsActive}
+Pending verifications: ${s.pendingVerifications}
+Reviews awaiting release: ${s.pendingReviews}
+Open reports: ${s.openReports}
+
+Manage: ${manage}
+Admin: ${admin}
+`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `AuPairly daily · ${s.signups24h} signup${s.signups24h === 1 ? "" : "s"} · ${s.pendingVerifications} verify · ${s.pendingReviews} reviews`,
+    text,
+    html: wrapHtml(
+      `Daily ops digest`,
+      `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#44403c;line-height:1.7">
+        <p style="margin:0 0 12px">Automated AuPairly owner alert (last ~24 hours).</p>
+        <ul style="padding-left:18px;margin:0 0 16px">
+          <li><strong>${s.signups24h}</strong> new signups</li>
+          <li><strong>${s.messages24h}</strong> messages · <strong>${s.applications24h}</strong> applications</li>
+          <li><strong>${s.sittersActive}</strong> active sitters · <strong>${s.hostsActive}</strong> active hosts</li>
+          <li><strong>${s.pendingVerifications}</strong> pending verifications</li>
+          <li><strong>${s.pendingReviews}</strong> reviews awaiting release</li>
+          <li><strong>${s.openReports}</strong> open safety reports</li>
+        </ul>
+        <p style="margin:0 0 8px">${ctaButton(admin, "Open admin")}</p>
+        <p style="margin:12px 0 0;font-size:13px"><a href="${manage}" style="color:#0d9488;font-weight:600">Full management →</a></p>
+      </div>`
+    ),
+  });
+}
+
+/** Immediate owner alert: new signup */
+export async function sendOwnerSignupAlertEmail(opts: {
+  toEmail: string;
+  memberName: string;
+  memberEmail: string;
+  role: string;
+}) {
+  const admin = `${site()}/manage`;
+  const roleLabel =
+    opts.role === "AUPAIR" ? "sitter" : opts.role === "PARENT" ? "host" : opts.role;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `New ${roleLabel}: ${opts.memberName}`,
+    text: `New AuPairly signup\n\nName: ${opts.memberName}\nEmail: ${opts.memberEmail}\nRole: ${roleLabel}\n\n${admin}\n`,
+    html: wrapHtml(
+      `New ${escapeHtml(roleLabel)} signup`,
+      `<p style="line-height:1.6;color:#44403c"><strong>${escapeHtml(opts.memberName)}</strong> (${escapeHtml(opts.memberEmail)}) just registered as a <strong>${escapeHtml(roleLabel)}</strong>.</p>
+       <p style="margin-top:20px">${ctaButton(admin, "Open management")}</p>`
+    ),
+  });
+}
+
 function escapeHtml(s: string) {
   return s
     .replace(/&/g, "&amp;")

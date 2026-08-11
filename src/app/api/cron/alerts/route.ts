@@ -1,11 +1,18 @@
 /**
- * Daily saved-search alerts + placement check-in nudges.
+ * Automated daily email + in-app alerts:
+ * - Saved-search new listing alerts
+ * - Placement review nudges (email + in-app)
+ * - Placement day-7 / day-30 check-ins (email + in-app)
+ * - Owner / management daily ops digest
+ *
  * Vercel cron: 0 9 * * * (see vercel.json)
+ * Auth: Authorization: Bearer CRON_SECRET (or ?secret=)
  */
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
+import { getManagementEmails } from "@/lib/management";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -32,6 +39,7 @@ async function handle(req: Request) {
   since.setDate(since.getDate() - 1);
 
   let searchAlerts = 0;
+  let searchEmails = 0;
   const searches = await prisma.savedSearch.findMany({
     where: { alertEnabled: true },
     include: {
@@ -40,10 +48,7 @@ async function handle(req: Request) {
     take: 200,
   });
 
-  let searchEmails = 0;
-
   for (const s of searches) {
-    // Throttle: at most one alert per search per 20 hours
     if (s.lastAlertedAt) {
       const hours =
         (Date.now() - s.lastAlertedAt.getTime()) / (1000 * 60 * 60);
@@ -60,7 +65,6 @@ async function handle(req: Request) {
     const country = filters.country || "";
     const targetFamilies = filters.target === "families";
 
-    // AND city + country filters (do not overwrite a single OR)
     const whereBase = {
       status: "ACTIVE" as const,
       createdAt: { gte: since },
@@ -94,7 +98,6 @@ async function handle(req: Request) {
         href,
       });
 
-      // Email when Resend is configured
       if (s.user?.email) {
         try {
           const { sendSavedSearchAlertEmail } = await import("@/lib/email");
@@ -123,24 +126,46 @@ async function handle(req: Request) {
     }
   }
 
-  // Nudge users who still owe placement/message reviews
+  // Review nudges — in-app + email (throttled by notification title / day)
   let reviewNudges = 0;
+  let reviewEmails = 0;
   try {
     const { getPendingReviewsForUser } = await import("@/lib/pending-reviews");
     const activeUsers = await prisma.user.findMany({
       where: {
         OR: [
-          { placementsAsParent: { some: { status: { in: ["PLACED", "COMPLETED", "TRIAL"] } } } },
-          { placementsAsAupair: { some: { status: { in: ["PLACED", "COMPLETED", "TRIAL"] } } } },
+          {
+            placementsAsParent: {
+              some: { status: { in: ["PLACED", "COMPLETED", "TRIAL"] } },
+            },
+          },
+          {
+            placementsAsAupair: {
+              some: { status: { in: ["PLACED", "COMPLETED", "TRIAL"] } },
+            },
+          },
         ],
       },
-      select: { id: true },
+      select: { id: true, email: true, name: true },
       take: 100,
     });
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
     for (const u of activeUsers) {
       const pending = await getPendingReviewsForUser(u.id);
       const placementPending = pending.filter((p) => p.source === "placement");
       if (placementPending.length === 0) continue;
+
+      const already = await prisma.notification.findFirst({
+        where: {
+          userId: u.id,
+          title: "Leave a review",
+          createdAt: { gte: dayStart },
+        },
+      });
+      if (already) continue;
+
       await createNotification({
         userId: u.id,
         type: "REVIEW",
@@ -149,13 +174,28 @@ async function handle(req: Request) {
         href: "/reviews",
       });
       reviewNudges++;
+
+      if (u.email) {
+        try {
+          const { sendReviewNudgeEmail } = await import("@/lib/email");
+          await sendReviewNudgeEmail({
+            toEmail: u.email,
+            toName: u.name || "there",
+            count: placementPending.length,
+          });
+          reviewEmails++;
+        } catch (e) {
+          console.error("[cron alerts] review email", e);
+        }
+      }
     }
   } catch (e) {
     console.error("[cron alerts] review nudges", e);
   }
 
-  // Placement day-7 / day-30 check-in nudges
+  // Placement day-7 / day-30 check-in nudges + email
   let checkInNudges = 0;
+  let checkInEmails = 0;
   const placed = await prisma.placement.findMany({
     where: {
       status: { in: ["PLACED", "COMPLETED"] },
@@ -176,22 +216,96 @@ async function handle(req: Request) {
         },
       });
       if (existing?.respondedAt) continue;
+
+      // Only email once per check-in creation
+      const isNew = !existing;
       if (!existing) {
         await prisma.placementCheckIn.create({
           data: { placementId: p.id, dayOffset },
         });
       }
-      for (const uid of [p.parentUserId, p.aupairUserId]) {
+
+      // Throttle: only notify again if new check-in row
+      if (!isNew) continue;
+
+      const users = await prisma.user.findMany({
+        where: { id: { in: [p.parentUserId, p.aupairUserId] } },
+        select: { id: true, email: true, name: true },
+      });
+
+      for (const u of users) {
         await createNotification({
-          userId: uid,
+          userId: u.id,
           type: "SYSTEM",
           title: `Day ${dayOffset} check-in`,
           body: "How is the placement going? A quick update helps us support you.",
           href: `/placements/${p.id}`,
         });
+        if (u.email) {
+          try {
+            const { sendPlacementCheckInEmail } = await import("@/lib/email");
+            await sendPlacementCheckInEmail({
+              toEmail: u.email,
+              toName: u.name || "there",
+              dayOffset,
+              placementId: p.id,
+            });
+            checkInEmails++;
+          } catch (e) {
+            console.error("[cron alerts] check-in email", e);
+          }
+        }
       }
       checkInNudges++;
     }
+  }
+
+  // Owner / management daily ops digest
+  let ownerDigests = 0;
+  try {
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [
+      signups24h,
+      sittersActive,
+      hostsActive,
+      pendingVerifications,
+      pendingReviews,
+      openReports,
+      messages24h,
+      applications24h,
+    ] = await Promise.all([
+      prisma.user.count({ where: { createdAt: { gte: dayAgo } } }),
+      prisma.auPairProfile.count({ where: { status: "ACTIVE" } }),
+      prisma.familyProfile.count({ where: { status: "ACTIVE" } }),
+      prisma.verification.count({ where: { status: "PENDING" } }),
+      prisma.review.count({ where: { moderationStatus: "PENDING" } }),
+      prisma.report.count({ where: { status: "OPEN" } }),
+      prisma.message.count({ where: { createdAt: { gte: dayAgo } } }),
+      prisma.applicationPacket.count({ where: { createdAt: { gte: dayAgo } } }),
+    ]);
+
+    const stats = {
+      signups24h,
+      sittersActive,
+      hostsActive,
+      pendingVerifications,
+      pendingReviews,
+      openReports,
+      messages24h,
+      applications24h,
+    };
+
+    const { sendOwnerDailyDigestEmail } = await import("@/lib/email");
+    for (const toEmail of getManagementEmails()) {
+      try {
+        await sendOwnerDailyDigestEmail({ toEmail, stats });
+        ownerDigests++;
+      } catch (e) {
+        console.error("[cron alerts] owner digest", toEmail, e);
+      }
+    }
+  } catch (e) {
+    console.error("[cron alerts] owner digest block", e);
   }
 
   return NextResponse.json({
@@ -199,7 +313,10 @@ async function handle(req: Request) {
     searchAlerts,
     searchEmails,
     checkInNudges,
+    checkInEmails,
     reviewNudges,
+    reviewEmails,
+    ownerDigests,
   });
 }
 

@@ -75,6 +75,22 @@ export async function PATCH(req: Request) {
       body: "Thanks — your rating is now visible on their profile.",
       href: "/reviews",
     }).catch(() => null);
+
+    const parties = await prisma.user.findMany({
+      where: { id: { in: [existing.targetId, existing.authorId] } },
+      select: { id: true, email: true, name: true },
+    });
+    const { sendReviewReleasedEmail } = await import("@/lib/email");
+    for (const u of parties) {
+      if (!u.email) continue;
+      void sendReviewReleasedEmail({
+        toEmail: u.email,
+        toName: u.name || "there",
+        rating: existing.rating,
+        forAuthor: u.id === existing.authorId,
+      }).catch((e) => console.error("[email] review released", e));
+    }
+
     return NextResponse.json({ ok: true, review });
   }
 

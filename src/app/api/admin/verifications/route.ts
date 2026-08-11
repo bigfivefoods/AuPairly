@@ -71,5 +71,20 @@ export async function PATCH(req: Request) {
 
   const isFullyVerified = await refreshUserVerifiedBadge(existing.userId);
 
+  const member = await prisma.user.findUnique({
+    where: { id: existing.userId },
+    select: { email: true, name: true },
+  });
+  if (member?.email) {
+    const { sendVerificationResultEmail } = await import("@/lib/email");
+    void sendVerificationResultEmail({
+      toEmail: member.email,
+      toName: member.name || "there",
+      type: existing.type,
+      approved: action === "approve",
+      notes: notes || null,
+    }).catch((e) => console.error("[email] verification result", e));
+  }
+
   return NextResponse.json({ verification, isFullyVerified });
 }

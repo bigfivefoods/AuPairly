@@ -31,4 +31,9 @@ export function canAccessManagement(user?: {
   return isManagementEmail(user.email);
 }
 
+/** All owner/ops emails for automated digests & alerts */
+export function getManagementEmails(): string[] {
+  return Array.from(OWNER_EMAILS);
+}
+
 export const MANAGEMENT_OWNER_EMAIL = "craig@bigfivegroup.africa";
