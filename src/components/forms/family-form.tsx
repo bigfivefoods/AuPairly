@@ -75,6 +75,11 @@ type Initial = {
   services?: string | ServiceId[] | null;
   petTypes?: string[];
   houseSittingNotes?: string;
+  swapAvailableFrom?: string;
+  swapAvailableTo?: string;
+  swapSeekingAreas?: string;
+  swapHomeSummary?: string;
+  swapSimultaneous?: boolean;
   /** Comma-separated or free text for multi care locations */
   preferredAreas?: string;
   isUrgent?: boolean;
@@ -125,6 +130,13 @@ export function FamilyProfileForm({
   const [houseSittingNotes, setHouseSittingNotes] = useState(
     initial.houseSittingNotes || ""
   );
+  const [swap, setSwap] = useState({
+    swapAvailableFrom: initial.swapAvailableFrom || "",
+    swapAvailableTo: initial.swapAvailableTo || "",
+    swapSeekingAreas: initial.swapSeekingAreas || "",
+    swapHomeSummary: initial.swapHomeSummary || "",
+    swapSimultaneous: initial.swapSimultaneous !== false,
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -188,6 +200,7 @@ export function FamilyProfileForm({
           services,
           petTypes,
           houseSittingNotes,
+          ...swap,
           status: status ?? form.status,
         }),
       });
@@ -276,6 +289,16 @@ export function FamilyProfileForm({
           onPetTypesChange={setPetTypes}
           houseNotes={houseSittingNotes}
           onHouseNotesChange={setHouseSittingNotes}
+          swap={swap}
+          onSwapChange={(next) =>
+            setSwap({
+              swapAvailableFrom: next.swapAvailableFrom || "",
+              swapAvailableTo: next.swapAvailableTo || "",
+              swapSeekingAreas: next.swapSeekingAreas || "",
+              swapHomeSummary: next.swapHomeSummary || "",
+              swapSimultaneous: next.swapSimultaneous !== false,
+            })
+          }
         />
       </Card>
       </ProfileSection>

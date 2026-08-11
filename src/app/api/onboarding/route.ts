@@ -12,11 +12,12 @@ const serviceEnum = z.enum([
   "TUTORING",
   "CAREGIVING",
   "HOUSE_SITTING",
+  "HOUSE_SWAP",
   "PET_SITTING",
 ]);
 
 const schema = z.object({
-  services: z.array(serviceEnum).min(1).max(5),
+  services: z.array(serviceEnum).min(1).max(6),
   city: z.string().min(1).max(80),
   country: z.string().min(2).max(80),
   region: z.string().max(80).optional().nullable(),
@@ -169,7 +170,9 @@ function defaultSitterHeadline(name: string, services: string[]) {
             ? "caregiving"
             : s === "HOUSE_SITTING"
               ? "house sitting"
-              : "dog / pet sitting"
+              : s === "HOUSE_SWAP"
+                ? "house swap"
+                : "dog / pet sitting"
     )
     .join(" · ");
   return `${first} — ${labels}`;
@@ -186,7 +189,9 @@ function defaultHostHeadline(services: string[]) {
             ? "a caregiver"
             : s === "HOUSE_SITTING"
               ? "a house sitter"
-              : "a dog / pet sitter"
+              : s === "HOUSE_SWAP"
+                ? "a house swap"
+                : "a dog / pet sitter"
     )
     .join(" / ");
   return `Looking for ${labels}`;

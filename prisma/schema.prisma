@@ -294,6 +294,16 @@ model FamilyProfile {
   petTypes        String        @default("[]")
   /// House-sitting specific notes (alarms, plants, dates)
   houseSittingNotes String?
+  /// House swap (mutual exchange) — when services includes HOUSE_SWAP
+  /// Window you can offer your home / travel
+  swapAvailableFrom DateTime?
+  swapAvailableTo   DateTime?
+  /// Destinations / regions you want to swap into (JSON string array)
+  swapSeekingAreas  String      @default("[]")
+  /// Beds, guests, home style for swap matches
+  swapHomeSummary   String?
+  /// Simultaneous exchange vs non-simultaneous / points-style later
+  swapSimultaneous  Boolean     @default(true)
   /// Caregiving / childcare focus chips (JSON)
   careFocus       String        @default("[]")
 

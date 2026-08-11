@@ -161,6 +161,29 @@ export default async function EditProfilePage() {
     services: parseServices(profile?.services),
     petTypes: parseJsonArray(profile?.petTypes),
     houseSittingNotes: profile?.houseSittingNotes ?? "",
+    swapAvailableFrom: (profile as { swapAvailableFrom?: Date | null } | null)
+      ?.swapAvailableFrom
+      ? new Date(
+          (profile as { swapAvailableFrom: Date }).swapAvailableFrom
+        )
+          .toISOString()
+          .slice(0, 10)
+      : "",
+    swapAvailableTo: (profile as { swapAvailableTo?: Date | null } | null)
+      ?.swapAvailableTo
+      ? new Date((profile as { swapAvailableTo: Date }).swapAvailableTo)
+          .toISOString()
+          .slice(0, 10)
+      : "",
+    swapSeekingAreas: parseJsonArray(
+      (profile as { swapSeekingAreas?: string | null } | null)?.swapSeekingAreas
+    ).join(", "),
+    swapHomeSummary:
+      (profile as { swapHomeSummary?: string | null } | null)?.swapHomeSummary ??
+      "",
+    swapSimultaneous:
+      (profile as { swapSimultaneous?: boolean } | null)?.swapSimultaneous !==
+      false,
     photos: parseJsonArray(profile?.photos),
     coverImage: profile?.coverImage ?? null,
     status: (profile?.status as "DRAFT" | "ACTIVE" | "PAUSED") ?? "DRAFT",

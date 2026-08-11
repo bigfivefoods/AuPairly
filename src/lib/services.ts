@@ -1,12 +1,13 @@
 /**
  * AuPairly multi-service marketplace categories.
- * Childcare (au pair) · Tutoring · Caregiving · House Sitting · Pet / dog sitting
+ * Childcare · Tutoring · Caregiving · House Sitting · House Swap · Pet / dog sitting
  *
  * Product “options” map as:
  *  - Host family → role PARENT
  *  - Au pair → role AUPAIR + CHILDCARE
  *  - Tutor → role AUPAIR + TUTORING
  *  - House sitter → role AUPAIR + HOUSE_SITTING
+ *  - House swap → role PARENT + HOUSE_SWAP (mutual home exchange)
  *  - Dog sitter → role AUPAIR + PET_SITTING
  */
 
@@ -15,6 +16,7 @@ export const SERVICE_IDS = [
   "TUTORING",
   "CAREGIVING",
   "HOUSE_SITTING",
+  "HOUSE_SWAP",
   "PET_SITTING",
 ] as const;
 export type ServiceId = (typeof SERVICE_IDS)[number];
@@ -35,7 +37,7 @@ export type ServiceDef = {
   examples: string[];
   seoTitle: string;
   seoDescription: string;
-  icon: "baby" | "book" | "heart" | "home" | "paw";
+  icon: "baby" | "book" | "heart" | "home" | "swap" | "paw";
   color: string;
   bg: string;
   activeTab: string;
@@ -70,6 +72,13 @@ export const PRODUCT_OPTIONS = [
     role: "AUPAIR" as const,
     services: ["HOUSE_SITTING"] as ServiceId[],
     description: "I look after homes while hosts are away",
+  },
+  {
+    id: "HOUSE_SWAP",
+    label: "House swap",
+    role: "PARENT" as const,
+    services: ["HOUSE_SWAP"] as ServiceId[],
+    description: "Swap homes with another family for holidays or longer stays",
   },
   {
     id: "DOG_SITTER",
@@ -183,6 +192,31 @@ export const SERVICES: Record<ServiceId, ServiceDef> = {
     bg: "bg-amber-50 border-amber-200",
     activeTab: "bg-amber-600 text-white border-amber-600",
   },
+  HOUSE_SWAP: {
+    id: "HOUSE_SWAP",
+    name: "House Swap",
+    shortName: "House swap",
+    slug: "house-swap",
+    providerLabel: "I have a home to swap",
+    hostLabel: "I want a house swap",
+    tagline: "Swap homes for holidays & longer stays",
+    description:
+      "Mutual home exchange between verified families — simultaneous swaps, holiday windows, and destination matching. Different from house sitting (one-way care).",
+    examples: [
+      "Holiday home swap",
+      "Simultaneous exchange",
+      "City ↔ coast",
+      "School-holiday windows",
+      "Longer lifestyle swaps",
+    ],
+    seoTitle: "House Swap & Home Exchange",
+    seoDescription:
+      "House swap on AuPairly.me — exchange homes with verified host families for holidays or longer stays. Safer chats, shortlist, and trust stack built in.",
+    icon: "swap",
+    color: "text-violet-900",
+    bg: "bg-violet-50 border-violet-200",
+    activeTab: "bg-violet-600 text-white border-violet-600",
+  },
   PET_SITTING: {
     id: "PET_SITTING",
     name: "Pet / dog sitting",
@@ -276,7 +310,7 @@ export function roleCopy(role: "AUPAIR" | "PARENT" | string) {
       browseOtherHref: "/browse/aupairs",
       editTitle: "Edit host family listing",
       editDesc:
-        "What you need: au pair / childcare, tutor, house sitter, dog sitter — or a mix.",
+        "What you need: au pair, tutor, house sitter, house swap, dog sitter — or a mix.",
     };
   }
   if (role === "AUPAIR") {
@@ -287,7 +321,7 @@ export function roleCopy(role: "AUPAIR" | "PARENT" | string) {
       browseOtherHref: "/browse/families",
       editTitle: "Edit your profile",
       editDesc:
-        "Services you offer: au pair, tutor, house sitting, dog sitting — or a mix.",
+        "Services you offer: au pair, tutor, house sitting, dog sitting — or a mix. House swap is mainly for host families.",
     };
   }
   return {
