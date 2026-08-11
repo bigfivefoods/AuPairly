@@ -39,7 +39,7 @@ set_env AUTH_SECRET "${AUTH_SECRET:-$(openssl rand -base64 32)}"
 set_env AUTH_URL "${AUTH_URL:-https://www.aupairly.me}"
 set_env NEXT_PUBLIC_SITE_URL "${NEXT_PUBLIC_SITE_URL:-https://www.aupairly.me}"
 set_env NEXT_PUBLIC_SITE_NAME "${NEXT_PUBLIC_SITE_NAME:-AuPairly}"
-set_env AUTO_VERIFY "${AUTO_VERIFY:-true}"
+set_env AUTO_VERIFY "${AUTO_VERIFY:-false}"
 
 # Stripe real payments
 set_env STRIPE_SECRET_KEY "${STRIPE_SECRET_KEY:-}"

@@ -37,7 +37,7 @@ Or with a token: `export VERCEL_TOKEN=… && ./scripts/set-vercel-env.sh`
 | `AUTH_URL` | `https://www.aupairly.me` (or temporary Vercel URL until domain works) |
 | `NEXT_PUBLIC_SITE_URL` | Same as `AUTH_URL` |
 | `NEXT_PUBLIC_SITE_NAME` | `AuPairly` |
-| `AUTO_VERIFY` | `true` |
+| `AUTO_VERIFY` | `false` (prod safe — admin reviews ID/selfie) |
 
 4. **Deployments → Redeploy** the latest production deployment  
    (check “Use existing Build Cache” = **off** if first time with new env)

@@ -84,7 +84,7 @@ In **Vercel → aupairly → Settings → Environment Variables**, add the same:
 - `AUTH_SECRET`
 - `AUTH_URL` / `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SITE_NAME=AuPairly`
-- `AUTO_VERIFY=true`
+- `AUTO_VERIFY=false` (production); set `true` only for local demos
 
 Then redeploy.
 

@@ -24,7 +24,8 @@ export async function GET() {
   // Must be non-empty after trim — empty string still counts as "set" in some UIs
   const cronSecret = process.env.CRON_SECRET?.trim() || "";
   const cron = cronSecret.length >= 16;
-  const autoVerify = process.env.AUTO_VERIFY === "true";
+  const { autoVerifyEnabled } = await import("@/lib/verification");
+  const autoVerify = autoVerifyEnabled();
   const verifynow = isVerifyNowConfigured();
   const vnMode = verifynow ? verifyNowMode() : "off";
   const onVercelProd =
@@ -71,12 +72,11 @@ export async function GET() {
         cron: cron
           ? "OK"
           : "CRON_SECRET missing on this deployment. In Vercel: exact name CRON_SECRET, Environment=Production, then Redeploy (env vars only apply after redeploy).",
-        autoVerify:
-          autoVerify && onVercelProd
-            ? "WARN — AUTO_VERIFY=true on production (badges auto-approve). Set false for real review."
-            : autoVerify
-              ? "AUTO_VERIFY on (ok for local/demo)"
-              : "OK — manual verification review",
+        autoVerify: autoVerify
+          ? "AUTO_VERIFY on (demo only — never on Vercel production)"
+          : onVercelProd
+            ? "OK — production forces manual verification (admin queue)"
+            : "OK — manual verification review",
         verifynow: verifynow
           ? `OK — VerifyNow ${vnMode}`
           : "Set VERIFYNOW_API_KEY on Vercel (vn_live_… or vn_test_…) + redeploy for SA ID checks",

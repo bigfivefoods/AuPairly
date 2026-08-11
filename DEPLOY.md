@@ -59,7 +59,7 @@ Add for **Production** and **Preview** (available at **Build** time):
 | `AUTH_URL` | `https://aupairly-bigfivefoods-projects.vercel.app` (then custom domain) |
 | `NEXT_PUBLIC_SITE_URL` | same as `AUTH_URL` |
 | `NEXT_PUBLIC_SITE_NAME` | `AuPairly` |
-| `AUTO_VERIFY` | `true` for demo |
+| `AUTO_VERIFY` | `false` in production (admin queue); `true` only for local demos |
 
 Then **Redeploy**.
 
