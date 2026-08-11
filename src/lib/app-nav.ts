@@ -2,6 +2,8 @@
  * Shared app navigation for the authenticated shell (side + mobile).
  */
 
+import { isManagementEmail } from "@/lib/management";
+
 export type AppNavItem = {
   href: string;
   label: string;
@@ -140,11 +142,11 @@ export function navItemVisible(
   role?: string | null,
   email?: string | null
 ): boolean {
-  // Owner management console: always show manage/admin for allowlisted emails
+  // Owner management console: allowlisted emails keep their AUPAIR/PARENT role
+  // but see Admin + Management reports in the app shell.
   if (
     (item.href === "/manage" || item.href === "/admin") &&
-    email &&
-    email.toLowerCase() === "craig@bigfivegroup.africa"
+    isManagementEmail(email)
   ) {
     return true;
   }

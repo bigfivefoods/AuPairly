@@ -7,6 +7,8 @@
 const OWNER_EMAILS = new Set(
   [
     "craig@bigfivegroup.africa",
+    // Team / ops — keep sitter/host role; management via email allowlist
+    "ryleerkendall@icloud.com",
     // Optional override: comma-separated MANAGEMENT_EMAILS=a@x.com,b@y.com
     ...(process.env.MANAGEMENT_EMAILS || "")
       .split(",")
