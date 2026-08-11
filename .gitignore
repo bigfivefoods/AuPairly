@@ -59,3 +59,7 @@ RESEND_API_KEY.local.txt
 COPY_ME_*.txt
 RESEND_API_KEY.local.txt
 !COPY_ME_FACEBOOK_META_SETUP.txt
+# Never force-include Paystack/live secret paste files
+PASTE_INTO_VERCEL_PAYSTACK.env
+PASTE_INTO_VERCEL*.env
+*.local.txt
