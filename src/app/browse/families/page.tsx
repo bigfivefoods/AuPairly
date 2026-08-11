@@ -19,11 +19,18 @@ import { CityDensityBanner } from "@/components/city-density-banner";
 export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Find hosts & care jobs",
+  title: "Find host families, care jobs & house swaps",
   description:
-    "Browse hosts seeking childcare, caregiving, house sitting, or pet sitting. Apply and message securely on AuPairly.",
+    "Browse hosts seeking au pairs, tutors, caregivers, house sitters, dog sitters, or house swaps. Apply with intro video and message securely on AuPairly.",
   path: "/browse/families",
-  keywords: ["au pair jobs", "babysitting jobs", "house sitting jobs", "find host family"],
+  keywords: [
+    "au pair jobs",
+    "babysitting jobs",
+    "house sitting jobs",
+    "find host family",
+    "tutoring jobs South Africa",
+    "house swap hosts",
+  ],
 });
 
 type SearchParams = Promise<{
