@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Baby, BookOpen, HeartHandshake, Home, LayoutGrid, PawPrint } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Baby,
+  BookOpen,
+  HeartHandshake,
+  Home,
+  LayoutGrid,
+  PawPrint,
+} from "lucide-react";
 import {
   SERVICE_LIST,
   type ServiceId,
@@ -15,6 +23,7 @@ const ICONS = {
   book: BookOpen,
   heart: HeartHandshake,
   home: Home,
+  swap: ArrowLeftRight,
   paw: PawPrint,
 } as const;
 
@@ -43,17 +52,19 @@ export function CategoryTabs({
       ? activeService
       : isServiceId(fromQuery)
         ? fromQuery
-        : path.includes("house-sitting")
-          ? "HOUSE_SITTING"
-          : path.includes("pet-sitting")
-            ? "PET_SITTING"
-            : path.includes("caregiving")
-              ? "CAREGIVING"
-              : path.includes("tutoring")
-                ? "TUTORING"
-                : path.includes("/childcare")
-                  ? "CHILDCARE"
-                  : "";
+        : path.includes("house-swap")
+          ? "HOUSE_SWAP"
+          : path.includes("house-sitting")
+            ? "HOUSE_SITTING"
+            : path.includes("pet-sitting")
+              ? "PET_SITTING"
+              : path.includes("caregiving")
+                ? "CAREGIVING"
+                : path.includes("tutoring")
+                  ? "TUTORING"
+                  : path.includes("/childcare")
+                    ? "CHILDCARE"
+                    : "";
 
   function hrefFor(service: ServiceId | "") {
     if (mode === "landing") {

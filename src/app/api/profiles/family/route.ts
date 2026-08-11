@@ -74,6 +74,23 @@ export async function PUT(req: Request) {
           : '["CHILDCARE"]',
       petTypes: toJsonArray(body.petTypes ?? []),
       houseSittingNotes: body.houseSittingNotes || null,
+      swapAvailableFrom: body.swapAvailableFrom
+        ? new Date(body.swapAvailableFrom)
+        : null,
+      swapAvailableTo: body.swapAvailableTo
+        ? new Date(body.swapAvailableTo)
+        : null,
+      swapSeekingAreas:
+        typeof body.swapSeekingAreas === "string"
+          ? toJsonArray(
+              body.swapSeekingAreas
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter(Boolean)
+            )
+          : toJsonArray(body.swapSeekingAreas ?? []),
+      swapHomeSummary: body.swapHomeSummary || null,
+      swapSimultaneous: body.swapSimultaneous !== false,
       careFocus: toJsonArray(body.careFocus ?? []),
       preferredAreas: Array.isArray(body.preferredAreas)
         ? toJsonArray(body.preferredAreas)
@@ -142,6 +159,35 @@ export async function PUT(req: Request) {
       petTypes: body.petTypes ? toJsonArray(body.petTypes) : undefined,
       houseSittingNotes:
         body.houseSittingNotes !== undefined ? body.houseSittingNotes || null : undefined,
+      swapAvailableFrom:
+        body.swapAvailableFrom !== undefined
+          ? body.swapAvailableFrom
+            ? new Date(body.swapAvailableFrom)
+            : null
+          : undefined,
+      swapAvailableTo:
+        body.swapAvailableTo !== undefined
+          ? body.swapAvailableTo
+            ? new Date(body.swapAvailableTo)
+            : null
+          : undefined,
+      swapSeekingAreas:
+        body.swapSeekingAreas !== undefined
+          ? typeof body.swapSeekingAreas === "string"
+            ? toJsonArray(
+                body.swapSeekingAreas
+                  .split(",")
+                  .map((s: string) => s.trim())
+                  .filter(Boolean)
+              )
+            : toJsonArray(body.swapSeekingAreas ?? [])
+          : undefined,
+      swapHomeSummary:
+        body.swapHomeSummary !== undefined ? body.swapHomeSummary || null : undefined,
+      swapSimultaneous:
+        body.swapSimultaneous !== undefined
+          ? Boolean(body.swapSimultaneous)
+          : undefined,
       careFocus: body.careFocus ? toJsonArray(body.careFocus) : undefined,
       preferredAreas:
         body.preferredAreas !== undefined

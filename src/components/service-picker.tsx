@@ -1,13 +1,20 @@
 "use client";
 
-import { Baby, BookOpen, HeartHandshake, Home, PawPrint } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Baby,
+  BookOpen,
+  HeartHandshake,
+  Home,
+  PawPrint,
+} from "lucide-react";
 import {
   PET_TYPE_OPTIONS,
   SERVICE_LIST,
   type ServiceId,
 } from "@/lib/services";
 import { cn } from "@/lib/utils";
-import { ChipToggle, Label, Textarea } from "@/components/ui";
+import { ChipToggle, Input, Label, Textarea } from "@/components/ui";
 import { useI18n } from "@/components/i18n-provider";
 import { serviceLabel } from "@/lib/i18n/service-label";
 
@@ -16,8 +23,17 @@ const ICONS = {
   book: BookOpen,
   heart: HeartHandshake,
   home: Home,
+  swap: ArrowLeftRight,
   paw: PawPrint,
 } as const;
+
+export type HouseSwapFields = {
+  swapAvailableFrom?: string;
+  swapAvailableTo?: string;
+  swapSeekingAreas?: string;
+  swapHomeSummary?: string;
+  swapSimultaneous?: boolean;
+};
 
 export function ServicePicker({
   mode,
@@ -27,6 +43,8 @@ export function ServicePicker({
   onPetTypesChange,
   houseNotes = "",
   onHouseNotesChange,
+  swap,
+  onSwapChange,
 }: {
   mode: "provider" | "host";
   value: ServiceId[];
@@ -35,6 +53,8 @@ export function ServicePicker({
   onPetTypesChange?: (next: string[]) => void;
   houseNotes?: string;
   onHouseNotesChange?: (next: string) => void;
+  swap?: HouseSwapFields;
+  onSwapChange?: (next: HouseSwapFields) => void;
 }) {
   const { dict } = useI18n();
 
@@ -49,15 +69,16 @@ export function ServicePicker({
 
   const showPets = value.includes("PET_SITTING");
   const showHouse = value.includes("HOUSE_SITTING");
+  const showSwap = value.includes("HOUSE_SWAP") && onSwapChange;
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-stone-500">
         {mode === "provider"
           ? "Select every service you offer. One profile can cover multiple categories."
-          : "Select what you need. You can hire for one category or combine several."}
+          : "Select what you need. You can hire for one category or combine several — including house swap."}
       </p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         {SERVICE_LIST.map((s) => {
           const Icon = ICONS[s.icon];
           const on = value.includes(s.id);
@@ -124,6 +145,71 @@ export function ServicePicker({
                 : "e.g. Holiday dates, plants, alarm process, mail…"
             }
           />
+        </div>
+      )}
+
+      {showSwap && swap && onSwapChange && (
+        <div className="space-y-3 rounded-2xl border border-violet-200 bg-violet-50/40 p-4">
+          <div>
+            <p className="text-sm font-semibold text-violet-900">House swap details</p>
+            <p className="mt-0.5 text-xs text-violet-800/80">
+              Mutual exchange — not one-way sitting. Share when your home is free and where you’d
+              like to go. Exact addresses stay private until shortlist.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Available from</Label>
+              <Input
+                type="date"
+                value={swap.swapAvailableFrom || ""}
+                onChange={(e) =>
+                  onSwapChange({ ...swap, swapAvailableFrom: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <Label>Available to</Label>
+              <Input
+                type="date"
+                value={swap.swapAvailableTo || ""}
+                onChange={(e) =>
+                  onSwapChange({ ...swap, swapAvailableTo: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <div>
+            <Label>Where do you want to swap into?</Label>
+            <Input
+              value={swap.swapSeekingAreas || ""}
+              onChange={(e) =>
+                onSwapChange({ ...swap, swapSeekingAreas: e.target.value })
+              }
+              placeholder="e.g. Cape Town, Durban, Johannesburg · or overseas"
+            />
+          </div>
+          <div>
+            <Label>Your home for swap (beds, guests, vibe)</Label>
+            <Textarea
+              value={swap.swapHomeSummary || ""}
+              onChange={(e) =>
+                onSwapChange({ ...swap, swapHomeSummary: e.target.value })
+              }
+              placeholder="e.g. 3-bed family home, sleeps 6, garden, near schools, Wi‑Fi…"
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={swap.swapSimultaneous !== false}
+              onChange={(e) =>
+                onSwapChange({ ...swap, swapSimultaneous: e.target.checked })
+              }
+              className="h-4 w-4 rounded border-stone-300 text-violet-600"
+            />
+            Prefer simultaneous swap (you stay in theirs while they stay in yours)
+          </label>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowLeftRight,
   ArrowRight,
   Baby,
   BadgeCheck,
@@ -20,6 +21,7 @@ const ICONS = {
   book: BookOpen,
   heart: HeartHandshake,
   home: Home,
+  swap: ArrowLeftRight,
   paw: PawPrint,
 } as const;
 
@@ -136,19 +138,42 @@ export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href={`/browse/aupairs?service=${serviceId}`} className="btn-primary btn-inline">
-                Find sitters
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href={`/browse/families?service=${serviceId}`}
-                className="btn-secondary btn-inline"
-              >
-                Find hosts
-              </Link>
-              <Link href="/register" className="btn-secondary btn-inline">
-                Join free
-              </Link>
+              {serviceId === "HOUSE_SWAP" ? (
+                <>
+                  <Link
+                    href={`/browse/families?service=${serviceId}`}
+                    className="btn-primary btn-inline"
+                  >
+                    Browse swap homes
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/profile/edit" className="btn-secondary btn-inline">
+                    List my home for swap
+                  </Link>
+                  <Link href="/register?role=PARENT" className="btn-secondary btn-inline">
+                    Join free
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={`/browse/aupairs?service=${serviceId}`}
+                    className="btn-primary btn-inline"
+                  >
+                    Find sitters
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href={`/browse/families?service=${serviceId}`}
+                    className="btn-secondary btn-inline"
+                  >
+                    Find hosts
+                  </Link>
+                  <Link href="/register" className="btn-secondary btn-inline">
+                    Join free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

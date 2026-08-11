@@ -267,6 +267,64 @@ export default async function FamilyDetailPage({
             </Card>
           )}
 
+          {(() => {
+            const p = profile as {
+              swapAvailableFrom?: Date | null;
+              swapAvailableTo?: Date | null;
+              swapSeekingAreas?: string | null;
+              swapHomeSummary?: string | null;
+              swapSimultaneous?: boolean | null;
+              services?: string | null;
+            };
+            const servicesRaw = p.services || "[]";
+            const isSwap =
+              servicesRaw.includes("HOUSE_SWAP") ||
+              Boolean(p.swapHomeSummary) ||
+              Boolean(p.swapAvailableFrom);
+            if (!isSwap) return null;
+            let seeking: string[] = [];
+            try {
+              seeking = JSON.parse(p.swapSeekingAreas || "[]");
+            } catch {
+              seeking = [];
+            }
+            return (
+              <Card className="border-violet-200 bg-violet-50/30">
+                <h2 className="font-display text-xl font-semibold text-violet-950">
+                  House swap
+                </h2>
+                <p className="mt-1 text-sm text-violet-900/70">
+                  Mutual home exchange — not one-way house sitting.
+                </p>
+                <div className="mt-4 space-y-2 text-sm text-stone-700">
+                  {p.swapAvailableFrom && (
+                    <p>
+                      <span className="font-medium">Available from:</span>{" "}
+                      {format(new Date(p.swapAvailableFrom), "MMM d, yyyy")}
+                      {p.swapAvailableTo
+                        ? ` → ${format(new Date(p.swapAvailableTo), "MMM d, yyyy")}`
+                        : ""}
+                    </p>
+                  )}
+                  {seeking.length > 0 && (
+                    <p>
+                      <span className="font-medium">Seeking:</span> {seeking.join(", ")}
+                    </p>
+                  )}
+                  <p>
+                    <span className="font-medium">Style:</span>{" "}
+                    {p.swapSimultaneous === false
+                      ? "Open to non-simultaneous"
+                      : "Prefers simultaneous swap"}
+                  </p>
+                  {p.swapHomeSummary && (
+                    <p className="whitespace-pre-wrap leading-relaxed">{p.swapHomeSummary}</p>
+                  )}
+                </div>
+              </Card>
+            );
+          })()}
+
           <Card>
             <h2 className="font-display text-xl font-semibold">Recurring schedule</h2>
             <p className="mt-1 text-sm text-stone-500">
