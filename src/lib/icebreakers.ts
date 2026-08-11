@@ -82,7 +82,7 @@ export function safetyWarningForMessage(body: string): string | null {
     /send me your address/,
   ];
   if (patterns.some((p) => p.test(t))) {
-    return "Tip: Keep early chats on AuPairly. Avoid sharing phone numbers or home addresses until you trust each other — meet in public first.";
+    return "Phone numbers stay private until shortlisting. Keep early chats on AuPairly — meet in public once you’re both comfortable.";
   }
   return null;
 }

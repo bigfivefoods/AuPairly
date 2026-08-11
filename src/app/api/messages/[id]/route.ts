@@ -160,6 +160,31 @@ export async function POST(
     }
   }
 
+  const otherPartyId =
+    conversation.userAId === session.user.id
+      ? conversation.userBId
+      : conversation.userAId;
+
+  // Hard block phone/email until shortlist (or later stage)
+  const {
+    messageContainsContact,
+    canShareContact,
+    CONTACT_BLOCK_MESSAGE,
+  } = await import("@/lib/contact-privacy");
+  if (messageContainsContact(messageBody)) {
+    const share = await canShareContact(session.user.id, otherPartyId);
+    if (!share.allowed) {
+      return NextResponse.json(
+        {
+          error: CONTACT_BLOCK_MESSAGE,
+          contactLocked: true,
+          unlockHint: "Shortlist this person to unlock contact sharing.",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
   const priorSent = await prisma.message.count({
     where: { senderId: session.user.id },
   });

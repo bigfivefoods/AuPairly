@@ -57,7 +57,19 @@ export function ApplyPacketButton({
         )}
         Send application packet
       </Button>
-      {msg && <p className="mt-2 text-xs text-stone-600">{msg}</p>}
+      <p className="mt-1.5 text-[11px] text-stone-500">
+        Requires a 1+ minute intro video (Trust page). Cert docs stay owner-only.
+      </p>
+      {msg && (
+        <p className="mt-2 text-xs text-stone-600">
+          {msg}{" "}
+          {msg.toLowerCase().includes("video") && (
+            <a href="/trust" className="font-semibold text-teal-700 underline">
+              Add video →
+            </a>
+          )}
+        </p>
+      )}
     </div>
   );
 }

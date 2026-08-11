@@ -112,6 +112,26 @@ export async function POST(req: Request) {
     }
   }
 
+  // Hard block phone/email until shortlist (or later stage)
+  const {
+    messageContainsContact,
+    canShareContact,
+    CONTACT_BLOCK_MESSAGE,
+  } = await import("@/lib/contact-privacy");
+  if (messageContainsContact(messageBody)) {
+    const share = await canShareContact(session.user.id, recipientId);
+    if (!share.allowed) {
+      return NextResponse.json(
+        {
+          error: CONTACT_BLOCK_MESSAGE,
+          contactLocked: true,
+          unlockHint: "Shortlist this person to unlock contact sharing.",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
   // Canonical order for unique pair
   const [userAId, userBId] =
     session.user.id < recipientId

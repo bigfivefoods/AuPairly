@@ -192,7 +192,7 @@ export function ReviewSection({
 
       <p className="mt-2 flex items-start gap-2 text-xs text-stone-500">
         <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-700" />
-        {t("reviews_hidden_mutual")}
+        Star ratings and written reviews are checked by AuPairly before they go public on profiles.
       </p>
 
       {showForm && (

@@ -90,6 +90,12 @@ model User {
 
   /// Trust / placement product fields
   videoIntroUrl       String?
+  /// Self-declared or measured intro video length (seconds). Applications require ≥ 60.
+  videoIntroSeconds   Int?
+  /// User confirmed intro is at least 1 minute (required with video for applications)
+  videoIntroConfirmed Boolean  @default(false)
+  /// Public CV / resume URL (PDF or drive link) — filterable sitter field
+  cvUrl               String?
   placementVerified   Boolean  @default(false)
   safetyScore         Int      @default(50) // 0–100, recomputed from signals
   agencyId            String?
@@ -259,9 +265,17 @@ model FamilyProfile {
   offers          String        @default("[]") // room, meals, language lessons etc.
 
   startDate       DateTime?
+  /// Optional end / through date for the placement window
+  endDate         DateTime?
   durationMonths  Int?
   weeklyHours     Int?
   pocketMoney     Int?
+  /// Free-text pay & benefits (meals, transport, data, gym, etc.)
+  benefits        String?
+  /// What the job entails (role brief beyond duties chips)
+  jobEntails      String?
+  /// Visa / passport support for sitters: NONE | HELP | SPONSOR | CITIZEN_ONLY
+  visaSupport     String?
   liveIn          Boolean       @default(true)
   hasPets         Boolean       @default(false)
   petDetails      String?
@@ -427,7 +441,7 @@ model Favorite {
   @@unique([userId, targetType, targetId])
 }
 
-/// Airbnb-style mutual reviews: category scores + double-blind publish
+/// Star + written reviews: owner-moderated before public release
 model Review {
   id         String   @id @default(cuid())
   authorId   String
@@ -447,8 +461,11 @@ model Review {
   /// Public reply from the reviewed party
   response    String?
   respondedAt DateTime?
-  /// When this review becomes public (both submitted or 14-day window)
+  /// When this review becomes public (set when app owner approves)
   publishedAt DateTime?
+  /// PENDING | APPROVED | REJECTED — only APPROVED + publishedAt is public
+  moderationStatus String @default("PENDING")
+  moderatedAt      DateTime?
   /// MESSAGE | PLACEMENT | MATCH
   context     String   @default("MESSAGE")
   placementId String?
@@ -458,6 +475,7 @@ model Review {
   @@unique([authorId, targetId])
   @@index([targetId, publishedAt])
   @@index([authorId, createdAt])
+  @@index([moderationStatus, createdAt])
 }
 
 model PasswordResetToken {
@@ -651,18 +669,22 @@ model ReferenceRequest {
   @@index([token])
 }
 
-/// Private document vault (passport, clearance, first aid…)
+/// Private document vault (passport, clearance, first aid, CV…)
+/// File URLs are never shown on public profiles — only the member + app owners can open them.
 model SecureDocument {
   id         String    @id @default(cuid())
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type       String    // PASSPORT | POLICE | FIRST_AID | VISA | OTHER
+  type       String    // PASSPORT | POLICE | FIRST_AID | VISA | CV | QUALIFICATION | OTHER
   label      String?
   url        String
   expiresAt  DateTime?
+  /// Always true for certs: only app owners (management) may view others' vault files
+  ownerOnly  Boolean   @default(true)
   createdAt  DateTime  @default(now())
 
   @@index([userId])
+  @@index([type])
 }
 
 /// Short “available from” stories / status

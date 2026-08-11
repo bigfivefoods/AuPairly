@@ -27,6 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
   FIRST_AID: "First aid",
   QUALIFICATION: "Qualification / diploma",
   CERTIFICATE: "Certificate",
+  CV: "CV / resume",
   VISA: "Visa",
   OTHER: "Other",
 };
@@ -178,7 +179,7 @@ export default function DocumentsPage() {
       <PageHeader
         eyebrow="Vault"
         title="Document vault"
-        description="Upload passport, police clearance, first aid, and visas. Files stay in your private vault with optional expiry."
+        description="Upload passport, CV, first aid, police clearance, and visas. Certificate files are only visible to you and AuPairly app owners — never on public profiles."
       />
 
       <div
@@ -217,6 +218,7 @@ export default function DocumentsPage() {
               <option value="PASSPORT">Passport</option>
               <option value="POLICE">Police clearance</option>
               <option value="FIRST_AID">First aid</option>
+              <option value="CV">CV / resume</option>
               <option value="QUALIFICATION">Qualification / diploma</option>
               <option value="CERTIFICATE">Certificate</option>
               <option value="VISA">Visa</option>

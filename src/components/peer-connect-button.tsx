@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Loader2, Check, MessageCircle } from "lucide-react";
+import { Loader2, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -114,12 +114,14 @@ export function PeerConnectButton({
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Users className="h-4 w-4" />
+          <span aria-hidden className="text-base leading-none">
+            👋
+          </span>
         )}
-        Connect as friends
+        Wave to connect
       </Button>
       <p className="mt-1.5 text-xs text-stone-500">
-        Say hi to {toName.split(" ")[0]} — for sitters making friends nearby
+        👋 Say hi to {toName.split(" ")[0]} — connect with au pairs & sitters in your region
       </p>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>

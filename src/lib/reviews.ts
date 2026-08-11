@@ -1,77 +1,72 @@
 import { prisma } from "@/lib/prisma";
 
-/** Mutual reviews become public when both parties have reviewed OR after 14 days. */
-export const REVIEW_REVEAL_DAYS = 14;
+/**
+ * Reviews are owner-moderated before public release.
+ * Authors always see their own; targets only see content after APPROVED + publishedAt.
+ * App owners (management console) see all PENDING for release.
+ */
+
+export type ModerationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export function isReviewPublic(review: {
   publishedAt?: Date | null;
+  moderationStatus?: string | null;
   createdAt: Date;
 }): boolean {
-  if (review.publishedAt) return true;
-  const unlock = new Date(review.createdAt);
-  unlock.setDate(unlock.getDate() + REVIEW_REVEAL_DAYS);
-  return unlock <= new Date();
+  const status = review.moderationStatus || "PENDING";
+  if (status === "REJECTED") return false;
+  // Legacy rows without moderationStatus field may only have publishedAt
+  if (status === "APPROVED" && review.publishedAt) return true;
+  // Back-compat: already-published before moderation launch
+  if (!review.moderationStatus && review.publishedAt) return true;
+  return false;
 }
 
 /**
- * After a review is saved, publish both sides if mutual, or publish this one if 14 days elapsed.
- * Mirrors Airbnb double-blind behaviour.
+ * After save: keep PENDING for owner review. Do not auto-publish.
+ * (Mutual visibility for authors is handled in serialize — targets wait for release.)
  */
-export async function syncMutualPublish(authorId: string, targetId: string) {
-  const [mine, theirs] = await Promise.all([
-    prisma.review.findUnique({
-      where: { authorId_targetId: { authorId, targetId } },
-    }),
-    prisma.review.findUnique({
-      where: { authorId_targetId: { authorId: targetId, targetId: authorId } },
-    }),
-  ]);
+export async function syncMutualPublish(_authorId: string, _targetId: string) {
+  return { published: false, mutual: false as const, moderated: true as const };
+}
 
-  const now = new Date();
+/** App owner releases a review to the public */
+export async function approveReview(reviewId: string) {
+  const review = await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      moderationStatus: "APPROVED",
+      moderatedAt: new Date(),
+      publishedAt: new Date(),
+    },
+  });
+  await recomputeUserRating(review.targetId);
+  return review;
+}
 
-  if (mine && theirs) {
-    // Both left reviews — publish both immediately
-    await prisma.review.updateMany({
-      where: {
-        OR: [
-          { id: mine.id },
-          { id: theirs.id },
-        ],
-        publishedAt: null,
-      },
-      data: { publishedAt: now },
-    });
-    return { published: true, mutual: true as const };
-  }
-
-  // Time-based unlock for single-sided reviews past the window
-  if (mine && !mine.publishedAt) {
-    const unlock = new Date(mine.createdAt);
-    unlock.setDate(unlock.getDate() + REVIEW_REVEAL_DAYS);
-    if (unlock <= now) {
-      await prisma.review.update({
-        where: { id: mine.id },
-        data: { publishedAt: now },
-      });
-      return { published: true, mutual: false as const };
-    }
-  }
-
-  return { published: false, mutual: Boolean(theirs) };
+export async function rejectReview(reviewId: string) {
+  const review = await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      moderationStatus: "REJECTED",
+      moderatedAt: new Date(),
+      publishedAt: null,
+    },
+  });
+  await recomputeUserRating(review.targetId);
+  return review;
 }
 
 /** Recompute target user's profile rating from *public* reviews only */
 export async function recomputeUserRating(targetUserId: string) {
   const reviews = await prisma.review.findMany({
-    where: {
-      targetId: targetUserId,
-      OR: [
-        { publishedAt: { not: null } },
-        // Legacy / timed: treat old published via isReviewPublic in app layer —
-        // for aggregates, only publishedAt counts after migration backfill
-      ],
+    where: { targetId: targetUserId },
+    select: {
+      rating: true,
+      publishedAt: true,
+      createdAt: true,
+      moderationStatus: true,
     },
-    select: { rating: true, publishedAt: true, createdAt: true },
   });
 
   const publicReviews = reviews.filter((r) => isReviewPublic(r));
@@ -129,7 +124,6 @@ export async function pendingReviewTargets(userId: string) {
 
   if (pendingIds.length === 0) return [];
 
-  // Also include placement partners (completed / placed)
   const users = await prisma.user.findMany({
     where: { id: { in: pendingIds } },
     select: {

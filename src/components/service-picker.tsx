@@ -1,6 +1,6 @@
 "use client";
 
-import { Baby, HeartHandshake, Home, PawPrint } from "lucide-react";
+import { Baby, BookOpen, HeartHandshake, Home, PawPrint } from "lucide-react";
 import {
   PET_TYPE_OPTIONS,
   SERVICE_LIST,
@@ -13,6 +13,7 @@ import { serviceLabel } from "@/lib/i18n/service-label";
 
 const ICONS = {
   baby: Baby,
+  book: BookOpen,
   heart: HeartHandshake,
   home: Home,
   paw: PawPrint,
@@ -56,7 +57,7 @@ export function ServicePicker({
           ? "Select every service you offer. One profile can cover multiple categories."
           : "Select what you need. You can hire for one category or combine several."}
       </p>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {SERVICE_LIST.map((s) => {
           const Icon = ICONS[s.icon];
           const on = value.includes(s.id);

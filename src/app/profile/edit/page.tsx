@@ -137,12 +137,18 @@ export default async function EditProfilePage() {
     preferences: profile?.preferences ?? "",
     duties: parseJsonArray(profile?.duties),
     offers: parseJsonArray(profile?.offers),
+    jobEntails: (profile as { jobEntails?: string | null } | null)?.jobEntails ?? "",
     startDate: profile?.startDate
       ? new Date(profile.startDate).toISOString().slice(0, 10)
+      : "",
+    endDate: (profile as { endDate?: Date | null } | null)?.endDate
+      ? new Date((profile as { endDate: Date }).endDate).toISOString().slice(0, 10)
       : "",
     durationMonths: profile?.durationMonths?.toString() ?? "",
     weeklyHours: profile?.weeklyHours?.toString() ?? "",
     pocketMoney: profile?.pocketMoney?.toString() ?? "",
+    benefits: (profile as { benefits?: string | null } | null)?.benefits ?? "",
+    visaSupport: (profile as { visaSupport?: string | null } | null)?.visaSupport ?? "",
     liveIn: profile?.liveIn ?? true,
     hasPets: profile?.hasPets ?? false,
     petDetails: profile?.petDetails ?? "",

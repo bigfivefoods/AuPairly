@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Baby, HeartHandshake, Home, LayoutGrid, PawPrint } from "lucide-react";
+import { Baby, BookOpen, HeartHandshake, Home, LayoutGrid, PawPrint } from "lucide-react";
 import {
   SERVICE_LIST,
   type ServiceId,
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS = {
   baby: Baby,
+  book: BookOpen,
   heart: HeartHandshake,
   home: Home,
   paw: PawPrint,
@@ -48,9 +49,11 @@ export function CategoryTabs({
             ? "PET_SITTING"
             : path.includes("caregiving")
               ? "CAREGIVING"
-              : path.includes("/childcare")
-                ? "CHILDCARE"
-                : "";
+              : path.includes("tutoring")
+                ? "TUTORING"
+                : path.includes("/childcare")
+                  ? "CHILDCARE"
+                  : "";
 
   function hrefFor(service: ServiceId | "") {
     if (mode === "landing") {

@@ -9,9 +9,16 @@ export default function TrustPage() {
     safetyScore?: number;
     placementVerified?: boolean;
     videoIntroUrl?: string | null;
+    videoIntroSeconds?: number | null;
+    videoIntroConfirmed?: boolean;
+    cvUrl?: string | null;
     referenceCount?: number;
+    minVideoSeconds?: number;
   } | null>(null);
   const [video, setVideo] = useState("");
+  const [seconds, setSeconds] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [cvUrl, setCvUrl] = useState("");
   const [email, setEmail] = useState("");
   const [refName, setRefName] = useState("");
   const [submitUrl, setSubmitUrl] = useState("");
@@ -24,6 +31,9 @@ export default function TrustPage() {
     if (res.ok) {
       setData(d);
       setVideo(d.videoIntroUrl || "");
+      setSeconds(d.videoIntroSeconds != null ? String(d.videoIntroSeconds) : "");
+      setConfirmed(Boolean(d.videoIntroConfirmed));
+      setCvUrl(d.cvUrl || "");
     }
   }, []);
 
@@ -33,14 +43,40 @@ export default function TrustPage() {
 
   async function saveVideo() {
     setBusy(true);
-    await fetch("/api/trust", {
+    setMsg("");
+    const res = await fetch("/api/trust", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ videoIntroUrl: video }),
+      body: JSON.stringify({
+        videoIntroUrl: video,
+        videoIntroSeconds: seconds ? Number(seconds) : null,
+        videoIntroConfirmed: confirmed,
+      }),
     });
     await load();
     setBusy(false);
-    setMsg("Video intro saved. Safety score updated.");
+    if (!res.ok) {
+      setMsg("Could not save video intro.");
+      return;
+    }
+    setMsg(
+      confirmed
+        ? "Video intro saved (1+ min confirmed). You can apply for jobs."
+        : "Video intro saved. Confirm it is at least 1 minute to unlock applications."
+    );
+  }
+
+  async function saveCv() {
+    setBusy(true);
+    setMsg("");
+    await fetch("/api/trust", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cvUrl }),
+    });
+    await load();
+    setBusy(false);
+    setMsg("CV link saved.");
   }
 
   async function requestRef() {
@@ -103,15 +139,65 @@ export default function TrustPage() {
         </Card>
       </div>
 
-      <Card className="mt-6">
-        <h3 className="font-display text-lg font-semibold">Video intro (URL)</h3>
-        <p className="mt-1 text-sm text-stone-500">
-          Paste a YouTube/Vimeo/unlisted link (30–60s). Upload hosting can plug into Supabase later.
+      <Card className="mt-6 space-y-3">
+        <h3 className="font-display text-lg font-semibold">
+          Intro video (min 1 minute)
+        </h3>
+        <p className="text-sm text-stone-500">
+          Required when applying for a job: introduce yourself and your experience (at least 1
+          minute). YouTube/Vimeo/unlisted links work. Certificates stay in Documents for app owners
+          only.
         </p>
-        <Input className="mt-3" value={video} onChange={(e) => setVideo(e.target.value)} placeholder="https://..." />
-        <Button className="mt-3" disabled={busy} onClick={saveVideo}>
+        <Input
+          value={video}
+          onChange={(e) => setVideo(e.target.value)}
+          placeholder="https://youtube.com/… or Vimeo"
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label>Length (seconds)</Label>
+            <Input
+              type="number"
+              min={60}
+              value={seconds}
+              onChange={(e) => setSeconds(e.target.value)}
+              placeholder="e.g. 90"
+            />
+          </div>
+          <label className="flex items-end gap-2 pb-2 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+              className="h-4 w-4 rounded border-stone-300 text-teal-600"
+            />
+            I confirm this video is at least 1 minute
+          </label>
+        </div>
+        <Button disabled={busy} onClick={saveVideo}>
           Save video intro
         </Button>
+      </Card>
+
+      <Card className="mt-6 space-y-3">
+        <h3 className="font-display text-lg font-semibold">CV / resume</h3>
+        <p className="text-sm text-stone-500">
+          Link or upload path to your CV. You can also store PDFs under Documents → CV (owner-only
+          vault for certificates).
+        </p>
+        <Input
+          value={cvUrl}
+          onChange={(e) => setCvUrl(e.target.value)}
+          placeholder="https://… or upload via Documents"
+        />
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={busy} onClick={saveCv}>
+            Save CV link
+          </Button>
+          <a href="/documents" className="btn-secondary text-sm">
+            Document vault →
+          </a>
+        </div>
       </Card>
 
       <Card className="mt-6">

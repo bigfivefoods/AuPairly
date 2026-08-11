@@ -55,10 +55,14 @@ type Initial = {
   preferences: string;
   duties: string[];
   offers: string[];
+  jobEntails: string;
   startDate: string;
+  endDate: string;
   durationMonths: string;
   weeklyHours: string;
   pocketMoney: string;
+  benefits: string;
+  visaSupport: string;
   liveIn: boolean;
   hasPets: boolean;
   petDetails: string;
@@ -455,6 +459,14 @@ export function FamilyProfileForm({
           <Textarea value={form.preferences} onChange={(e) => set("preferences", e.target.value)} />
         </div>
         <div>
+          <Label>What the job entails</Label>
+          <Textarea
+            value={form.jobEntails || ""}
+            onChange={(e) => set("jobEntails", e.target.value)}
+            placeholder="Typical day, school runs, ages of kids, evenings, weekends, house/pet duties…"
+          />
+        </div>
+        <div>
           <Label>Duties</Label>
           <div className="mt-2 flex flex-wrap gap-2">
             {DUTY_OPTIONS.map((d) => (
@@ -476,6 +488,10 @@ export function FamilyProfileForm({
             <Input type="date" value={form.startDate} onChange={(e) => set("startDate", e.target.value)} />
           </div>
           <div>
+            <Label>End date (optional)</Label>
+            <Input type="date" value={form.endDate || ""} onChange={(e) => set("endDate", e.target.value)} />
+          </div>
+          <div>
             <Label>Duration (months)</Label>
             <Input type="number" value={form.durationMonths} onChange={(e) => set("durationMonths", e.target.value)} />
           </div>
@@ -492,8 +508,21 @@ export function FamilyProfileForm({
             </p>
           </div>
           <div>
-            <Label>Pocket money (R/wk)</Label>
+            <Label>Pocket money / pay (R/wk)</Label>
             <Input type="number" value={form.pocketMoney} onChange={(e) => set("pocketMoney", e.target.value)} />
+          </div>
+          <div>
+            <Label>Visa / passport support</Label>
+            <Select
+              value={form.visaSupport || ""}
+              onChange={(e) => set("visaSupport", e.target.value)}
+            >
+              <option value="">Not specified</option>
+              <option value="NONE">No visa support</option>
+              <option value="HELP">Help with paperwork</option>
+              <option value="SPONSOR">Can sponsor / support visa</option>
+              <option value="CITIZEN_ONLY">Citizens / work rights required</option>
+            </Select>
           </div>
           <div>
             <Label>School / area for school runs</Label>
@@ -503,6 +532,14 @@ export function FamilyProfileForm({
               placeholder="e.g. Rondebosch / near Bishops"
             />
           </div>
+        </div>
+        <div>
+          <Label>Pay & benefits</Label>
+          <Textarea
+            value={form.benefits || ""}
+            onChange={(e) => set("benefits", e.target.value)}
+            placeholder="e.g. Meals, private room, data, gym, transport, language lessons…"
+          />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {(
