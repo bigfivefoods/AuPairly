@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { Badge, Button, Card, Input, Label, PageHeader } from "@/components/ui";
+import { VideoIntroRecorder } from "@/components/video-intro-recorder";
 
 export default function TrustPage() {
   const [data, setData] = useState<{
@@ -139,44 +140,61 @@ export default function TrustPage() {
         </Card>
       </div>
 
-      <Card className="mt-6 space-y-3">
-        <h3 className="font-display text-lg font-semibold">
-          Intro video (min 1 minute)
-        </h3>
-        <p className="text-sm text-stone-500">
-          Required when applying for a job: introduce yourself and your experience (at least 1
-          minute). YouTube/Vimeo/unlisted links work. Certificates stay in Documents for app owners
-          only.
-        </p>
-        <Input
-          value={video}
-          onChange={(e) => setVideo(e.target.value)}
-          placeholder="https://youtube.com/… or Vimeo"
-        />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label>Length (seconds)</Label>
-            <Input
-              type="number"
-              min={60}
-              value={seconds}
-              onChange={(e) => setSeconds(e.target.value)}
-              placeholder="e.g. 90"
-            />
-          </div>
-          <label className="flex items-end gap-2 pb-2 text-sm text-stone-700">
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
-              className="h-4 w-4 rounded border-stone-300 text-teal-600"
-            />
-            I confirm this video is at least 1 minute
-          </label>
+      <Card className="mt-6 space-y-4">
+        <div>
+          <h3 className="font-display text-lg font-semibold">
+            Intro video (min 1 minute)
+          </h3>
+          <p className="mt-1 text-sm text-stone-500">
+            Required to apply for jobs. Record in the browser, upload a file, or paste a
+            YouTube/Vimeo link. Introduce yourself and your experience.
+          </p>
         </div>
-        <Button disabled={busy} onClick={saveVideo}>
-          Save video intro
-        </Button>
+
+        <VideoIntroRecorder
+          initialUrl={data.videoIntroUrl}
+          onSaved={(url, secs) => {
+            setVideo(url);
+            setSeconds(String(secs));
+            setConfirmed(secs >= 60);
+            void load();
+          }}
+        />
+
+        <div className="border-t border-stone-100 pt-4 space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
+            Or paste a link
+          </p>
+          <Input
+            value={video}
+            onChange={(e) => setVideo(e.target.value)}
+            placeholder="https://youtube.com/… or Vimeo"
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Length (seconds)</Label>
+              <Input
+                type="number"
+                min={60}
+                value={seconds}
+                onChange={(e) => setSeconds(e.target.value)}
+                placeholder="e.g. 90"
+              />
+            </div>
+            <label className="flex items-end gap-2 pb-2 text-sm text-stone-700">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+                className="h-4 w-4 rounded border-stone-300 text-teal-600"
+              />
+              I confirm this video is at least 1 minute
+            </label>
+          </div>
+          <Button disabled={busy} onClick={saveVideo}>
+            Save link
+          </Button>
+        </div>
       </Card>
 
       <Card className="mt-6 space-y-3">

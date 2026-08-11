@@ -20,6 +20,16 @@ export async function GET() {
       email: true,
       image: true,
       role: true,
+      videoIntroUrl: true,
+      videoIntroSeconds: true,
+      videoIntroConfirmed: true,
+      cvUrl: true,
+      aupairProfile: {
+        select: { city: true, country: true, status: true, headline: true },
+      },
+      familyProfile: {
+        select: { city: true, country: true, status: true, headline: true },
+      },
     },
   });
 
@@ -34,6 +44,12 @@ export async function GET() {
       email: user.email,
       image: user.image,
       role: user.role,
+      videoIntroUrl: user.videoIntroUrl,
+      videoIntroSeconds: user.videoIntroSeconds,
+      videoIntroConfirmed: user.videoIntroConfirmed,
+      cvUrl: user.cvUrl,
+      aupairProfile: user.aupairProfile,
+      familyProfile: user.familyProfile,
     },
   });
 }

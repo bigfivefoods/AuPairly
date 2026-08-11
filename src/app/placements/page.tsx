@@ -8,11 +8,11 @@ export const metadata = { title: "Placements" };
 export default async function PlacementsPage() {
   await requireUser();
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Pipeline"
-        title="Placements"
-        description="From interest to interview, trial week, and a confirmed placement — with checklist, contract, and success fee."
+        title="Placement board"
+        description="Kanban for hosts & sitters: Interested → Interview → Trial → Placed → Completed. Drag cards or use the stage menu. Open a card for checklist, offer letter, and success fee."
       />
       <PlacementsClient />
     </div>
