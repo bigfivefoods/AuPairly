@@ -9,9 +9,11 @@ import {
   Globe2,
   HeartHandshake,
   ArrowRight,
+  ArrowLeftRight,
   Users,
   Home,
   Baby,
+  BookOpen,
   PawPrint,
 } from "lucide-react";
 import { AuPairCard, FamilyCard } from "@/components/listing-cards";
@@ -19,6 +21,15 @@ import { SocialFollowStrip } from "@/components/social-follow-strip";
 import { SERVICE_LIST } from "@/lib/services";
 import { useI18n } from "@/components/i18n-provider";
 import { serviceLabel } from "@/lib/i18n/service-label";
+
+const SERVICE_ICONS = {
+  baby: Baby,
+  book: BookOpen,
+  heart: HeartHandshake,
+  home: Home,
+  swap: ArrowLeftRight,
+  paw: PawPrint,
+} as const;
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- Prisma rows → listing cards */
 export function HomeBodyI18n({
@@ -32,7 +43,7 @@ export function HomeBodyI18n({
 
   return (
     <div data-locale={locale}>
-      {/* Four services */}
+      {/* All services */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-teal-700 sm:text-sm">
@@ -45,16 +56,9 @@ export function HomeBodyI18n({
             {t("home_four_sub")}
           </p>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5">
           {SERVICE_LIST.map((s) => {
-            const Icon =
-              s.icon === "baby"
-                ? Baby
-                : s.icon === "heart"
-                  ? HeartHandshake
-                  : s.icon === "home"
-                    ? Home
-                    : PawPrint;
+            const Icon = SERVICE_ICONS[s.icon] || Home;
             const name = serviceLabel(dict, s.id);
             return (
               <Link

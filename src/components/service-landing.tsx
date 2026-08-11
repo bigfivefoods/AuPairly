@@ -201,7 +201,7 @@ export async function ServiceLanding({ serviceId }: { serviceId: ServiceId }) {
             {
               icon: BadgeCheck,
               t: "One profile, multi-service",
-              d: "Sitters list childcare, house sitting, and/or pets without separate accounts.",
+              d: "List au pair care, tutoring, house sitting, dog sitting — or house swap for hosts — on one account.",
             },
             {
               icon: Icon,

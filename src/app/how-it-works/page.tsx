@@ -8,9 +8,14 @@ import { breadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildPageMetadata({
   title: "How AuPairly works — signup to trusted match",
   description:
-    "Step-by-step guide: sign up, verify identity, complete your profile, discover matches, message safely, and place care for childcare, caregiving, house sitting, and pet sitting.",
+    "Step-by-step guide: sign up, verify identity, complete your profile, discover matches, message safely, and place care for au pairs, tutors, caregivers, house sitters, house swaps, and dog sitters.",
   path: "/how-it-works",
-  keywords: ["how to find an au pair", "how to hire a babysitter online"],
+  keywords: [
+    "how to find an au pair",
+    "how to hire a babysitter online",
+    "how house swap works",
+    "find tutor online",
+  ],
 });
 
 export default function HowItWorksPage() {
@@ -27,30 +32,49 @@ export default function HowItWorksPage() {
       <PageHeader
         eyebrow="Guide"
         title="How AuPairly works"
-        description="A clear path from signup to a successful match — for hosts and sitters across four care categories."
+        description="A clear path from signup to a successful match — for hosts and sitters across au pairs, tutors, caregiving, house sitting, house swap, and pet care."
       />
+
+      <div className="mb-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          { href: "/childcare", label: "Au pair / childcare" },
+          { href: "/tutoring", label: "Tutor" },
+          { href: "/caregiving", label: "Caregiving" },
+          { href: "/house-sitting", label: "House sitting" },
+          { href: "/house-swap", label: "House swap" },
+          { href: "/pet-sitting", label: "Dog / pet sitter" },
+        ].map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 shadow-sm transition hover:border-teal-300 hover:text-teal-800"
+          >
+            {s.label} →
+          </Link>
+        ))}
+      </div>
 
       <div className="space-y-8">
         {[
           {
             icon: <Handshake className="h-6 w-6" />,
             title: "1. Choose your role & services",
-            body: "Sign up as a host (need care) or sitter (offer care). Pick childcare, caregiving, house sitting, pet sitting — or combine them in a 2-minute setup.",
+            body: "Sign up as a host (need care / want a house swap) or sitter (offer care). Pick au pair, tutor, caregiving, house sitting, house swap, dog/pet sitting — or combine them in a 2-minute setup.",
           },
           {
             icon: <BadgeCheck className="h-6 w-6" />,
             title: "2. Complete & verify your profile",
-            body: "Add a clear photo, bio, and city. Complete ID + selfie verification for a Verified badge. Reach ~70% completeness to unlock Discover and boosts.",
+            body: "Add a clear photo, bio, and city. Sitters applying for jobs add a 1-minute intro video. Complete ID + selfie verification for a Verified badge. Reach ~70% completeness to unlock Discover and boosts.",
           },
           {
             icon: <Search className="h-6 w-6" />,
-            title: "3. Browse or Discover",
-            body: "Filter the marketplace by category and location, or swipe in Discover with service filters and match scores.",
+            title: "3. Browse, map, or Discover",
+            body: "Filter by category and location, explore the map by region, or swipe in Discover with service filters and match scores. House-swap hosts get destination match suggestions.",
           },
           {
             icon: <MessageSquare className="h-6 w-6" />,
             title: "4. Message, shortlist, place",
-            body: "Express interest, chat in-app, shortlist favourites, and move serious matches into placements. Free tier applies; upgrade when you hit limits.",
+            body: "Express interest, chat in-app (phone numbers stay private until shortlist), shortlist favourites, and move serious matches on the placement board. Free tier applies; upgrade when you hit limits.",
           },
           {
             icon: <Sparkles className="h-6 w-6" />,

@@ -18,14 +18,16 @@ export const revalidate = 300;
 
 export const metadata: Metadata = buildPageMetadata({
   title: BRAND.ogTitle,
-  description: `${BRAND.tagline} Find verified au pairs, babysitters, caregivers, house sitters, and pet sitters worldwide. One account for childcare, caregiving, house sitting & pet sitting.`,
+  description: `${BRAND.tagline} Find verified au pairs, tutors, caregivers, house sitters, house swaps, and dog/pet sitters worldwide. One account for every kind of care.`,
   path: "/",
   keywords: [
     "find au pair",
     "hire babysitter",
+    "find tutor",
     "elderly caregiver",
     "house sitter near me",
-    "pet sitter marketplace",
+    "house swap South Africa",
+    "dog sitter marketplace",
   ],
 });
 
@@ -33,12 +35,12 @@ const HOME_FAQS = [
   {
     question: "What is AuPairly?",
     answer:
-      "AuPairly is a global marketplace connecting families and hosts with verified au pairs, babysitters, caregivers, house sitters, and pet sitters — one account for four care categories.",
+      "AuPairly is a global marketplace connecting families and hosts with verified au pairs, tutors, caregivers, house sitters, house-swap partners, and dog/pet sitters — one account for every care category.",
   },
   {
     question: "Is AuPairly only for au pairs?",
     answer:
-      "No. AuPairly covers childcare, caregiving for adults and the elderly, house sitting, and pet sitting worldwide.",
+      "No. AuPairly covers childcare/au pairs, tutoring, caregiving for adults and the elderly, house sitting, house swap (mutual home exchange), and dog/pet sitting worldwide.",
   },
   {
     question: "How does verification work?",
@@ -58,7 +60,7 @@ const HOME_FAQS = [
   {
     question: "What services can I list?",
     answer:
-      "Childcare (au pairs, babysitting, nannies), caregiving for adults and the elderly, house sitting, and pet sitting — one account.",
+      "Au pair / childcare, tutoring, caregiving, house sitting, house swap (hosts), and dog/pet sitting — combine services on one profile.",
   },
 ];
 
