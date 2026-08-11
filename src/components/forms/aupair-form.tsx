@@ -797,7 +797,7 @@ export function AuPairProfileForm({
       <ProfileEditShell
         role="AUPAIR"
         title="Edit your services & profile"
-        description="Offer childcare / au pairing, house sitting, pet sitting — or all three."
+        description="Offer au pair / childcare, tutoring, house sitting, dog/pet sitting — or a mix."
         status={form.status}
         userName={userName || form.name}
         sections={AUPAIR_SECTIONS}

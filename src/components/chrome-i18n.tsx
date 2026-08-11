@@ -74,6 +74,11 @@ export function FooterI18n() {
                 </Link>
               </li>
               <li>
+                <Link href="/tutoring" className="hover:text-teal-700">
+                  {t("footer_tutoring")}
+                </Link>
+              </li>
+              <li>
                 <Link href="/caregiving" className="hover:text-teal-700">
                   {t("footer_caregiving")}
                 </Link>
@@ -81,6 +86,11 @@ export function FooterI18n() {
               <li>
                 <Link href="/house-sitting" className="hover:text-teal-700">
                   {t("footer_house")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/house-swap" className="hover:text-teal-700">
+                  {t("footer_house_swap")}
                 </Link>
               </li>
               <li>

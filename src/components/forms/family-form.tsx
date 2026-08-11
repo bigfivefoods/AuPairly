@@ -632,7 +632,7 @@ export function FamilyProfileForm({
       <ProfileEditShell
         role="PARENT"
         title="Edit what you need"
-        description="Request childcare / au pair, house sitting, pet sitting — or a combination."
+        description="Request au pair, tutor, caregiving, house sitting, house swap, dog sitter — or a combination."
         status={form.status}
         userName={userName || form.name}
         sections={FAMILY_SECTIONS}
