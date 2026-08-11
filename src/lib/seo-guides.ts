@@ -299,6 +299,227 @@ export const SEO_GUIDES: SeoGuide[] = [
       },
     ],
   },
+  {
+    slug: "house-swap-south-africa",
+    title: "House swap in South Africa — how mutual home exchange works",
+    description:
+      "How house swapping differs from house sitting, how to list dates and destinations, and how to swap safely on AuPairly with verified host families.",
+    keywords: [
+      "house swap South Africa",
+      "home exchange Cape Town",
+      "holiday house swap",
+      "mutual home exchange",
+    ],
+    minutes: 7,
+    sections: [
+      {
+        h2: "House swap vs house sitting",
+        body: [
+          "House sitting is one-way: a sitter looks after your home while you are away. House swap is mutual: you stay in their home while they stay in yours (often at the same time).",
+          "On AuPairly, enable House swap on your host listing, set available dates, and list destinations you want to visit. Exact addresses stay private until shortlist.",
+        ],
+      },
+      {
+        h2: "What to put on your listing",
+        body: [
+          "Describe beds, guests, parking, pets, and neighbourhood vibe — not your street address. Add photos of living areas and outdoor space.",
+          "Be clear on simultaneous vs flexible dates. Strong photos and honest house summaries get more interest.",
+        ],
+      },
+      {
+        h2: "Stay safe",
+        body: [
+          "Use verified profiles, chat on AuPairly first, and only share keys after shortlist and mutual comfort. Meet virtually before exchange when possible.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is house swap free on AuPairly?",
+        answer:
+          "Joining and listing is free. Messaging limits follow your membership plan. There is no separate house-swap fee from AuPairly.",
+      },
+      {
+        question: "Can I swap with someone outside South Africa?",
+        answer:
+          "Yes if both households list on AuPairly and agree terms. Start with same-country swaps while you learn the process.",
+      },
+    ],
+  },
+  {
+    slug: "find-tutor-south-africa",
+    title: "How to find a tutor in South Africa (2026)",
+    description:
+      "Hire a maths, language, or homework tutor at home or online. What to check, rates signals, and how AuPairly tutoring listings work for host families.",
+    keywords: [
+      "find tutor South Africa",
+      "maths tutor Cape Town",
+      "homework help Johannesburg",
+      "private tutor near me",
+    ],
+    minutes: 6,
+    sections: [
+      {
+        h2: "Define the subject and level",
+        body: [
+          "Be specific: Foundation Phase reading, Grade 9 maths, matric science, or conversational English. Clear briefs attract the right tutors.",
+          "Say whether you need in-person, online, or hybrid — and which evenings work.",
+        ],
+      },
+      {
+        h2: "Check qualifications and fit",
+        body: [
+          "Look for study status, qualifications, and a 1-minute intro video. On AuPairly, tutors list under Tutoring alongside childcare if they also babysit.",
+          "Ask for a short trial lesson before a long commitment.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can one person offer tutoring and childcare?",
+        answer:
+          "Yes. Sitters can enable multiple services on one profile — e.g. childcare + tutoring after school.",
+      },
+    ],
+  },
+  {
+    slug: "dog-sitter-near-me",
+    title: "Dog sitter near me — how to book trusted pet care",
+    description:
+      "Find a dog sitter or walker nearby: what to ask, overnight vs drop-in visits, and how verified pet sitters work on AuPairly.",
+    keywords: [
+      "dog sitter near me",
+      "dog walker Cape Town",
+      "pet sitter Johannesburg",
+      "overnight dog care",
+    ],
+    minutes: 5,
+    sections: [
+      {
+        h2: "Describe your pets clearly",
+        body: [
+          "Breed, age, energy level, medication, and whether they are crate-trained. Hosts who list pet types get better matches.",
+          "Share a typical day: walk times, feeding, and any neighbours who help.",
+        ],
+      },
+      {
+        h2: "Meet before you hand over keys",
+        body: [
+          "Do a short meet-and-greet. Keep early chat on AuPairly and shortlist before sharing your address or WhatsApp.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is dog sitting the same as house sitting?",
+        answer:
+          "Often they combine, but not always. On AuPairly you can request pet sitting only, house sitting only, or both.",
+      },
+    ],
+  },
+  {
+    slug: "live-in-vs-live-out-au-pair",
+    title: "Live-in vs live-out au pair — which fits your family?",
+    description:
+      "Compare live-in and live-out childcare: hours, pocket money, privacy, and how to list the right arrangement on AuPairly.",
+    keywords: [
+      "live-in au pair",
+      "live-out childcare",
+      "au pair room",
+      "nanny live in South Africa",
+    ],
+    minutes: 5,
+    sections: [
+      {
+        h2: "Live-in",
+        body: [
+          "Usually includes a private room, meals, and cultural exchange. Best when you need early mornings, evenings, or flexible coverage.",
+          "Be explicit about days off, overnight duties, and guests.",
+        ],
+      },
+      {
+        h2: "Live-out",
+        body: [
+          "Sitter travels to you for set shifts — after school, school holidays, or full-time days. Often clearer employment-style hours.",
+          "Factor transport time and traffic in Cape Town or Joburg.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can I change from live-in to live-out later?",
+        answer:
+          "Yes if both parties agree. Update your AuPairly listing so new applicants see the current arrangement.",
+      },
+    ],
+  },
+  {
+    slug: "video-intro-au-pair-tips",
+    title: "How to film a 1-minute au pair / sitter intro video",
+    description:
+      "Script and tips for a clear, friendly intro video that unlocks job applications on AuPairly — what hosts want to hear in 60–90 seconds.",
+    keywords: [
+      "au pair intro video",
+      "sitter video introduction",
+      "how to introduce yourself to host family",
+    ],
+    minutes: 4,
+    sections: [
+      {
+        h2: "What to say",
+        body: [
+          "Name, city, years of experience, services (childcare, tutoring, pets), and what you’re looking for. Smile and speak clearly.",
+          "Mention first aid, driving, or languages if relevant. End with when you can start.",
+        ],
+      },
+      {
+        h2: "How to record on AuPairly",
+        body: [
+          "Open Trust → record in the browser or upload MP4/WebM. Confirm the video is at least one minute so you can send application packets.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do I need professional equipment?",
+        answer:
+          "No. Natural light, a quiet room, and a phone at eye level is enough. Hosts care more about warmth and clarity than production quality.",
+      },
+    ],
+  },
+  {
+    slug: "placement-pipeline-host-guide",
+    title: "Host guide: from interest to placed (AuPairly pipeline)",
+    description:
+      "How hosts move candidates through Interested → Interview → Trial → Placed on AuPairly — shortlist, contact privacy, and check-ins.",
+    keywords: [
+      "hire au pair process",
+      "au pair trial week",
+      "shortlist candidates childcare",
+    ],
+    minutes: 6,
+    sections: [
+      {
+        h2: "Shortlist before sharing numbers",
+        body: [
+          "Phone numbers stay private until shortlist (or later stages). Chat on AuPairly, then shortlist when you’re serious.",
+        ],
+      },
+      {
+        h2: "Use the placement board",
+        body: [
+          "Start a placement from a profile. Drag cards across Interested, Interview, Trial, and Placed. Day-7 and day-30 check-ins help both sides stay supported.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "When do reviews go public?",
+        answer:
+          "Star ratings and written reviews are moderated by AuPairly before they appear on profiles.",
+      },
+    ],
+  },
 ];
 
 export function guideBySlug(slug: string) {

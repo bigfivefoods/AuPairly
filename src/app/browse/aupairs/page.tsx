@@ -19,11 +19,19 @@ import { CityDensityBanner } from "@/components/city-density-banner";
 export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Find verified sitters & care providers",
+  title: "Find verified sitters, au pairs, tutors & pet care",
   description:
-    "Browse verified sitters, babysitters, caregivers, house sitters, and pet sitters. Filter by city, services, and availability on AuPairly.",
+    "Browse verified au pairs, babysitters, tutors, caregivers, house sitters, and dog/pet sitters. Filter by city, services, and availability on AuPairly South Africa & worldwide.",
   path: "/browse/aupairs",
-  keywords: ["find au pair", "hire babysitter", "caregiver listings", "find sitter"],
+  keywords: [
+    "find au pair",
+    "hire babysitter",
+    "caregiver listings",
+    "find sitter",
+    "find tutor",
+    "dog sitter near me",
+    "house sitter",
+  ],
 });
 
 type SearchParams = Promise<{

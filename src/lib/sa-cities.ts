@@ -178,6 +178,61 @@ export const SA_CITIES: SaCity[] = [
     name: "Sea Point",
     province: "Western Cape",
   },
+  {
+    slug: "southbroom",
+    name: "Southbroom",
+    province: "KwaZulu-Natal",
+    blurb:
+      "South Coast KZN hosts and sitters — holiday homes, au pairs, and pet care near the beach.",
+  },
+  {
+    slug: "pietermaritzburg",
+    name: "Pietermaritzburg",
+    province: "KwaZulu-Natal",
+    blurb: "Midlands capital — childcare, tutors, and house sitting demand.",
+  },
+  {
+    slug: "hilton",
+    name: "Hilton",
+    province: "KwaZulu-Natal",
+  },
+  {
+    slug: "howick",
+    name: "Howick",
+    province: "KwaZulu-Natal",
+  },
+  {
+    slug: "kimberley",
+    name: "Kimberley",
+    province: "Northern Cape",
+  },
+  {
+    slug: "rustenburg",
+    name: "Rustenburg",
+    province: "North West",
+  },
+  {
+    slug: "potchefstroom",
+    name: "Potchefstroom",
+    province: "North West",
+  },
+  {
+    slug: "welkom",
+    name: "Welkom",
+    province: "Free State",
+  },
+  {
+    slug: "franschhoek",
+    name: "Franschhoek",
+    province: "Western Cape",
+    blurb: "Wine-route hosts seeking house sitters, pet care, and childcare.",
+  },
+  {
+    slug: "plettenberg-bay",
+    name: "Plettenberg Bay",
+    province: "Western Cape",
+    blurb: "Garden Route holiday homes — house sitting and pet sitting peak in season.",
+  },
 ];
 
 export function cityFromSlug(slug: string) {

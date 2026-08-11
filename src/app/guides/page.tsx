@@ -15,15 +15,18 @@ import { SERVICE_LIST } from "@/lib/services";
 export const revalidate = 86400;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Guides: au pairs, childcare, caregiving & sitting",
+  title: "Guides: au pairs, tutors, house swap & pet sitting",
   description:
-    "Practical guides for hosts and sitters — find an au pair in South Africa, babysitter vs nanny, elderly care, house sitting checklists, and city tips on AuPairly.",
+    "Practical guides for hosts and sitters — find an au pair in South Africa, hire a tutor, house swap, dog sitters, live-in vs live-out, video intros, and city tips on AuPairly.",
   path: "/guides",
   keywords: [
     "au pair guide",
     "childcare tips South Africa",
     "how to hire babysitter",
     "house sitting checklist",
+    "house swap guide",
+    "find tutor South Africa",
+    "dog sitter guide",
   ],
 });
 
@@ -50,8 +53,27 @@ export default function GuidesPage() {
       <PageHeader
         eyebrow="Learn · SEO hub"
         title="Guides for hosts & sitters"
-        description="Long-form advice for hiring and offering care — childcare, caregiving, house sitting, and pet sitting. Free to join AuPairly when you’re ready to match."
+        description="Long-form advice for hiring and offering care — childcare, tutoring, caregiving, house sitting, house swap, and pet sitting. Free to join AuPairly when you’re ready to match."
       />
+      <p className="mb-6 text-sm text-stone-500">
+        Also see{" "}
+        <Link href="/faq" className="font-semibold text-teal-700 hover:underline">
+          FAQ
+        </Link>
+        ,{" "}
+        <Link href="/cities" className="font-semibold text-teal-700 hover:underline">
+          cities
+        </Link>
+        , and service pages like{" "}
+        <Link href="/house-swap" className="font-semibold text-teal-700 hover:underline">
+          house swap
+        </Link>{" "}
+        and{" "}
+        <Link href="/tutoring" className="font-semibold text-teal-700 hover:underline">
+          tutoring
+        </Link>
+        .
+      </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {SEO_GUIDES.map((g) => (

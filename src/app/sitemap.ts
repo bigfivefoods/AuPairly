@@ -68,6 +68,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.85,
     },
+    {
+      url: absoluteUrl("/faq"),
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: absoluteUrl("/cities"),
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
     ...SEO_GUIDES.map((g) => ({
       url: absoluteUrl(`/guides/${g.slug}`),
       lastModified: now,
