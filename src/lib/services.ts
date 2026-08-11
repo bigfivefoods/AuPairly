@@ -1,10 +1,18 @@
 /**
  * AuPairly multi-service marketplace categories.
- * Childcare · Caregiving · House Sitting · Pet Sitting
+ * Childcare (au pair) · Tutoring · Caregiving · House Sitting · Pet / dog sitting
+ *
+ * Product “options” map as:
+ *  - Host family → role PARENT
+ *  - Au pair → role AUPAIR + CHILDCARE
+ *  - Tutor → role AUPAIR + TUTORING
+ *  - House sitter → role AUPAIR + HOUSE_SITTING
+ *  - Dog sitter → role AUPAIR + PET_SITTING
  */
 
 export const SERVICE_IDS = [
   "CHILDCARE",
+  "TUTORING",
   "CAREGIVING",
   "HOUSE_SITTING",
   "PET_SITTING",
@@ -27,20 +35,59 @@ export type ServiceDef = {
   examples: string[];
   seoTitle: string;
   seoDescription: string;
-  icon: "baby" | "heart" | "home" | "paw";
+  icon: "baby" | "book" | "heart" | "home" | "paw";
   color: string;
   bg: string;
   activeTab: string;
 };
 
+/** Marketing / onboarding option labels (user-facing roles) */
+export const PRODUCT_OPTIONS = [
+  {
+    id: "HOST_FAMILY",
+    label: "Host family",
+    role: "PARENT" as const,
+    services: [] as ServiceId[],
+    description: "I need an au pair, tutor, or sitter at home",
+  },
+  {
+    id: "AUPAIR",
+    label: "Au pair",
+    role: "AUPAIR" as const,
+    services: ["CHILDCARE"] as ServiceId[],
+    description: "I offer childcare / live-in or live-out care",
+  },
+  {
+    id: "TUTOR",
+    label: "Tutor",
+    role: "AUPAIR" as const,
+    services: ["TUTORING"] as ServiceId[],
+    description: "I offer tutoring and academic support",
+  },
+  {
+    id: "HOUSE_SITTER",
+    label: "House sitter",
+    role: "AUPAIR" as const,
+    services: ["HOUSE_SITTING"] as ServiceId[],
+    description: "I look after homes while hosts are away",
+  },
+  {
+    id: "DOG_SITTER",
+    label: "Dog sitter",
+    role: "AUPAIR" as const,
+    services: ["PET_SITTING"] as ServiceId[],
+    description: "I offer dog sitting, walking, and pet care",
+  },
+] as const;
+
 export const SERVICES: Record<ServiceId, ServiceDef> = {
   CHILDCARE: {
     id: "CHILDCARE",
     name: "Childcare",
-    shortName: "Childcare",
+    shortName: "Au pair / childcare",
     slug: "childcare",
-    providerLabel: "I offer childcare",
-    hostLabel: "I need childcare",
+    providerLabel: "I offer childcare / au pair",
+    hostLabel: "I need an au pair / childcare",
     tagline: "Au pairs, babysitting & kids’ care",
     description:
       "Trusted care for children — au pairs, babysitting, after-school, special needs, overnight, and more.",
@@ -59,6 +106,32 @@ export const SERVICES: Record<ServiceId, ServiceDef> = {
     color: "text-teal-800",
     bg: "bg-teal-50 border-teal-200",
     activeTab: "bg-teal-600 text-white border-teal-600",
+  },
+  TUTORING: {
+    id: "TUTORING",
+    name: "Tutoring",
+    shortName: "Tutor",
+    slug: "tutoring",
+    providerLabel: "I offer tutoring",
+    hostLabel: "I need a tutor",
+    tagline: "Academic support & homework help",
+    description:
+      "Subject tutoring, homework help, exam prep, languages, and special-needs learning support — at home or online.",
+    examples: [
+      "Maths & science",
+      "Languages",
+      "Exam prep",
+      "Homework help",
+      "Reading support",
+      "Online tutoring",
+    ],
+    seoTitle: "Tutors & Academic Support",
+    seoDescription:
+      "Find verified tutors on AuPairly.me — homework help, exam prep, languages, and subject tutoring for host families.",
+    icon: "book",
+    color: "text-indigo-900",
+    bg: "bg-indigo-50 border-indigo-200",
+    activeTab: "bg-indigo-600 text-white border-indigo-600",
   },
   CAREGIVING: {
     id: "CAREGIVING",
@@ -112,11 +185,11 @@ export const SERVICES: Record<ServiceId, ServiceDef> = {
   },
   PET_SITTING: {
     id: "PET_SITTING",
-    name: "Pet Sitting",
-    shortName: "Pet sitting",
+    name: "Pet / dog sitting",
+    shortName: "Dog / pet sitter",
     slug: "pet-sitting",
-    providerLabel: "I offer pet sitting",
-    hostLabel: "I need a pet sitter",
+    providerLabel: "I offer dog & pet sitting",
+    hostLabel: "I need a dog / pet sitter",
     tagline: "Dogs, cats & pets in safe hands",
     description:
       "Dog sitting and walking, cat sitting, overnight pet care, multi-pet homes, and drop-in visits.",
@@ -128,9 +201,9 @@ export const SERVICES: Record<ServiceId, ServiceDef> = {
       "Multi-pet",
       "Drop-in visits",
     ],
-    seoTitle: "Pet Sitting",
+    seoTitle: "Dog & Pet Sitting",
     seoDescription:
-      "Find verified pet sitters on AuPairly.me — dog walking, cat sitting, overnight care, multi-pet, and drop-ins.",
+      "Find verified dog and pet sitters on AuPairly.me — dog walking, cat sitting, overnight care, multi-pet, and drop-ins.",
     icon: "paw",
     color: "text-orange-900",
     bg: "bg-orange-50 border-orange-200",
@@ -197,24 +270,24 @@ export function formatServicesLine(ids: ServiceId[]): string {
 export function roleCopy(role: "AUPAIR" | "PARENT" | string) {
   if (role === "PARENT") {
     return {
-      short: "Host",
-      full: "Host / family",
+      short: "Host family",
+      full: "Host family",
       browseOther: "Find sitters",
       browseOtherHref: "/browse/aupairs",
-      editTitle: "Edit host listing",
+      editTitle: "Edit host family listing",
       editDesc:
-        "What you need: childcare, caregiving, house sitting, pet sitting — or a mix.",
+        "What you need: au pair / childcare, tutor, house sitter, dog sitter — or a mix.",
     };
   }
   if (role === "AUPAIR") {
     return {
       short: "Sitter",
-      full: "Sitter / provider",
-      browseOther: "Find hosts",
+      full: "Au pair / sitter / tutor",
+      browseOther: "Find host families",
       browseOtherHref: "/browse/families",
-      editTitle: "Edit sitter profile",
+      editTitle: "Edit your profile",
       editDesc:
-        "Services you offer: childcare, caregiving, house sitting, pet sitting — or a mix.",
+        "Services you offer: au pair, tutor, house sitting, dog sitting — or a mix.",
     };
   }
   return {
@@ -226,6 +299,9 @@ export function roleCopy(role: "AUPAIR" | "PARENT" | string) {
     editDesc: "",
   };
 }
+
+/** Minimum intro video length for job applications (seconds) */
+export const MIN_VIDEO_INTRO_SECONDS = 60;
 
 export const PET_TYPE_OPTIONS = [
   "Dogs",

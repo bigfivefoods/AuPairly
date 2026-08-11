@@ -195,8 +195,9 @@ export async function POST(req: Request) {
         privateNote: body.privateNote?.trim() || null,
         context,
         placementId: body.placementId || placement?.id || null,
-        // Not published until mutual or timer
+        // Owner-moderated before public release
         publishedAt: null,
+        moderationStatus: "PENDING",
       },
       update: {
         rating: body.rating,
@@ -208,13 +209,18 @@ export async function POST(req: Request) {
         privateNote: body.privateNote?.trim() || null,
         context,
         placementId: body.placementId || placement?.id || null,
+        // Re-edit sends back to moderation
+        publishedAt: null,
+        moderationStatus: "PENDING",
+        moderatedAt: null,
       },
       include: {
         author: { select: { id: true, name: true, image: true, role: true } },
       },
     });
 
-    const mutual = await syncMutualPublish(session.user.id, body.targetId);
+    // No auto-publish — app owner reviews first
+    await syncMutualPublish(session.user.id, body.targetId);
     const refreshed = await prisma.review.findUnique({
       where: { id: review.id },
       include: {
@@ -222,31 +228,20 @@ export async function POST(req: Request) {
       },
     });
 
-    await recomputeUserRating(body.targetId);
-    // If mutual publish, recompute author rating too (they received one)
-    if (mutual.mutual) {
-      await recomputeUserRating(session.user.id);
-    }
-
     await createNotification({
       userId: body.targetId,
       type: "REVIEW",
-      title: mutual.published
-        ? "New public review"
-        : "Someone left you a review",
-      body: mutual.published
-        ? `${session.user.name?.split(" ")[0] || "A member"} rated you ${body.rating}/5.`
-        : "Leave your review so both become public — like Airbnb.",
+      title: "Someone left you a review",
+      body: "A star rating and written review was submitted. AuPairly reviews it before it goes public.",
       href: "/reviews",
     }).catch(() => null);
 
     return NextResponse.json(
       {
         review: serializeReview(refreshed!, session.user.id),
-        mutual,
-        message: mutual.published
-          ? "Review published."
-          : "Review saved. It becomes public when they review you, or after 14 days.",
+        mutual: { published: false, mutual: false, moderated: true },
+        message:
+          "Review saved. AuPairly reviews star ratings and written feedback before releasing them publicly.",
       },
       { status: 201 }
     );
@@ -275,6 +270,7 @@ function serializeReview(
     response?: string | null;
     respondedAt?: Date | null;
     publishedAt?: Date | null;
+    moderationStatus?: string | null;
     createdAt: Date;
     context?: string;
     authorId: string;
@@ -286,8 +282,9 @@ function serializeReview(
   const public_ = isReviewPublic(r);
   const isAuthor = viewerId === r.authorId;
   const isTarget = viewerId === r.targetId;
+  const status = r.moderationStatus || "PENDING";
 
-  // Double-blind: hide content from target until public (author can always see own)
+  // Hide content from target until owner-approved public release
   const revealContent = public_ || isAuthor;
 
   return {
@@ -303,13 +300,20 @@ function serializeReview(
     response: public_ || isTarget || isAuthor ? r.response : null,
     respondedAt: r.respondedAt?.toISOString() ?? null,
     publishedAt: r.publishedAt?.toISOString() ?? null,
+    moderationStatus: status,
     createdAt: r.createdAt.toISOString(),
     context: r.context,
     isPublic: public_,
     isAuthor,
     isTarget,
     author: r.author,
-    // Hint for UI when hidden
-    hiddenReason: !revealContent && isTarget ? "AWAITING_MUTUAL" : null,
+    hiddenReason:
+      !revealContent && isTarget
+        ? status === "REJECTED"
+          ? "REJECTED"
+          : "AWAITING_MODERATION"
+        : !public_ && isAuthor
+          ? "AWAITING_MODERATION"
+          : null,
   };
 }

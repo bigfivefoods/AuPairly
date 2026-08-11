@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Baby,
   BadgeCheck,
+  BookOpen,
   HeartHandshake,
   Home,
   PawPrint,
@@ -16,6 +17,7 @@ import { profileIdsForService } from "@/lib/service-tags";
 
 const ICONS = {
   baby: Baby,
+  book: BookOpen,
   heart: HeartHandshake,
   home: Home,
   paw: PawPrint,

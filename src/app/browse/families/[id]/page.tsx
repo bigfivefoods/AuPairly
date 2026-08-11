@@ -249,6 +249,24 @@ export default async function FamilyDetailPage({
             </Card>
           )}
 
+          {(profile as { jobEntails?: string | null }).jobEntails && (
+            <Card>
+              <h2 className="font-display text-xl font-semibold">What the job entails</h2>
+              <p className="mt-3 whitespace-pre-wrap leading-relaxed text-stone-600">
+                {(profile as { jobEntails: string }).jobEntails}
+              </p>
+            </Card>
+          )}
+
+          {(profile as { benefits?: string | null }).benefits && (
+            <Card>
+              <h2 className="font-display text-xl font-semibold">Pay &amp; benefits</h2>
+              <p className="mt-3 whitespace-pre-wrap leading-relaxed text-stone-600">
+                {(profile as { benefits: string }).benefits}
+              </p>
+            </Card>
+          )}
+
           <Card>
             <h2 className="font-display text-xl font-semibold">Recurring schedule</h2>
             <p className="mt-1 text-sm text-stone-500">
@@ -387,6 +405,15 @@ export default async function FamilyDetailPage({
                   value={format(new Date(profile.startDate), "MMM d, yyyy")}
                 />
               )}
+              {(profile as { endDate?: Date | null }).endDate && (
+                <Row
+                  label="End date"
+                  value={format(
+                    new Date((profile as { endDate: Date }).endDate),
+                    "MMM d, yyyy"
+                  )}
+                />
+              )}
               {profile.durationMonths && (
                 <Row label="Duration" value={`${profile.durationMonths} months`} />
               )}
@@ -394,7 +421,23 @@ export default async function FamilyDetailPage({
                 <Row icon={<Clock className="h-4 w-4" />} label="Hours / week" value={`${profile.weeklyHours}h`} />
               )}
               {profile.pocketMoney != null && (
-                <Row label="Pocket money" value={`R${profile.pocketMoney}/wk`} />
+                <Row label="Pay / pocket money" value={`R${profile.pocketMoney}/wk`} />
+              )}
+              {(profile as { visaSupport?: string | null }).visaSupport && (
+                <Row
+                  label="Visa / passport"
+                  value={
+                    (
+                      {
+                        NONE: "No visa support",
+                        HELP: "Help with paperwork",
+                        SPONSOR: "Can sponsor / support visa",
+                        CITIZEN_ONLY: "Citizens / work rights required",
+                      } as Record<string, string>
+                    )[(profile as { visaSupport: string }).visaSupport] ||
+                    (profile as { visaSupport: string }).visaSupport
+                  }
+                />
               )}
               <Row label="Arrangement" value={profile.liveIn ? "Live-in" : "Live-out"} />
               <Row

@@ -45,6 +45,8 @@ export async function POST(req: Request) {
       url,
       label,
       expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+      // Vault: only member + app owners can open file URLs
+      ownerOnly: true,
     },
   });
   return NextResponse.json({ document: doc });

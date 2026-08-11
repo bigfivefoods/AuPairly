@@ -63,17 +63,47 @@ export async function POST(req: Request) {
   });
   if (!me) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+  // Job applications require a min 1-minute intro video (host families applying sitters)
+  const { MIN_VIDEO_INTRO_SECONDS } = await import("@/lib/services");
+  const applyingAsSitter = me.role === "AUPAIR";
+  if (applyingAsSitter) {
+    const hasVideo = Boolean(me.videoIntroUrl?.trim());
+    const longEnough =
+      Boolean(me.videoIntroConfirmed) ||
+      (typeof me.videoIntroSeconds === "number" &&
+        me.videoIntroSeconds >= MIN_VIDEO_INTRO_SECONDS);
+    if (!hasVideo || !longEnough) {
+      return NextResponse.json(
+        {
+          error: `Add a video intro of at least 1 minute (yourself introducing and experience) before applying. Go to Trust → Video intro.`,
+          videoRequired: true,
+          minSeconds: MIN_VIDEO_INTRO_SECONDS,
+          upgradeUrl: "/trust",
+        },
+        { status: 400 }
+      );
+    }
+  }
+
   const profile = me.aupairProfile || me.familyProfile;
+  // Never attach document file URLs — vault is owner/app-owner only
   const packet = {
     headline: profile?.headline,
     bio: profile?.bio?.slice(0, 500),
     city: profile?.city,
     country: profile?.country,
     videoUrl: me.videoIntroUrl,
+    videoIntroSeconds: me.videoIntroSeconds,
+    cvUrl: me.cvUrl,
     safetyScore: me.safetyScore,
     placementVerified: me.placementVerified,
     verifiedTypes: me.verifications.map((v) => v.type),
-    documents: me.documents.map((d) => ({ type: d.type, label: d.label, expiresAt: d.expiresAt })),
+    documents: me.documents.map((d) => ({
+      type: d.type,
+      label: d.label,
+      expiresAt: d.expiresAt,
+      // url intentionally omitted — secure vault
+    })),
     references: me.referencesAbout,
     experienceYears: me.aupairProfile?.experienceYears,
     certificates: me.aupairProfile ? safeJson(me.aupairProfile.certificates) : [],

@@ -35,6 +35,11 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         label: "Hosts",
         match: ["/browse/families"],
       },
+      {
+        href: "/map",
+        label: "Map & regions",
+        match: ["/map"],
+      },
       { href: "/messages", label: "Messages", match: ["/messages"] },
       {
         href: "/interests",

@@ -9,13 +9,14 @@ import { createNotification } from "@/lib/notifications";
 
 const serviceEnum = z.enum([
   "CHILDCARE",
+  "TUTORING",
   "CAREGIVING",
   "HOUSE_SITTING",
   "PET_SITTING",
 ]);
 
 const schema = z.object({
-  services: z.array(serviceEnum).min(1).max(4),
+  services: z.array(serviceEnum).min(1).max(5),
   city: z.string().min(1).max(80),
   country: z.string().min(2).max(80),
   region: z.string().max(80).optional().nullable(),
@@ -161,12 +162,14 @@ function defaultSitterHeadline(name: string, services: string[]) {
   const labels = services
     .map((s) =>
       s === "CHILDCARE"
-        ? "childcare"
-        : s === "CAREGIVING"
-          ? "caregiving"
-          : s === "HOUSE_SITTING"
-            ? "house sitting"
-            : "pet sitting"
+        ? "au pair / childcare"
+        : s === "TUTORING"
+          ? "tutoring"
+          : s === "CAREGIVING"
+            ? "caregiving"
+            : s === "HOUSE_SITTING"
+              ? "house sitting"
+              : "dog / pet sitting"
     )
     .join(" · ");
   return `${first} — ${labels}`;
@@ -176,12 +179,14 @@ function defaultHostHeadline(services: string[]) {
   const labels = services
     .map((s) =>
       s === "CHILDCARE"
-        ? "childcare"
-        : s === "CAREGIVING"
-          ? "a caregiver"
-          : s === "HOUSE_SITTING"
-            ? "a house sitter"
-            : "a pet sitter"
+        ? "an au pair"
+        : s === "TUTORING"
+          ? "a tutor"
+          : s === "CAREGIVING"
+            ? "a caregiver"
+            : s === "HOUSE_SITTING"
+              ? "a house sitter"
+              : "a dog / pet sitter"
     )
     .join(" / ");
   return `Looking for ${labels}`;

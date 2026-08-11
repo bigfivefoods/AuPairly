@@ -5,22 +5,25 @@
 
 export type ServiceLabelId =
   | "CHILDCARE"
+  | "TUTORING"
   | "CAREGIVING"
   | "HOUSE_SITTING"
   | "PET_SITTING";
 
 export type ServiceLabelDict = {
   service_childcare: string;
+  service_tutoring: string;
   service_caregiving: string;
   service_house_sitting: string;
   service_pet_sitting: string;
 };
 
 const FALLBACK: Record<ServiceLabelId, string> = {
-  CHILDCARE: "Childcare",
+  CHILDCARE: "Au pair / childcare",
+  TUTORING: "Tutor",
   CAREGIVING: "Caregiving",
   HOUSE_SITTING: "House sitting",
-  PET_SITTING: "Pet sitting",
+  PET_SITTING: "Dog / pet sitter",
 };
 
 export function serviceLabel(
@@ -33,6 +36,8 @@ export function serviceLabel(
   switch (key) {
     case "CHILDCARE":
       return dict.service_childcare || FALLBACK.CHILDCARE;
+    case "TUTORING":
+      return dict.service_tutoring || FALLBACK.TUTORING;
     case "CAREGIVING":
       return dict.service_caregiving || FALLBACK.CAREGIVING;
     case "HOUSE_SITTING":

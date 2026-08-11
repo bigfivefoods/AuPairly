@@ -6,6 +6,7 @@ import { canAccessManagement } from "@/lib/management";
 import { PageHeader } from "@/components/ui";
 import { AdminVerificationQueue } from "@/components/admin-verification-queue";
 import { AdminUnsuspendButton } from "@/components/admin-unsuspend-button";
+import { AdminReviewQueue } from "@/components/admin-review-queue";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin" };
@@ -19,7 +20,8 @@ export default async function AdminPage() {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const [pending, reports, stats, today, suspended] = await Promise.all([
+  const [pending, reports, stats, today, suspended, pendingReviews, vaultDocs] =
+    await Promise.all([
     prisma.verification.findMany({
       where: { status: "PENDING" },
       include: {
@@ -41,13 +43,15 @@ export default async function AdminPage() {
       prisma.verification.count({ where: { status: "PENDING" } }),
       prisma.report.count({ where: { status: "OPEN" } }),
       prisma.conversation.count(),
-    ]).then(([users, sitters, hosts, pendingV, openR, chats]) => ({
+      prisma.review.count({ where: { moderationStatus: "PENDING" } }),
+    ]).then(([users, sitters, hosts, pendingV, openR, chats, pendingRev]) => ({
       users,
       sitters,
       hosts,
       pendingV,
       openR,
       chats,
+      pendingRev,
     })),
     Promise.all([
       prisma.user.count({ where: { createdAt: { gte: startOfDay } } }),
@@ -83,6 +87,26 @@ export default async function AdminPage() {
       orderBy: { suspendedAt: "desc" },
       take: 20,
     }),
+    prisma.review.findMany({
+      where: { moderationStatus: "PENDING" },
+      include: {
+        author: {
+          select: { id: true, name: true, email: true, role: true, image: true },
+        },
+        target: {
+          select: { id: true, name: true, email: true, role: true, image: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+      take: 50,
+    }),
+    prisma.secureDocument.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      include: {
+        user: { select: { id: true, name: true, email: true, role: true } },
+      },
+    }),
   ]);
 
   const autoVerify = process.env.AUTO_VERIFY === "true";
@@ -101,12 +125,13 @@ export default async function AdminPage() {
         </Link>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         {[
           { label: "Users", value: stats.users },
           { label: "Active sitters", value: stats.sitters },
           { label: "Active hosts", value: stats.hosts },
           { label: "Pending verify", value: stats.pendingV },
+          { label: "Reviews queue", value: stats.pendingRev },
           { label: "Open reports", value: stats.openR },
           { label: "Chats", value: stats.chats },
         ].map((s) => (
@@ -151,6 +176,27 @@ export default async function AdminPage() {
         </div>
       )}
 
+      <section className="mb-10">
+        <h2 className="mb-1 font-display text-xl font-semibold">
+          Review moderation
+        </h2>
+        <p className="mb-4 text-sm text-stone-500">
+          Star ratings and written feedback are only visible to you until you release them.
+        </p>
+        <AdminReviewQueue
+          initial={pendingReviews.map((r) => ({
+            id: r.id,
+            rating: r.rating,
+            comment: r.comment,
+            privateNote: r.privateNote,
+            context: r.context,
+            createdAt: r.createdAt.toISOString(),
+            author: r.author,
+            target: r.target,
+          }))}
+        />
+      </section>
+
       <AdminVerificationQueue
         initialPending={pending.map((p) => ({
           id: p.id,
@@ -171,6 +217,45 @@ export default async function AdminPage() {
           createdAt: r.createdAt.toISOString(),
         }))}
       />
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-semibold">
+          Secure documents (owner only)
+        </h2>
+        <p className="mt-1 text-sm text-stone-500">
+          First aid, passport, CV, and other vault files — never shown on public profiles.
+        </p>
+        {vaultDocs.length === 0 ? (
+          <p className="mt-3 text-sm text-stone-400">No vault uploads yet.</p>
+        ) : (
+          <ul className="mt-4 space-y-2">
+            {vaultDocs.map((d) => (
+              <li
+                key={d.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm"
+              >
+                <div>
+                  <p className="font-semibold text-stone-900">
+                    {d.type}
+                    {d.label ? ` · ${d.label}` : ""}
+                  </p>
+                  <p className="text-xs text-stone-500">
+                    {d.user.name} · {d.user.email} · {d.user.role}
+                  </p>
+                </div>
+                <a
+                  href={d.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-teal-700 hover:underline"
+                >
+                  Open file
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-semibold">Suspended accounts</h2>
