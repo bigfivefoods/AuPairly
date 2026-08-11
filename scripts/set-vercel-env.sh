@@ -33,7 +33,7 @@ set +a
 export AUTH_URL="${AUTH_URL_PROD:-https://www.aupairly.me}"
 export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL_PROD:-https://www.aupairly.me}"
 export NEXT_PUBLIC_SITE_NAME="${NEXT_PUBLIC_SITE_NAME:-AuPairly}"
-export AUTO_VERIFY="${AUTO_VERIFY:-true}"
+export AUTO_VERIFY="${AUTO_VERIFY:-false}"
 
 # Strong auth secret if still the local default
 if [[ -z "${AUTH_SECRET:-}" || "$AUTH_SECRET" == *"change-me"* || "$AUTH_SECRET" == *"dev-secret"* ]]; then

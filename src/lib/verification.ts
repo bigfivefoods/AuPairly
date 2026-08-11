@@ -29,6 +29,8 @@ export async function refreshUserVerifiedBadge(userId: string) {
 }
 
 export function autoVerifyEnabled() {
-  // Default ON for local demos; set AUTO_VERIFY=false in production to use admin queue
-  return process.env.AUTO_VERIFY !== "false";
+  // Hard off on Vercel production — never auto-approve trust badges in prod.
+  if (process.env.VERCEL_ENV === "production") return false;
+  // Preview/local: only when explicitly AUTO_VERIFY=true
+  return process.env.AUTO_VERIFY === "true";
 }

@@ -310,7 +310,7 @@ export default async function ManagePage() {
       resend: Boolean(process.env.RESEND_API_KEY),
       cron: Boolean(process.env.CRON_SECRET?.trim() && process.env.CRON_SECRET.trim().length >= 16),
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || null,
-      autoVerify: process.env.AUTO_VERIFY === "true",
+      autoVerify: (await import("@/lib/verification")).autoVerifyEnabled(),
       webhookUrl: `${(process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me").replace(/\/$/, "")}/api/billing/webhook`,
     }),
   ]);
