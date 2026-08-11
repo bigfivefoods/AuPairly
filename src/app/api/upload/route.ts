@@ -55,7 +55,9 @@ export async function POST(req: Request) {
           ? "document"
           : kind === "gallery"
             ? "gallery"
-            : "avatar";
+            : kind === "video"
+              ? "video"
+              : "avatar";
 
     const result = await saveImageUpload(file, session.user.id, uploadKind);
 

@@ -13,6 +13,8 @@ import { profileIdsForService } from "@/lib/service-tags";
 import { buildPageMetadata } from "@/lib/seo";
 import { SaveSearchButton } from "@/components/save-search-button";
 import { auth } from "@/lib/auth";
+import { getCityDensity } from "@/lib/city-density";
+import { CityDensityBanner } from "@/components/city-density-banner";
 
 export const revalidate = 60;
 
@@ -73,6 +75,7 @@ export default async function BrowseAupairsPage({
     >
   > = [];
   let dbOk = true;
+  const density = await getCityDensity(city || q || null).catch(() => null);
 
   try {
     const taggedIds = service
@@ -295,13 +298,22 @@ export default async function BrowseAupairsPage({
         </div>
       )}
 
+      {density && (density.thin || aupairs.length === 0) && (
+        <CityDensityBanner density={density} side="sitters" />
+      )}
+
       {aupairs.length === 0 ? (
         <EmptyState
           icon={<Users className="h-7 w-7" />}
-          title="No sitters found yet"
+          title={
+            density?.city
+              ? `No sitters in ${density.city} yet`
+              : "No sitters found yet"
+          }
           description={
             dbOk
-              ? "Be an early member — list yourself free, or invite a sitter. Clear filters to widen the search."
+              ? density?.emptyHint ||
+                "Be an early member — list yourself free, or invite a sitter. Clear filters to widen the search."
               : "Database is temporarily unavailable — page still works, listings will appear once configured."
           }
           action={
@@ -309,8 +321,8 @@ export default async function BrowseAupairsPage({
               <Link href="/register?role=AUPAIR" className="btn-primary">
                 List as a sitter
               </Link>
-              <Link href="/register?role=PARENT" className="btn-secondary">
-                I need care
+              <Link href="/invite" className="btn-secondary">
+                Invite people nearby
               </Link>
               <Link href="/browse/aupairs" className="btn-secondary">
                 Clear filters

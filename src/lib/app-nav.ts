@@ -42,6 +42,11 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         label: "Map & regions",
         match: ["/map"],
       },
+      {
+        href: "/invite",
+        label: "Invite",
+        match: ["/invite"],
+      },
       { href: "/messages", label: "Messages", match: ["/messages"] },
       {
         href: "/interests",

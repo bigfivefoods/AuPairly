@@ -10,6 +10,7 @@ import {
   serviceJsonLd,
 } from "@/lib/seo";
 import { Card } from "@/components/ui";
+import { HouseSwapMatches } from "@/components/house-swap-matches";
 
 export const dynamic = "force-dynamic";
 
@@ -87,8 +88,19 @@ export default function HouseSwapPage() {
 
       <ServiceLanding serviceId="HOUSE_SWAP" />
 
-      <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <Card className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8 space-y-8">
+        <section>
+          <h2 className="mb-4 font-display text-xl font-semibold text-violet-950">
+            Your swap matches
+          </h2>
+          <p className="mb-4 text-sm text-stone-500">
+            We score date windows, destinations you want, and simultaneous preference. Log in as a
+            host with House swap enabled.
+          </p>
+          <HouseSwapMatches />
+        </section>
+
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <Home className="mt-0.5 h-5 w-5 shrink-0 text-violet-700" />
             <div>

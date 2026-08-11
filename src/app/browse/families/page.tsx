@@ -13,6 +13,8 @@ import { profileIdsForService } from "@/lib/service-tags";
 import { buildPageMetadata } from "@/lib/seo";
 import { SaveSearchButton } from "@/components/save-search-button";
 import { auth } from "@/lib/auth";
+import { getCityDensity } from "@/lib/city-density";
+import { CityDensityBanner } from "@/components/city-density-banner";
 
 export const revalidate = 60;
 
@@ -67,6 +69,7 @@ export default async function BrowseFamiliesPage({
     >
   > = [];
   let dbOk = true;
+  const density = await getCityDensity(city || q || null).catch(() => null);
 
   try {
     const taggedIds = service
@@ -242,13 +245,22 @@ export default async function BrowseFamiliesPage({
         </div>
       )}
 
+      {density && (density.thin || families.length === 0) && (
+        <CityDensityBanner density={density} side="hosts" />
+      )}
+
       {families.length === 0 ? (
         <EmptyState
           icon={<Home className="h-7 w-7" />}
-          title="No hosts found yet"
+          title={
+            density?.city
+              ? `No hosts in ${density.city} yet`
+              : "No hosts found yet"
+          }
           description={
             dbOk
-              ? "Be first in this area — post a free host listing, or invite a family. Widen filters to see more."
+              ? density?.emptyHint ||
+                "Be first in this area — post a free host listing, or invite a family. Widen filters to see more."
               : "Database is temporarily unavailable — page still works, listings will appear once configured."
           }
           action={
@@ -256,8 +268,8 @@ export default async function BrowseFamiliesPage({
               <Link href="/register?role=PARENT" className="btn-primary">
                 List as a host
               </Link>
-              <Link href="/register?role=AUPAIR" className="btn-secondary">
-                I offer care
+              <Link href="/invite" className="btn-secondary">
+                Invite people nearby
               </Link>
               <Link href="/browse/families" className="btn-secondary">
                 Clear filters
