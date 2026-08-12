@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Download, Printer, ArrowLeft, FileText } from "lucide-react";
 import type { AnalyticsResult } from "@/lib/ops-analytics-types";
 import { BRAND } from "@/lib/brand";
@@ -208,17 +209,21 @@ export function ManageReportA4({
       >
         {/* Header */}
         <header className="mb-2 flex shrink-0 items-start justify-between border-b border-teal-700/30 pb-1.5">
-          <div>
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-md bg-teal-700 text-[10px] font-bold text-white"
-                aria-hidden
-              >
-                AP
-              </div>
-              <div>
-                <h1 className="text-[15px] font-bold leading-tight tracking-tight text-stone-900">
-                  {BRAND.name} — Management report
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5">
+              {/* Official brand mark — prints with colour */}
+              <Image
+                src="/logo-nav.png"
+                alt="AuPairly"
+                width={200}
+                height={79}
+                priority
+                className="h-8 w-auto object-contain object-left sm:h-9"
+                style={{ printColorAdjust: "exact", WebkitPrintColorAdjust: "exact" }}
+              />
+              <div className="min-w-0 border-l border-stone-200 pl-2.5">
+                <h1 className="text-[14px] font-bold leading-tight tracking-tight text-stone-900 sm:text-[15px]">
+                  Management report
                 </h1>
                 <p className="text-[9px] text-stone-500">
                   Confidential ops snapshot · {fromLabel} – {toLabel} ({days} days)
@@ -226,12 +231,12 @@ export function ManageReportA4({
               </div>
             </div>
           </div>
-          <div className="text-right text-[9px] text-stone-500">
+          <div className="shrink-0 text-right text-[9px] text-stone-500">
             <p>
               Prepared for ops · <span className="font-medium text-stone-700">{preparedBy}</span>
             </p>
             <p>Generated {genLabel}</p>
-            <p className="text-teal-800">www.aupairly.me</p>
+            <p className="font-medium text-teal-800">{BRAND.domain}</p>
           </div>
         </header>
 
