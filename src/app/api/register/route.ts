@@ -160,17 +160,19 @@ export async function POST(req: Request) {
       role: user.role,
     }).catch((e) => console.error("[email] welcome", e));
 
-    // Instant owner alerts for every new signup
+    // Instant management alerts (Craig, Rylee, + MANAGEMENT_EMAILS)
     try {
       const { getManagementEmails } = await import("@/lib/management");
       const { sendOwnerSignupAlertEmail } = await import("@/lib/email");
-      for (const toEmail of getManagementEmails()) {
+      const recipients = getManagementEmails();
+      console.log("[register] management signup alerts →", recipients.join(", "));
+      for (const toEmail of recipients) {
         void sendOwnerSignupAlertEmail({
           toEmail,
           memberName: user.name,
           memberEmail: user.email,
           role: user.role,
-        }).catch((e) => console.error("[email] owner signup", e));
+        }).catch((e) => console.error("[email] owner signup", toEmail, e));
       }
     } catch (e) {
       console.error("[register] owner signup alerts", e);

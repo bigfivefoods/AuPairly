@@ -51,5 +51,16 @@ export async function POST(req: Request) {
       body: text,
     },
   });
+
+  void import("@/lib/notify-management").then(({ notifyManagement }) =>
+    notifyManagement({
+      subject: `Support: ${ticket.subject}`,
+      title: "New support ticket",
+      body: `From: ${session.user!.name} (${session.user!.email})\nCategory: ${category}\nSubject: ${ticket.subject}\n\n${text.slice(0, 800)}`,
+      href: "/manage",
+      ctaLabel: "Open management",
+    })
+  );
+
   return NextResponse.json({ ticket });
 }

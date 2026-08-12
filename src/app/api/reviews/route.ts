@@ -236,6 +236,16 @@ export async function POST(req: Request) {
       href: "/reviews",
     }).catch(() => null);
 
+    void import("@/lib/notify-management").then(({ notifyManagement }) =>
+      notifyManagement({
+        subject: `Review to moderate: ${body.rating}★`,
+        title: "New review awaiting release",
+        body: `${session.user!.name} rated someone ${body.rating}/5.\n${body.comment?.trim() ? `Comment: ${body.comment.trim().slice(0, 400)}` : "No written comment."}`,
+        href: "/admin",
+        ctaLabel: "Moderate reviews",
+      })
+    );
+
     return NextResponse.json(
       {
         review: serializeReview(refreshed!, session.user.id),

@@ -4,12 +4,20 @@
  * (even if still PARENT/AUPAIR in the DB).
  */
 
+/**
+ * Hard-coded ops team (always included).
+ * Rylee Kendall (sitter) also receives management console access + ops emails:
+ * signups, daily digest, verifications, reviews, reports, support, payments.
+ */
+const HARDCODED_MANAGEMENT_EMAILS = [
+  "craig@bigfivegroup.africa",
+  "ryleerkendall@icloud.com",
+] as const;
+
 const OWNER_EMAILS = new Set(
   [
-    "craig@bigfivegroup.africa",
-    // Team / ops — keep sitter/host role; management via email allowlist
-    "ryleerkendall@icloud.com",
-    // Optional override: comma-separated MANAGEMENT_EMAILS=a@x.com,b@y.com
+    ...HARDCODED_MANAGEMENT_EMAILS,
+    // Optional extra recipients: MANAGEMENT_EMAILS=a@x.com,b@y.com on Vercel
     ...(process.env.MANAGEMENT_EMAILS || "")
       .split(",")
       .map((s) => s.trim().toLowerCase())

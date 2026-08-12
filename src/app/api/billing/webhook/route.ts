@@ -142,6 +142,15 @@ async function handleChargeSuccess(data: any) {
             currency: String(data.currency || "ZAR"),
             reference: ref,
           });
+          const amount = Number(data.amount || 0) / 100;
+          const { notifyManagement } = await import("@/lib/notify-management");
+          await notifyManagement({
+            subject: `Payment: ${plan.name} · R${amount}`,
+            title: "Membership payment received",
+            body: `${u.name} (${u.email}) paid for ${plan.name} (${period}, ${days} days).\nAmount: R${amount}\nRef: ${ref || "—"}`,
+            href: "/manage",
+            ctaLabel: "Open management",
+          });
         } catch (e) {
           console.error("[email] payment receipt", e);
         }
