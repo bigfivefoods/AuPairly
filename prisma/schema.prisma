@@ -104,6 +104,13 @@ model User {
   /// Median-ish response time in minutes (updated when replying to messages)
   avgResponseMinutes  Int?
   lastActiveAt        DateTime?
+  /// Last successful credentials login (management login monitoring)
+  lastLoginAt         DateTime?
+  /// Total successful logins (approx)
+  loginCount          Int      @default(0)
+  /// Last re-engagement email day-bucket sent (3 | 7 | 14 | 30)
+  lastReengageDay     Int?
+  lastReengageAt      DateTime?
   /// Partner / co-parent seat: linked secondary account
   householdOwnerId    String?
   householdOwner      User?    @relation("Household", fields: [householdOwnerId], references: [id])
@@ -134,6 +141,7 @@ model User {
   boostEvents         BoostEvent[]
   pushSubscriptions   PushSubscription[]
   paymentTransactions PaymentTransaction[]
+  loginSessions       LoginSession[]
 
   /// External identity / social
   facebookId          String?  @unique
@@ -161,11 +169,30 @@ model User {
 /// Last successful cron runs (ops health on /manage)
 model CronRun {
   id        String   @id @default(cuid())
-  job       String   @unique // alerts | activation | match-digest | expire-plans
+  job       String   @unique // alerts | activation | match-digest | expire-plans | reengage
   lastRunAt DateTime @default(now())
   ok        Boolean  @default(true)
   meta      String?  // optional JSON summary
   updatedAt DateTime @updatedAt
+}
+
+/// Login / session tracking for management monitoring
+model LoginSession {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt   DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  endedAt     DateTime?
+  /// Seconds active (lastSeenAt - startedAt), set on end or read live
+  durationSec Int?
+  userAgent   String?
+  ip          String?
+
+  @@index([userId, startedAt])
+  @@index([startedAt])
+  @@index([lastSeenAt])
+  @@index([endedAt])
 }
 
 /// Product funnel events (signup → publish → message → pay)

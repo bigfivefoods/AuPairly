@@ -9,6 +9,7 @@ import {
 } from "@/lib/ops-analytics";
 import { ManageReportA4 } from "@/components/manage-report-a4";
 import { buildPageMetadata } from "@/lib/seo";
+import { getLoginMonitoringStats } from "@/lib/login-sessions";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +48,17 @@ export default async function ManageReportPage({
 
   const data = await runOpsAnalytics(filters);
 
+  let login = null as Awaited<ReturnType<typeof getLoginMonitoringStats>> | null;
+  try {
+    login = await getLoginMonitoringStats({ recentLimit: 8 });
+  } catch {
+    /* schema lag */
+  }
+
   return (
     <ManageReportA4
       data={data}
+      login={login}
       preparedBy={user.email || user.name || "Management"}
       days={days}
     />

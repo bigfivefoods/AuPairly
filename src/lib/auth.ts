@@ -26,6 +26,10 @@ declare module "@auth/core/jwt" {
     role: Role;
     /** Profile photo URL from User.image */
     image?: string | null;
+    /** Active LoginSession id for duration tracking */
+    loginSessionId?: string | null;
+    /** Last heartbeat epoch ms */
+    lastBeat?: number;
   }
 }
 
@@ -61,13 +65,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        // Touch lastActiveAt for Discover “active recently” ranking
-        void prisma.user
-          .update({
-            where: { id: user.id },
-            data: { lastActiveAt: new Date() },
-          })
-          .catch(() => null);
+        // Login monitoring: open session + lastLoginAt / loginCount
+        try {
+          const { startLoginSession } = await import("@/lib/login-sessions");
+          const sessionId = await startLoginSession({ userId: user.id });
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            image: user.image,
+            // carried into jwt via user object fields we stash below
+            ...(sessionId ? { loginSessionId: sessionId } : {}),
+          } as {
+            id: string;
+            email: string;
+            name: string;
+            role: Role;
+            image: string | null;
+            loginSessionId?: string;
+          };
+        } catch {
+          void prisma.user
+            .update({
+              where: { id: user.id },
+              data: { lastActiveAt: new Date(), lastLoginAt: new Date() },
+            })
+            .catch(() => null);
+        }
 
         return {
           id: user.id,
@@ -79,6 +104,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  events: {
+    async signOut(message) {
+      try {
+        const { endLoginSession } = await import("@/lib/login-sessions");
+        const token =
+          message && typeof message === "object" && "token" in message
+            ? (message as { token?: { id?: string; loginSessionId?: string } })
+                .token
+            : undefined;
+        await endLoginSession({
+          userId: token?.id,
+          sessionId: token?.loginSessionId,
+        });
+      } catch (e) {
+        console.warn("[auth] signOut session end", e);
+      }
+    },
+  },
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user, trigger, session }) {
@@ -87,6 +130,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.image = user.image ?? null;
         if (user.name) token.name = user.name;
+        const sid = (user as { loginSessionId?: string }).loginSessionId;
+        if (sid) token.loginSessionId = sid;
+        token.lastBeat = Date.now();
       }
 
       // Client called session.update({ image }) after photo upload
@@ -115,6 +161,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         } catch (e) {
           console.warn("[auth jwt] failed to refresh user image", e);
+        }
+
+        // Session heartbeat for “time logged in” monitoring (throttled)
+        const now = Date.now();
+        if (!token.lastBeat || now - token.lastBeat > 4 * 60 * 1000) {
+          token.lastBeat = now;
+          void import("@/lib/login-sessions").then(({ heartbeatLoginSession }) =>
+            heartbeatLoginSession({
+              userId: token.id as string,
+              sessionId: token.loginSessionId,
+            })
+          );
         }
       }
 
