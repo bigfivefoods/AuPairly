@@ -15,7 +15,7 @@ const HARDCODED_MANAGEMENT_EMAILS = [
   "ryleerkendall@icloud.com",
   "nicola@kencrete.co.za",
   "clint@kencrete.co.za",
-  "b.pot.west@gmail.com",
+  "b.west.pot@gmail.com",
 ] as const;
 
 const OWNER_EMAILS = new Set(
