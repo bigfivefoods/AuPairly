@@ -1,4 +1,4 @@
-import { Shield, Star, Clock, BadgeCheck } from "lucide-react";
+import { Shield, Star, Clock, BadgeCheck, Video, FileCheck, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function TrustStrip({
@@ -8,6 +8,9 @@ export function TrustStrip({
   safetyScore,
   responseLabel,
   isUrgent,
+  hasVideo,
+  hasReferences,
+  placementVerified,
   className,
 }: {
   isVerified?: boolean;
@@ -16,6 +19,9 @@ export function TrustStrip({
   safetyScore?: number | null;
   responseLabel?: string | null;
   isUrgent?: boolean;
+  hasVideo?: boolean;
+  hasReferences?: boolean;
+  placementVerified?: boolean;
   className?: string;
 }) {
   const chips: { key: string; label: string; icon: React.ReactNode; className: string }[] = [];
@@ -23,9 +29,33 @@ export function TrustStrip({
   if (isVerified) {
     chips.push({
       key: "v",
-      label: "Verified",
+      label: "ID verified",
       icon: <BadgeCheck className="h-3 w-3" />,
       className: "bg-emerald-50 text-emerald-800",
+    });
+  }
+  if (hasVideo) {
+    chips.push({
+      key: "vid",
+      label: "Video intro",
+      icon: <Video className="h-3 w-3" />,
+      className: "bg-violet-50 text-violet-900",
+    });
+  }
+  if (hasReferences) {
+    chips.push({
+      key: "ref",
+      label: "References",
+      icon: <FileCheck className="h-3 w-3" />,
+      className: "bg-sky-50 text-sky-900",
+    });
+  }
+  if (placementVerified) {
+    chips.push({
+      key: "pv",
+      label: "Placement verified",
+      icon: <Award className="h-3 w-3" />,
+      className: "bg-teal-100 text-teal-900",
     });
   }
   if (responseLabel) {

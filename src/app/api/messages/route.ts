@@ -94,9 +94,23 @@ export async function POST(req: Request) {
     );
   }
 
-  // Peer (sitter↔sitter) chats stay freer for AuPair Connect community
+  // Peer chats free; replies free once the other person has messaged (smarter free-tier paywall)
   const peer = await isPeerConversation(session.user.id, recipientId);
-  if (!peer) {
+  const [userAId, userBId] =
+    session.user.id < recipientId
+      ? [session.user.id, recipientId]
+      : [recipientId, session.user.id];
+  let conversation = await prisma.conversation.findUnique({
+    where: { userAId_userBId: { userAId, userBId } },
+  });
+  let replyFree = false;
+  if (conversation) {
+    const otherMessaged = await prisma.message.count({
+      where: { conversationId: conversation.id, senderId: recipientId },
+    });
+    replyFree = otherMessaged > 0;
+  }
+  if (!peer && !replyFree) {
     const limit = await checkAndConsume(session.user.id, "MESSAGE");
     if (!limit.ok) {
       return NextResponse.json(
@@ -132,16 +146,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // Canonical order for unique pair
-  const [userAId, userBId] =
-    session.user.id < recipientId
-      ? [session.user.id, recipientId]
-      : [recipientId, session.user.id];
-
-  let conversation = await prisma.conversation.findUnique({
-    where: { userAId_userBId: { userAId, userBId } },
-  });
-
   if (!conversation) {
     conversation = await prisma.conversation.create({
       data: { userAId, userBId },
@@ -169,13 +173,24 @@ export async function POST(req: Request) {
     href: `/messages/${conversation.id}`,
   });
 
-  void sendNewMessageEmail({
-    toEmail: recipient.email,
-    toName: recipient.name,
-    fromName: session.user.name,
-    preview: messageBody,
-    conversationId: conversation.id,
-  }).catch((e) => console.error("[email] message", e));
+  if (recipient.emailPrefMessages !== "OFF") {
+    void sendNewMessageEmail({
+      toEmail: recipient.email,
+      toName: recipient.name,
+      fromName: session.user.name,
+      preview: messageBody,
+      conversationId: conversation.id,
+    }).catch((e) => console.error("[email] message", e));
+  }
+
+  const priorSent = await prisma.message.count({
+    where: { senderId: session.user.id },
+  });
+  if (priorSent <= 1) {
+    void import("@/lib/funnel").then(({ trackFunnel }) =>
+      trackFunnel("first_message", { conversationId: conversation.id })
+    );
+  }
 
   return NextResponse.json({ conversationId: conversation.id, message }, { status: 201 });
 }
