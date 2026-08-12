@@ -168,6 +168,20 @@ model CronRun {
   updatedAt DateTime @updatedAt
 }
 
+/// Product funnel events (signup → publish → message → pay)
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  event     String
+  userId    String?
+  role      String?
+  props     String   @default("{}") // JSON
+  createdAt DateTime @default(now())
+
+  @@index([event, createdAt])
+  @@index([createdAt])
+  @@index([userId])
+}
+
 model AuPairProfile {
   id              String        @id @default(cuid())
   userId          String        @unique

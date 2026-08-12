@@ -179,14 +179,18 @@ export async function POST(req: Request) {
     },
   });
 
-  // First-time shortlist: safety tip email + funnel
+  // First-time shortlist: safety tip email + funnel + placement pipeline nudge
   if (!existing) {
     void import("@/lib/funnel").then(({ trackFunnel }) =>
-      trackFunnel("shortlist", { targetUserId })
+      trackFunnel("shortlist", {
+        targetUserId,
+        userId: session.user!.id,
+        role: session.user!.role,
+      })
     );
     const me = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { email: true, name: true, emailPrefMessages: true },
+      select: { email: true, name: true, emailPrefMessages: true, role: true },
     });
     if (me?.email && me.emailPrefMessages !== "OFF") {
       const site = (
@@ -197,9 +201,60 @@ export async function POST(req: Request) {
       void sendEmail({
         to: me.email,
         subject: "Shortlisted — safety tips before you share numbers",
-        text: `Hi ${first},\n\nYou've shortlisted ${target.name}. Phone numbers can unlock at this stage.\n\nStay safe:\n• Meet first in a public place\n• Never send money or bank details off-platform\n• Keep early logistics on AuPairly when possible\n\nSafety: ${site}/safety\n`,
-        html: `<p>Hi ${first},</p><p>You've shortlisted <strong>${target.name}</strong>. Contact details may unlock now.</p><ul><li>Meet first in a public place</li><li>Never send money or bank details off-platform</li><li>Keep early logistics on AuPairly when possible</li></ul><p><a href="${site}/safety">Safety tips</a></p>`,
+        text: `Hi ${first},\n\nYou've shortlisted ${target.name}. Phone numbers can unlock at this stage.\n\nStay safe:\n• Meet first in a public place\n• Never send money or bank details off-platform\n• Keep early logistics on AuPairly when possible\n\nNext: start a placement (interview → trial → placed) at ${site}/placements\n\nSafety: ${site}/safety\n`,
+        html: `<p>Hi ${first},</p><p>You've shortlisted <strong>${target.name}</strong>. Contact details may unlock now.</p><ul><li>Meet first in a public place</li><li>Never send money or bank details off-platform</li><li>Keep early logistics on AuPairly when possible</li></ul><p><a href="${site}/placements">Start placement pipeline</a> · <a href="${site}/safety">Safety tips</a></p>`,
       }).catch(() => null);
+    }
+
+    // Auto-start placement pipeline for host↔sitter shortlists
+    const roles = [session.user.role, target.role];
+    if (roles.includes("PARENT") && roles.includes("AUPAIR")) {
+      try {
+        const parentUserId =
+          session.user.role === "PARENT" ? session.user.id : targetUserId;
+        const aupairUserId =
+          session.user.role === "AUPAIR" ? session.user.id : targetUserId;
+        const { defaultContract } = await import("@/lib/safety");
+        const parent = await prisma.user.findUnique({
+          where: { id: parentUserId },
+          select: { name: true },
+        });
+        const aupair = await prisma.user.findUnique({
+          where: { id: aupairUserId },
+          select: { name: true },
+        });
+        const placement = await prisma.placement.upsert({
+          where: {
+            parentUserId_aupairUserId: { parentUserId, aupairUserId },
+          },
+          create: {
+            parentUserId,
+            aupairUserId,
+            status: "INTERESTED",
+            contractText: defaultContract({
+              parentName: parent?.name || "Host family",
+              aupairName: aupair?.name || "Sitter",
+            }),
+          },
+          update: {},
+        });
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+          userId: session.user.id,
+          type: "SYSTEM",
+          title: "Placement pipeline ready",
+          body: `Shortlist saved. Open the placement board to propose an interview with ${target.name}.`,
+          href: `/placements/${placement.id}`,
+        });
+        void import("@/lib/funnel").then(({ trackFunnel }) =>
+          trackFunnel("placement_start", {
+            userId: session.user!.id,
+            placementId: placement.id,
+          })
+        );
+      } catch (e) {
+        console.error("[shortlist] placement auto-start", e);
+      }
     }
   }
 

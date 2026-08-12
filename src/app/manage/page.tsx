@@ -713,64 +713,158 @@ async function OpsExtras() {
   let ghost: Awaited<ReturnType<typeof import("@/lib/city-liquidity").getGhostTownCities>> =
     [];
   let crons: Awaited<ReturnType<typeof import("@/lib/cron-run").listCronRuns>> = [];
+  let funnel: Awaited<ReturnType<typeof import("@/lib/funnel").funnelSummary>> = {
+    days: 14,
+    since: "",
+    counts: {},
+  };
   try {
     const { getGhostTownCities } = await import("@/lib/city-liquidity");
     const { listCronRuns } = await import("@/lib/cron-run");
-    [ghost, crons] = await Promise.all([getGhostTownCities(12), listCronRuns()]);
+    const { funnelSummary } = await import("@/lib/funnel");
+    [ghost, crons, funnel] = await Promise.all([
+      getGhostTownCities(12),
+      listCronRuns(),
+      funnelSummary(14),
+    ]);
   } catch {
     /* schema may lag */
   }
 
+  const funnelKeys = [
+    "signup",
+    "publish_listing",
+    "first_message",
+    "shortlist",
+    "placement_start",
+    "checkout_start",
+    "payment_success",
+    "invite_copy",
+    "house_swap_interest",
+  ];
+
+  let runbook: Awaited<typeof import("@/lib/ops-runbook").OPS_RUNBOOK> = [];
+  try {
+    runbook = (await import("@/lib/ops-runbook")).OPS_RUNBOOK;
+  } catch {
+    /* ignore */
+  }
+
   return (
-    <section className="mb-8 grid gap-4 lg:grid-cols-2">
-      <Card>
-        <h3 className="font-display text-base font-semibold">Ghost towns (recruit here)</h3>
-        <p className="mt-1 text-xs text-stone-500">
-          Thin supply and/or saved-search demand — prioritise invites and local outreach.
-        </p>
-        {ghost.length === 0 ? (
-          <p className="mt-3 text-sm text-stone-400">No thin cities detected yet.</p>
-        ) : (
-          <ul className="mt-3 max-h-64 space-y-1.5 overflow-y-auto text-sm">
-            {ghost.map((g) => (
-              <li
-                key={g.city}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 px-2.5 py-1.5"
-              >
-                <span className="font-medium text-stone-800">{g.city}</span>
-                <span className="text-xs text-stone-500">
-                  {g.sitters}s / {g.hosts}h
-                  {g.savedSearchHits > 0 ? ` · ${g.savedSearchHits} alerts` : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-      <Card>
-        <h3 className="font-display text-base font-semibold">Cron last runs</h3>
-        <p className="mt-1 text-xs text-stone-500">
-          Daily alerts, activation, etc. Empty until jobs run after deploy.
-        </p>
-        {crons.length === 0 ? (
-          <p className="mt-3 text-sm text-stone-400">No cron runs recorded yet.</p>
-        ) : (
+    <>
+      <section className="mb-8 grid gap-4 lg:grid-cols-2">
+        <Card>
+          <h3 className="font-display text-base font-semibold">Ghost towns (recruit here)</h3>
+          <p className="mt-1 text-xs text-stone-500">
+            Thin supply and/or saved-search demand — prioritise invites and local outreach.
+          </p>
+          {ghost.length === 0 ? (
+            <p className="mt-3 text-sm text-stone-400">No thin cities detected yet.</p>
+          ) : (
+            <ul className="mt-3 max-h-64 space-y-1.5 overflow-y-auto text-sm">
+              {ghost.map((g) => (
+                <li
+                  key={g.city}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 px-2.5 py-1.5"
+                >
+                  <span className="font-medium text-stone-800">{g.city}</span>
+                  <span className="text-xs text-stone-500">
+                    {g.sitters}s / {g.hosts}h
+                    {g.savedSearchHits > 0 ? ` · ${g.savedSearchHits} alerts` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+        <Card>
+          <h3 className="font-display text-base font-semibold">Cron last runs</h3>
+          <p className="mt-1 text-xs text-stone-500">
+            Daily alerts, activation, etc. Empty until jobs run after deploy.
+          </p>
+          {crons.length === 0 ? (
+            <p className="mt-3 text-sm text-stone-400">No cron runs recorded yet.</p>
+          ) : (
+            <ul className="mt-3 space-y-1.5 text-sm">
+              {crons.map((c) => (
+                <li
+                  key={c.job}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 px-2.5 py-1.5"
+                >
+                  <span className="font-medium text-stone-800">{c.job}</span>
+                  <span className="text-xs text-stone-500">
+                    {c.ok ? "OK" : "FAIL"} · {new Date(c.lastRunAt).toLocaleString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </section>
+
+      <section className="mb-8 grid gap-4 lg:grid-cols-2">
+        <Card>
+          <h3 className="font-display text-base font-semibold">
+            Funnel (last {funnel.days} days)
+          </h3>
+          <p className="mt-1 text-xs text-stone-500">
+            Server-tracked conversion events. Empty until members use the product.
+          </p>
           <ul className="mt-3 space-y-1.5 text-sm">
-            {crons.map((c) => (
+            {funnelKeys.map((k) => (
               <li
-                key={c.job}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 px-2.5 py-1.5"
+                key={k}
+                className="flex items-center justify-between rounded-lg border border-stone-100 px-2.5 py-1.5"
               >
-                <span className="font-medium text-stone-800">{c.job}</span>
-                <span className="text-xs text-stone-500">
-                  {c.ok ? "OK" : "FAIL"} · {new Date(c.lastRunAt).toLocaleString()}
+                <span className="font-medium text-stone-700">{k.replace(/_/g, " ")}</span>
+                <span className="tabular-nums font-semibold text-stone-900">
+                  {funnel.counts[k] || 0}
                 </span>
               </li>
             ))}
           </ul>
-        )}
-      </Card>
-    </section>
+          <p className="mt-3">
+            <a
+              href="/api/admin/export/users"
+              className="text-xs font-semibold text-teal-700 hover:underline"
+            >
+              Export members CSV →
+            </a>
+          </p>
+        </Card>
+        <Card>
+          <h3 className="font-display text-base font-semibold">Ops runbook</h3>
+          <p className="mt-1 text-xs text-stone-500">
+            For Nicola, Clint, Rylee &amp; Craig — 24h safety / 36h queue targets.
+          </p>
+          <div className="mt-3 max-h-80 space-y-3 overflow-y-auto text-sm">
+            {runbook.map((s) => (
+              <div key={s.id} className="rounded-xl border border-stone-100 bg-stone-50/80 px-3 py-2">
+                <p className="font-semibold text-stone-900">{s.title}</p>
+                <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-xs text-stone-600">
+                  {s.steps.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </ol>
+                {s.hrefs && s.hrefs.length > 0 && (
+                  <p className="mt-1.5 flex flex-wrap gap-2 text-xs">
+                    {s.hrefs.map((h) => (
+                      <a
+                        key={h.href}
+                        href={h.href}
+                        className="font-semibold text-teal-700 hover:underline"
+                      >
+                        {h.label} →
+                      </a>
+                    ))}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      </section>
+    </>
   );
 }
 

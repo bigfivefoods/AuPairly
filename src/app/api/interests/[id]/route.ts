@@ -89,6 +89,105 @@ export async function PATCH(
           },
         });
       }
+
+      // House swap: if both hosts with swap dates, block calendar availability
+      try {
+        const [fromU, toU] = await Promise.all([
+          prisma.user.findUnique({
+            where: { id: interest.fromUserId },
+            select: {
+              role: true,
+              familyProfile: {
+                select: {
+                  services: true,
+                  swapAvailableFrom: true,
+                  swapAvailableTo: true,
+                  city: true,
+                },
+              },
+            },
+          }),
+          prisma.user.findUnique({
+            where: { id: interest.toUserId },
+            select: {
+              role: true,
+              familyProfile: {
+                select: {
+                  services: true,
+                  swapAvailableFrom: true,
+                  swapAvailableTo: true,
+                  city: true,
+                },
+              },
+            },
+          }),
+        ]);
+        const bothHosts = fromU?.role === "PARENT" && toU?.role === "PARENT";
+        const fromSwap = (fromU?.familyProfile?.services || "").includes("HOUSE_SWAP");
+        const toSwap = (toU?.familyProfile?.services || "").includes("HOUSE_SWAP");
+        if (bothHosts && fromSwap && toSwap) {
+          const { dateRangesOverlap } = await import("@/lib/house-swap-match");
+          const f = fromU!.familyProfile!;
+          const t = toU!.familyProfile!;
+          if (
+            dateRangesOverlap(
+              f.swapAvailableFrom,
+              f.swapAvailableTo,
+              t.swapAvailableFrom,
+              t.swapAvailableTo
+            )
+          ) {
+            // Soft calendar hold: BUSY slots for overlapping window (best-effort)
+            const start =
+              f.swapAvailableFrom && t.swapAvailableFrom
+                ? new Date(
+                    Math.max(
+                      new Date(f.swapAvailableFrom).getTime(),
+                      new Date(t.swapAvailableFrom).getTime()
+                    )
+                  )
+                : f.swapAvailableFrom || t.swapAvailableFrom;
+            const end =
+              f.swapAvailableTo && t.swapAvailableTo
+                ? new Date(
+                    Math.min(
+                      new Date(f.swapAvailableTo).getTime(),
+                      new Date(t.swapAvailableTo).getTime()
+                    )
+                  )
+                : f.swapAvailableTo || t.swapAvailableTo;
+            if (start && end && end > start) {
+              for (const uid of [interest.fromUserId, interest.toUserId]) {
+                await prisma.availabilitySlot.create({
+                  data: {
+                    userId: uid,
+                    kind: "BUSY",
+                    startDate: start,
+                    endDate: end,
+                    note: "House swap hold (accepted interest)",
+                  },
+                });
+              }
+              await createNotification({
+                userId: interest.fromUserId,
+                type: "SYSTEM",
+                title: "House swap dates held",
+                body: "Your overlapping swap window was marked busy on both calendars. Confirm details in chat.",
+                href: conv ? `/messages/${conv.id}` : "/messages",
+              });
+              await createNotification({
+                userId: interest.toUserId,
+                type: "SYSTEM",
+                title: "House swap dates held",
+                body: "Your overlapping swap window was marked busy on both calendars. Confirm details in chat.",
+                href: conv ? `/messages/${conv.id}` : "/messages",
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[interest] swap calendar hold", e);
+      }
     }
   }
 

@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
     "test": "node scripts/unit-tests.mjs",
+    "smoke": "node scripts/smoke-checks.mjs",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate"
   },

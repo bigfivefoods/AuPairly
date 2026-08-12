@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/ui";
 import { MapBrowse } from "@/components/map-browse";
+import { serviceFromParam, SERVICES, type ServiceId } from "@/lib/services";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Map & regions" };
@@ -9,10 +10,12 @@ export const metadata = { title: "Map & regions" };
 export default async function MapPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; region?: string }>;
+  searchParams: Promise<{ type?: string; region?: string; service?: string }>;
 }) {
   const sp = await searchParams;
   const type = sp.type === "families" ? "families" : "aupairs";
+  const serviceRaw = serviceFromParam(sp.service);
+  const service: ServiceId | null = serviceRaw || null;
 
   type Listing = {
     id: string;
@@ -31,7 +34,10 @@ export default async function MapPage({
   try {
     if (type === "families") {
       const families = await prisma.familyProfile.findMany({
-        where: { status: "ACTIVE" },
+        where: {
+          status: "ACTIVE",
+          ...(service ? { services: { contains: service } } : {}),
+        },
         include: { user: { select: { id: true, name: true } } },
         take: 300,
       });
@@ -48,7 +54,10 @@ export default async function MapPage({
       }));
     } else {
       const aupairs = await prisma.auPairProfile.findMany({
-        where: { status: "ACTIVE" },
+        where: {
+          status: "ACTIVE",
+          ...(service ? { services: { contains: service } } : {}),
+        },
         include: { user: { select: { id: true, name: true } } },
         take: 300,
       });
@@ -69,7 +78,7 @@ export default async function MapPage({
   }
 
   return (
-    <Shell type={type}>
+    <Shell type={type} service={service}>
       <MapBrowse
         listings={listings}
         typeLabel={type === "families" ? "host family" : "au pair / sitter"}
@@ -81,11 +90,21 @@ export default async function MapPage({
 
 function Shell({
   type,
+  service,
   children,
 }: {
   type: string;
+  service?: ServiceId | null;
   children: React.ReactNode;
 }) {
+  const base = type === "families" ? "families" : "aupairs";
+  const q = (svc?: string | null) => {
+    const p = new URLSearchParams({ type: base });
+    if (svc) p.set("service", svc);
+    return `/map?${p.toString()}`;
+  };
+  const serviceOpts = Object.values(SERVICES);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
@@ -93,9 +112,9 @@ function Shell({
         title="Map & regions"
         description="Property24-style browse: pick a region, open the map tab, and 👋 wave to connect. Pins are city centres only — never exact home addresses."
       />
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Link
-          href="/map?type=aupairs"
+          href={`/map?type=aupairs${service ? `&service=${service}` : ""}`}
           className={
             type !== "families"
               ? "btn-primary !py-2 !px-4 text-sm"
@@ -105,7 +124,7 @@ function Shell({
           Au pairs & sitters
         </Link>
         <Link
-          href="/map?type=families"
+          href={`/map?type=families${service ? `&service=${service}` : ""}`}
           className={
             type === "families"
               ? "btn-primary !py-2 !px-4 text-sm"
@@ -117,6 +136,31 @@ function Shell({
         <Link href="/community" className="btn-ghost text-sm font-semibold text-stone-600">
           AuPair Connect →
         </Link>
+      </div>
+      <div className="mb-6 flex flex-wrap gap-1.5">
+        <Link
+          href={q(null)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            !service
+              ? "bg-teal-700 text-white"
+              : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+          }`}
+        >
+          All services
+        </Link>
+        {serviceOpts.map((s) => (
+          <Link
+            key={s.id}
+            href={q(s.id)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              service === s.id
+                ? "bg-teal-700 text-white"
+                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+            }`}
+          >
+            {s.shortName}
+          </Link>
+        ))}
       </div>
       {children}
     </div>

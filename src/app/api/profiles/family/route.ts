@@ -26,6 +26,34 @@ export async function PUT(req: Request) {
 
   const body = await req.json();
 
+  if (body.status === "ACTIVE") {
+    const { publishGateForUser } = await import("@/lib/publish-gate");
+    const gate = await publishGateForUser(session.user.id, "PARENT", {
+      headline: body.headline,
+      bio: body.bio,
+      city: body.city,
+      country: body.country,
+      languages: Array.isArray(body.languages)
+        ? JSON.stringify(body.languages)
+        : body.languages,
+      services: Array.isArray(body.services)
+        ? JSON.stringify(body.services)
+        : body.services,
+      status: "ACTIVE",
+    });
+    if (!gate.ok) {
+      return NextResponse.json(
+        {
+          error: gate.reason,
+          publishBlocked: true,
+          blockers: gate.blockers,
+          percent: gate.percent,
+        },
+        { status: 400 }
+      );
+    }
+  }
+
   const profile = await prisma.familyProfile.upsert({
     where: { userId: session.user.id },
     create: {
@@ -253,7 +281,17 @@ export async function PUT(req: Request) {
       trackFunnel("publish_listing", {
         role: "PARENT",
         city: profile.city,
+        userId: session.user!.id,
       })
+    );
+    void import("@/lib/notifications").then(({ createNotification }) =>
+      createNotification({
+        userId: session.user!.id,
+        type: "SYSTEM",
+        title: "Listing live — next: message 3 sitters",
+        body: "Hosts who message early get more applications. Open Discover or browse sitters near you.",
+        href: "/discover",
+      }).catch(() => null)
     );
   }
 

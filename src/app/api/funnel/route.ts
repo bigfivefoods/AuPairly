@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { trackFunnel, type FunnelEvent } from "@/lib/funnel";
+import { trackFunnel, type FunnelEventName } from "@/lib/funnel";
 
-const ALLOWED = new Set<FunnelEvent>([
+const ALLOWED = new Set<FunnelEventName>([
   "signup",
   "publish_listing",
   "first_message",
@@ -13,12 +13,14 @@ const ALLOWED = new Set<FunnelEvent>([
   "payment_success",
   "house_swap_interest",
   "invite_copy",
+  "placement_start",
+  "account_delete",
 ]);
 
 export async function POST(req: Request) {
   const session = await auth();
   const body = await req.json().catch(() => ({}));
-  const event = body.event as FunnelEvent;
+  const event = body.event as FunnelEventName;
   if (!event || !ALLOWED.has(event)) {
     return NextResponse.json({ error: "Invalid event" }, { status: 400 });
   }

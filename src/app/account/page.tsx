@@ -17,6 +17,7 @@ import { dayKey, planFor, weekKey } from "@/lib/plans";
 import { formatZar, paymentKindLabel } from "@/lib/payments";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { UserAvatar } from "@/components/user-avatar";
+import { DeleteAccountForm } from "@/components/delete-account-form";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Account report" };
@@ -494,6 +495,8 @@ export default async function AccountReportPage() {
           )}
         </aside>
       </div>
+
+      <DeleteAccountForm />
     </div>
   );
 }

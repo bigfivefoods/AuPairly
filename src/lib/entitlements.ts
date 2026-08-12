@@ -272,6 +272,18 @@ export async function checkAndConsume(
   if (action === "MESSAGE") {
     limit = plan.limits.messagesPerDay;
     periodKey = dayKey();
+    // Video intro bonus: +2 free messages/day on limited plans (trust incentive)
+    if (limit > 0) {
+      try {
+        const u = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { videoIntroUrl: true },
+        });
+        if (u?.videoIntroUrl) limit += 2;
+      } catch {
+        /* ignore */
+      }
+    }
   } else if (action === "INTEREST") {
     limit = plan.limits.interestsPerWeek;
     periodKey = weekKey();

@@ -102,6 +102,10 @@ export async function GET(req: Request) {
     const profiles = await prisma.auPairProfile.findMany({
       where: {
         status: "ACTIVE",
+        // Hide incomplete / no-photo listings from Discover
+        headline: { not: null },
+        city: { not: null },
+        user: { image: { not: null }, suspendedAt: null },
         ...(excludeIds.length ? { userId: { notIn: excludeIds } } : {}),
         ...(serviceFilter
           ? taggedIds && taggedIds.length > 0
@@ -122,27 +126,41 @@ export async function GET(req: Request) {
           },
         },
       },
-      take: 40,
+      take: 60,
     });
 
     const now = Date.now();
     const weekMs = 7 * 86400000;
-    const enriched = profiles.map((p) => {
-      const compat = computeCompatibility(meProfile, {
-        role: "AUPAIR",
-        city: p.city,
-        country: p.country,
-        languages: p.languages,
-        liveIn: p.liveIn,
-        weeklyHours: p.weeklyHours,
-        availableFrom: p.availableFrom,
-        pocketMoneyMin: p.pocketMoneyMin,
-        experienceYears: p.experienceYears,
-        age: p.age,
-        services: p.services,
+    const enriched = profiles
+      .filter(
+        (p) =>
+          Boolean(p.user.image) &&
+          Boolean((p.headline || "").trim().length >= 8) &&
+          Boolean((p.city || "").trim())
+      )
+      .map((p) => {
+        const compat = computeCompatibility(meProfile, {
+          role: "AUPAIR",
+          city: p.city,
+          country: p.country,
+          languages: p.languages,
+          liveIn: p.liveIn,
+          weeklyHours: p.weeklyHours,
+          availableFrom: p.availableFrom,
+          pocketMoneyMin: p.pocketMoneyMin,
+          experienceYears: p.experienceYears,
+          age: p.age,
+          services: p.services,
+        });
+        // Enrich "why match" with photo/video trust signals
+        const reasons = [...compat.reasons];
+        if (p.user.videoIntroUrl) reasons.unshift("Has video intro");
+        if (p.user.placementVerified) reasons.unshift("Placement verified");
+        return {
+          p,
+          compat: { score: compat.score, reasons: reasons.slice(0, 4) },
+        };
       });
-      return { p, compat };
-    });
 
     const myCity = (meProfile?.city || "").toLowerCase().trim();
     enriched.sort((a, b) => {
@@ -156,6 +174,10 @@ export async function GET(req: Request) {
         const bLocal = (b.p.city || "").toLowerCase().includes(myCity) ? 1 : 0;
         if (bLocal !== aLocal) return bLocal - aLocal;
       }
+      // Video intro ranks higher
+      const aVid = a.p.user.videoIntroUrl ? 1 : 0;
+      const bVid = b.p.user.videoIntroUrl ? 1 : 0;
+      if (bVid !== aVid) return bVid - aVid;
       // Verified listings rank higher
       if (a.p.isVerified !== b.p.isVerified) return a.p.isVerified ? -1 : 1;
       // Active in last 7 days (login / message activity)
@@ -210,6 +232,9 @@ export async function GET(req: Request) {
   const profiles = await prisma.familyProfile.findMany({
     where: {
       status: "ACTIVE",
+      headline: { not: null },
+      city: { not: null },
+      user: { image: { not: null }, suspendedAt: null },
       ...(excludeIds.length ? { userId: { notIn: excludeIds } } : {}),
       ...(serviceFilter
         ? taggedIds && taggedIds.length > 0
@@ -225,28 +250,42 @@ export async function GET(req: Request) {
           image: true,
           placementVerified: true,
           safetyScore: true,
+          videoIntroUrl: true,
           lastActiveAt: true,
         },
       },
     },
-    take: 40,
+    take: 60,
   });
 
-  const enriched = profiles.map((p) => {
-    const compat = computeCompatibility(meProfile, {
-      role: "PARENT",
-      city: p.city,
-      country: p.country,
-      languages: p.languages,
-      liveIn: p.liveIn,
-      weeklyHours: p.weeklyHours,
-      startDate: p.startDate,
-      pocketMoney: p.pocketMoney,
-      childrenAges: p.childrenAges,
-      childrenCount: p.childrenCount,
-      services: p.services,
-    });
-    return { p, compat };
+  const enriched = profiles
+    .filter(
+      (p) =>
+        Boolean(p.user.image) &&
+        Boolean((p.headline || "").trim().length >= 8) &&
+        Boolean((p.city || "").trim())
+    )
+    .map((p) => {
+      const compat = computeCompatibility(meProfile, {
+        role: "PARENT",
+        city: p.city,
+        country: p.country,
+        languages: p.languages,
+        liveIn: p.liveIn,
+        weeklyHours: p.weeklyHours,
+        startDate: p.startDate,
+        pocketMoney: p.pocketMoney,
+        childrenAges: p.childrenAges,
+        childrenCount: p.childrenCount,
+        services: p.services,
+      });
+      const reasons = [...compat.reasons];
+      if (p.isUrgent) reasons.unshift("Urgent need");
+      if (p.user.videoIntroUrl) reasons.unshift("Has video intro");
+      return {
+        p,
+        compat: { score: compat.score, reasons: reasons.slice(0, 4) },
+      };
   });
 
   const myCity = (meProfile?.city || "").toLowerCase().trim();
