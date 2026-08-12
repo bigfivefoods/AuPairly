@@ -320,31 +320,34 @@ export function ManageReportA4({
             </div>
             <div className="col-span-4 rounded-md border border-stone-200 px-1.5 py-1">
               <p className="mb-0.5 text-[8px] font-bold uppercase tracking-wide text-teal-800">
-                Last logins
+                Ops + recent logins
               </p>
               <div className="space-y-0.5">
-                {login.recentUsers.slice(0, 4).map((u) => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between gap-1 text-[8px] leading-tight"
-                  >
-                    <span className="min-w-0 truncate font-medium text-stone-700">
-                      {u.name.split(" ")[0]} · {u.role === "AUPAIR" ? "S" : "H"}
-                    </span>
-                    <span className="shrink-0 tabular-nums text-stone-500">
-                      {u.lastLoginAt
-                        ? new Date(u.lastLoginAt).toLocaleDateString("en-ZA", {
-                            day: "numeric",
-                            month: "short",
-                          })
-                        : "never"}
-                      {u.daysSinceLogin != null ? ` · ${u.daysSinceLogin}d` : ""}
-                    </span>
-                  </div>
-                ))}
-                {login.recentUsers.length === 0 && (
-                  <p className="text-[8px] text-stone-400">No login data yet</p>
-                )}
+                {(login.managementUsers?.length
+                  ? login.managementUsers
+                  : login.recentUsers
+                )
+                  .slice(0, 5)
+                  .map((u) => (
+                    <div
+                      key={u.email || u.id || u.name}
+                      className="flex items-center justify-between gap-1 text-[8px] leading-tight"
+                    >
+                      <span className="min-w-0 truncate font-medium text-stone-700">
+                        {u.name.split(" ")[0]}
+                        {"isManagement" in u && u.isManagement ? " · ops" : ""}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-stone-500">
+                        {u.lastLoginAt
+                          ? new Date(u.lastLoginAt).toLocaleDateString("en-ZA", {
+                              day: "numeric",
+                              month: "short",
+                            })
+                          : "none"}
+                        {u.daysSinceLogin != null ? ` · ${u.daysSinceLogin}d` : ""}
+                      </span>
+                    </div>
+                  ))}
               </div>
             </div>
           </section>

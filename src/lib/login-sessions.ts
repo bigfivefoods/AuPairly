@@ -85,6 +85,12 @@ export async function heartbeatLoginSession(opts: {
           where: { id: opts.userId },
           data: { lastActiveAt: now },
         });
+        await prisma.user
+          .updateMany({
+            where: { id: opts.userId, lastLoginAt: null },
+            data: { lastLoginAt: s.startedAt },
+          })
+          .catch(() => null);
         return;
       }
     }
@@ -103,6 +109,13 @@ export async function heartbeatLoginSession(opts: {
       where: { id: opts.userId },
       data: { lastActiveAt: now },
     });
+    // Backfill lastLoginAt once for users active before login tracking shipped
+    await prisma.user
+      .updateMany({
+        where: { id: opts.userId, lastLoginAt: null },
+        data: { lastLoginAt: now },
+      })
+      .catch(() => null);
   } catch (e) {
     console.error("[login-sessions] heartbeat failed", e);
   }
@@ -161,9 +174,41 @@ export function sessionDurationSec(s: {
   return Math.max(0, Math.round((end.getTime() - s.startedAt.getTime()) / 1000));
 }
 
+function maxDate(
+  ...dates: (Date | null | undefined)[]
+): Date | null {
+  let best: Date | null = null;
+  for (const d of dates) {
+    if (!d) continue;
+    if (!best || d.getTime() > best.getTime()) best = d;
+  }
+  return best;
+}
+
+/**
+ * Effective last login for display + idle metrics.
+ * Prefer lastLoginAt, then latest LoginSession, then lastActiveAt (pre-tracking activity).
+ */
+function resolveLastLogin(opts: {
+  lastLoginAt?: Date | null;
+  lastActiveAt?: Date | null;
+  sessionStartedAt?: Date | null;
+}): { at: Date | null; source: "login" | "session" | "activity" | "none" } {
+  if (opts.lastLoginAt) return { at: opts.lastLoginAt, source: "login" };
+  if (opts.sessionStartedAt)
+    return { at: opts.sessionStartedAt, source: "session" };
+  if (opts.lastActiveAt) return { at: opts.lastActiveAt, source: "activity" };
+  return { at: null, source: "none" };
+}
+
 export async function getLoginMonitoringStats(
   opts?: { recentLimit?: number }
 ): Promise<LoginMonitoringStats> {
+  const { getManagementEmails, isManagementEmail } = await import(
+    "@/lib/management"
+  );
+  const mgmtEmails = getManagementEmails().map((e) => e.toLowerCase());
+
   const limit = opts?.recentLimit ?? 25;
   const now = Date.now();
   const startOfDay = new Date();
@@ -184,13 +229,10 @@ export async function getLoginMonitoringStats(
     uniqueWeek,
     activeNow,
     weekSessions,
-    neverLoggedIn,
-    inactive3d,
-    inactive7d,
-    inactive14d,
-    inactive30d,
     recent,
-    recentUsers,
+    memberUsers,
+    managementDbUsers,
+    latestSessions,
   ] = await Promise.all([
     prisma.loginSession.count({ where: { startedAt: { gte: startOfDay } } }),
     prisma.loginSession.count({ where: { startedAt: { gte: week } } }),
@@ -218,47 +260,6 @@ export async function getLoginMonitoringStats(
       },
       take: 2000,
     }),
-    prisma.user.count({
-      where: {
-        role: { in: ["AUPAIR", "PARENT"] },
-        lastLoginAt: null,
-        suspendedAt: null,
-      },
-    }),
-    prisma.user.count({
-      where: {
-        role: { in: ["AUPAIR", "PARENT"] },
-        suspendedAt: null,
-        OR: [{ lastLoginAt: { lt: d3 } }, { lastLoginAt: null, createdAt: { lt: d3 } }],
-      },
-    }),
-    prisma.user.count({
-      where: {
-        role: { in: ["AUPAIR", "PARENT"] },
-        suspendedAt: null,
-        OR: [{ lastLoginAt: { lt: d7 } }, { lastLoginAt: null, createdAt: { lt: d7 } }],
-      },
-    }),
-    prisma.user.count({
-      where: {
-        role: { in: ["AUPAIR", "PARENT"] },
-        suspendedAt: null,
-        OR: [
-          { lastLoginAt: { lt: d14 } },
-          { lastLoginAt: null, createdAt: { lt: d14 } },
-        ],
-      },
-    }),
-    prisma.user.count({
-      where: {
-        role: { in: ["AUPAIR", "PARENT"] },
-        suspendedAt: null,
-        OR: [
-          { lastLoginAt: { lt: d30 } },
-          { lastLoginAt: null, createdAt: { lt: d30 } },
-        ],
-      },
-    }),
     prisma.loginSession.findMany({
       orderBy: { startedAt: "desc" },
       take: limit,
@@ -266,10 +267,19 @@ export async function getLoginMonitoringStats(
         user: { select: { id: true, name: true, email: true, role: true } },
       },
     }),
+    // Members + anyone with sessions (include ADMIN / management roles)
     prisma.user.findMany({
-      where: { role: { in: ["AUPAIR", "PARENT"] }, suspendedAt: null },
-      orderBy: [{ lastLoginAt: "desc" }, { createdAt: "desc" }],
-      take: limit,
+      where: {
+        suspendedAt: null,
+        OR: [
+          { role: { in: ["AUPAIR", "PARENT", "ADMIN"] } },
+          { email: { in: mgmtEmails, mode: "insensitive" } },
+          { lastLoginAt: { not: null } },
+          { lastActiveAt: { not: null } },
+        ],
+      },
+      orderBy: [{ lastLoginAt: "desc" }, { lastActiveAt: "desc" }, { createdAt: "desc" }],
+      take: Math.max(limit * 2, 60),
       select: {
         id: true,
         name: true,
@@ -280,7 +290,186 @@ export async function getLoginMonitoringStats(
         loginCount: true,
       },
     }),
+    // Always load full management allowlist by email
+    prisma.user.findMany({
+      where: {
+        email: { in: mgmtEmails, mode: "insensitive" },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        lastLoginAt: true,
+        lastActiveAt: true,
+        loginCount: true,
+      },
+    }),
+    // Latest session per user (for backfill when lastLoginAt is null)
+    prisma.loginSession.findMany({
+      orderBy: { startedAt: "desc" },
+      take: 500,
+      select: { userId: true, startedAt: true },
+    }),
   ]);
+
+  const latestSessionByUser = new Map<string, Date>();
+  for (const s of latestSessions) {
+    if (!latestSessionByUser.has(s.userId)) {
+      latestSessionByUser.set(s.userId, s.startedAt);
+    }
+  }
+
+  // Best-effort backfill lastLoginAt from activity/session so “never” goes away
+  const toBackfill: { id: string; at: Date }[] = [];
+  for (const u of [...memberUsers, ...managementDbUsers]) {
+    if (u.lastLoginAt) continue;
+    const sessionAt = latestSessionByUser.get(u.id) || null;
+    const derived = maxDate(sessionAt, u.lastActiveAt);
+    if (derived) toBackfill.push({ id: u.id, at: derived });
+  }
+  // Cap writes
+  for (const row of toBackfill.slice(0, 80)) {
+    void prisma.user
+      .update({
+        where: { id: row.id },
+        data: {
+          lastLoginAt: row.at,
+          // Keep loginCount at least 1 if we know they were here
+          ...(row.at
+            ? {}
+            : {}),
+        },
+      })
+      .catch(() => null);
+  }
+
+  function mapUserRow(u: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    lastLoginAt: Date | null;
+    lastActiveAt: Date | null;
+    loginCount: number;
+  }) {
+    const sessionAt = latestSessionByUser.get(u.id) || null;
+    // After backfill request, still compute effective from raw fields
+    const resolved = resolveLastLogin({
+      lastLoginAt: u.lastLoginAt,
+      lastActiveAt: u.lastActiveAt,
+      sessionStartedAt: sessionAt,
+    });
+    const daysSinceLogin = resolved.at
+      ? Math.floor((now - resolved.at.getTime()) / 86400000)
+      : null;
+    return {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      lastLoginAt: resolved.at?.toISOString() || null,
+      lastActiveAt: u.lastActiveAt?.toISOString() || null,
+      loginCount: Math.max(u.loginCount || 0, resolved.at ? 1 : 0),
+      daysSinceLogin,
+      isManagement: isManagementEmail(u.email),
+      lastLoginSource: resolved.source,
+    };
+  }
+
+  const managementByEmail = new Map(
+    managementDbUsers.map((u) => [u.email.toLowerCase(), u])
+  );
+
+  const managementUsers: LoginMonitoringStats["managementUsers"] = mgmtEmails.map(
+    (email) => {
+      const u = managementByEmail.get(email);
+      if (!u) {
+        return {
+          id: null,
+          name: email.split("@")[0],
+          email,
+          role: null,
+          lastLoginAt: null,
+          lastActiveAt: null,
+          loginCount: 0,
+          daysSinceLogin: null,
+          isManagement: true as const,
+          lastLoginSource: "none" as const,
+          registered: false,
+        };
+      }
+      const mapped = mapUserRow(u);
+      return {
+        ...mapped,
+        id: u.id,
+        isManagement: true as const,
+        registered: true,
+      };
+    }
+  );
+
+  // Merge members + management into recentUsers, de-dupe by id
+  const byId = new Map<string, ReturnType<typeof mapUserRow>>();
+  for (const u of memberUsers) {
+    byId.set(u.id, mapUserRow(u));
+  }
+  for (const u of managementDbUsers) {
+    byId.set(u.id, mapUserRow(u));
+  }
+  const recentUsers = [...byId.values()]
+    .sort((a, b) => {
+      // Management first, then by last login
+      if (a.isManagement !== b.isManagement) return a.isManagement ? -1 : 1;
+      const ta = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
+      const tb = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
+      return tb - ta;
+    })
+    .slice(0, limit + mgmtEmails.length);
+
+  // Idle / never counts use effective last activity (lastLogin || lastActive)
+  const allForIdle = await prisma.user.findMany({
+    where: {
+      suspendedAt: null,
+      OR: [
+        { role: { in: ["AUPAIR", "PARENT"] } },
+        { email: { in: mgmtEmails, mode: "insensitive" } },
+      ],
+    },
+    select: {
+      id: true,
+      lastLoginAt: true,
+      lastActiveAt: true,
+      createdAt: true,
+    },
+    take: 2000,
+  });
+
+  let neverLoggedIn = 0;
+  let inactive3d = 0;
+  let inactive7d = 0;
+  let inactive14d = 0;
+  let inactive30d = 0;
+  for (const u of allForIdle) {
+    const sessionAt = latestSessionByUser.get(u.id) || null;
+    const resolved = resolveLastLogin({
+      lastLoginAt: u.lastLoginAt,
+      lastActiveAt: u.lastActiveAt,
+      sessionStartedAt: sessionAt,
+    });
+    if (!resolved.at) {
+      neverLoggedIn++;
+      if (u.createdAt < d3) inactive3d++;
+      if (u.createdAt < d7) inactive7d++;
+      if (u.createdAt < d14) inactive14d++;
+      if (u.createdAt < d30) inactive30d++;
+      continue;
+    }
+    if (resolved.at < d3) inactive3d++;
+    if (resolved.at < d7) inactive7d++;
+    if (resolved.at < d14) inactive14d++;
+    if (resolved.at < d30) inactive30d++;
+  }
 
   const durations = weekSessions
     .map((s) => sessionDurationSec(s))
@@ -323,21 +512,7 @@ export async function getLoginMonitoringStats(
         open: !s.endedAt,
       };
     }),
-    recentUsers: recentUsers.map((u) => {
-      const ref = u.lastLoginAt || null;
-      const daysSinceLogin = ref
-        ? Math.floor((now - ref.getTime()) / 86400000)
-        : null;
-      return {
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        lastLoginAt: u.lastLoginAt?.toISOString() || null,
-        lastActiveAt: u.lastActiveAt?.toISOString() || null,
-        loginCount: u.loginCount,
-        daysSinceLogin,
-      };
-    }),
+    recentUsers,
+    managementUsers,
   };
 }
