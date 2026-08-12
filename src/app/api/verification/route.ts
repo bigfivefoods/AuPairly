@@ -59,6 +59,18 @@ export async function POST(req: Request) {
 
   const isFullyVerified = await refreshUserVerifiedBadge(session.user.id);
 
+  if (!auto && verification.status === "PENDING") {
+    void import("@/lib/notify-management").then(({ notifyManagement }) =>
+      notifyManagement({
+        subject: `Verification pending: ${type}`,
+        title: "New verification to review",
+        body: `${session.user!.name} (${session.user!.email}) submitted ${type} for admin review.`,
+        href: "/admin",
+        ctaLabel: "Review queue",
+      })
+    );
+  }
+
   return NextResponse.json({
     verification,
     isFullyVerified,

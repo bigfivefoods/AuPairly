@@ -39,6 +39,16 @@ export async function POST(req: Request) {
       },
     });
 
+    void import("@/lib/notify-management").then(({ notifyManagement }) =>
+      notifyManagement({
+        subject: `Safety report: ${body.reason}`,
+        title: "New safety report",
+        body: `Reporter: ${session.user!.name || session.user!.id}\nTarget user id: ${body.targetId}\nReason: ${body.reason}\n${body.details?.trim() ? `Details: ${body.details.trim()}` : ""}`,
+        href: "/admin",
+        ctaLabel: "Review in admin",
+      })
+    );
+
     return NextResponse.json({ report }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) {

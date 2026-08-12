@@ -769,14 +769,15 @@ Open reports: ${s.openReports}
 Manage: ${manage}
 Admin: ${admin}
 `;
+  const first = managementFirstName(opts.toEmail);
   return sendEmail({
     to: opts.toEmail,
     subject: `AuPairly daily · ${s.signups24h} signup${s.signups24h === 1 ? "" : "s"} · ${s.pendingVerifications} verify · ${s.pendingReviews} reviews`,
-    text,
+    text: `Hi ${first},\n\n${text}`,
     html: wrapHtml(
       `Daily ops digest`,
       `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#44403c;line-height:1.7">
-        <p style="margin:0 0 12px">Automated AuPairly owner alert (last ~24 hours).</p>
+        <p style="margin:0 0 12px">Hi ${escapeHtml(first)} — automated AuPairly ops digest (last ~24 hours).</p>
         <ul style="padding-left:18px;margin:0 0 16px">
           <li><strong>${s.signups24h}</strong> new signups</li>
           <li><strong>${s.messages24h}</strong> messages · <strong>${s.applications24h}</strong> applications</li>
@@ -802,16 +803,59 @@ export async function sendOwnerSignupAlertEmail(opts: {
   const admin = `${site()}/manage`;
   const roleLabel =
     opts.role === "AUPAIR" ? "sitter" : opts.role === "PARENT" ? "host" : opts.role;
+  const first = managementFirstName(opts.toEmail);
   return sendEmail({
     to: opts.toEmail,
     subject: `New ${roleLabel}: ${opts.memberName}`,
-    text: `New AuPairly signup\n\nName: ${opts.memberName}\nEmail: ${opts.memberEmail}\nRole: ${roleLabel}\n\n${admin}\n`,
+    text: `Hi ${first},\n\nNew AuPairly signup\n\nName: ${opts.memberName}\nEmail: ${opts.memberEmail}\nRole: ${roleLabel}\n\n${admin}\n`,
     html: wrapHtml(
       `New ${escapeHtml(roleLabel)} signup`,
-      `<p style="line-height:1.6;color:#44403c"><strong>${escapeHtml(opts.memberName)}</strong> (${escapeHtml(opts.memberEmail)}) just registered as a <strong>${escapeHtml(roleLabel)}</strong>.</p>
+      `<p style="line-height:1.6;color:#44403c">Hi ${escapeHtml(first)},</p>
+       <p style="line-height:1.6;color:#44403c"><strong>${escapeHtml(opts.memberName)}</strong> (${escapeHtml(opts.memberEmail)}) just registered as a <strong>${escapeHtml(roleLabel)}</strong>.</p>
        <p style="margin-top:20px">${ctaButton(admin, "Open management")}</p>`
     ),
   });
+}
+
+/** Generic management / ops alert (signups already have a dedicated template). */
+export async function sendManagementAlertEmail(opts: {
+  toEmail: string;
+  subject: string;
+  title: string;
+  body: string;
+  href?: string;
+  ctaLabel?: string;
+}) {
+  const first = managementFirstName(opts.toEmail);
+  const href = opts.href
+    ? opts.href.startsWith("http")
+      ? opts.href
+      : `${site()}${opts.href.startsWith("/") ? "" : "/"}${opts.href}`
+    : `${site()}/admin`;
+  const cta = opts.ctaLabel || "Open admin";
+  const text = `Hi ${first},\n\n${opts.title}\n\n${opts.body}\n\n${href}\n`;
+  return sendEmail({
+    to: opts.toEmail,
+    subject: opts.subject.startsWith("[AuPairly]")
+      ? opts.subject
+      : `[AuPairly ops] ${opts.subject}`,
+    text,
+    html: wrapHtml(
+      escapeHtml(opts.title),
+      `<p style="line-height:1.6;color:#44403c">Hi ${escapeHtml(first)},</p>
+       <p style="line-height:1.6;color:#44403c;white-space:pre-wrap">${escapeHtml(opts.body)}</p>
+       <p style="margin-top:20px">${ctaButton(href, escapeHtml(cta))}</p>
+       <p style="margin-top:12px;font-size:12px;color:#78716c">You receive this because you are on the AuPairly management team.</p>`
+    ),
+  });
+}
+
+function managementFirstName(email: string): string {
+  const e = email.toLowerCase();
+  if (e.includes("rylee")) return "Rylee";
+  if (e.includes("craig")) return "Craig";
+  const local = e.split("@")[0] || "team";
+  return local.charAt(0).toUpperCase() + local.slice(1).split(/[._+]/)[0];
 }
 
 function escapeHtml(s: string) {
