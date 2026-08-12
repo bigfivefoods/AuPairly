@@ -32,26 +32,32 @@ export function AppChromeClient({
       <AppShell user={user} signOutAction={signOutAction}>
         <main
           id="main"
-          className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
+          className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0 print:pb-0"
         >
           {children}
         </main>
-        <MobileNav />
+        <div className="print:hidden">
+          <MobileNav />
+        </div>
       </AppShell>
     );
   }
 
   return (
     <>
-      <SiteNavbar user={user} signOutAction={signOutAction} />
+      <div className="print:hidden">
+        <SiteNavbar user={user} signOutAction={signOutAction} />
+      </div>
       <main
         id="main"
-        className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0"
+        className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0 print:pb-0"
       >
         {children}
       </main>
-      <FooterI18n />
-      <MobileNav />
+      <div className="print:hidden">
+        <FooterI18n />
+        <MobileNav />
+      </div>
     </>
   );
 }
