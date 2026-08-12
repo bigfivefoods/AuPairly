@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui";
 import { AdminVerificationQueue } from "@/components/admin-verification-queue";
 import { AdminUnsuspendButton } from "@/components/admin-unsuspend-button";
 import { AdminReviewQueue } from "@/components/admin-review-queue";
+import { OpsSliceDice } from "@/components/ops-slice-dice";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin" };
@@ -112,18 +113,27 @@ export default async function AdminPage() {
   const autoVerify = process.env.AUTO_VERIFY === "true";
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
         eyebrow="Ops"
         title="Admin console"
-        description="Review identity checks and safety reports. Production should keep AUTO_VERIFY=false."
+        description="Review identity checks and safety reports. Slice metrics below, then clear queues. Production should keep AUTO_VERIFY=false."
       />
 
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap gap-2">
         <Link href="/manage" className="btn-secondary">
           Full management stats →
         </Link>
+        <a href="/api/admin/export/users" className="btn-secondary">
+          Export users CSV
+        </a>
       </div>
+
+      <OpsSliceDice
+        defaultOpen
+        compact
+        title="Admin analytics — slice & dice"
+      />
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         {[
