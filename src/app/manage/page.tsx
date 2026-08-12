@@ -24,6 +24,7 @@ import { PageHeader, Card, Badge } from "@/components/ui";
 import { buildPageMetadata } from "@/lib/seo";
 import { isPrivyConfigured } from "@/lib/privy";
 import { isPaystackConfigured, paystackMode } from "@/lib/paystack";
+import { OpsSliceDice } from "@/components/ops-slice-dice";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPageMetadata({
@@ -348,6 +349,8 @@ export default async function ManagePage() {
           Dashboard
         </Link>
       </div>
+
+      <OpsSliceDice defaultOpen title="Management analytics — slice & dice" />
 
       {/* Signups hero */}
       <section className="mb-8">
