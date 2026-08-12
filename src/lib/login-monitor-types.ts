@@ -13,7 +13,25 @@ export function formatDuration(sec: number): string {
   return `${d}d ${h % 24}h`;
 }
 
+export type LoginUserRow = {
+  id: string | null;
+  name: string;
+  email: string;
+  role: string | null;
+  lastLoginAt: string | null;
+  lastActiveAt: string | null;
+  loginCount: number;
+  daysSinceLogin: number | null;
+  isManagement: boolean;
+  lastLoginSource: "login" | "session" | "activity" | "none";
+  isOnline?: boolean;
+  openSessionDurationSec?: number | null;
+  registered?: boolean;
+};
+
 export type LoginMonitoringStats = {
+  /** ISO timestamp when this snapshot was computed */
+  generatedAt: string;
   loginsToday: number;
   loginsWeek: number;
   loginsMonth: number;
@@ -39,33 +57,11 @@ export type LoginMonitoringStats = {
     durationSec: number;
     durationLabel: string;
     open: boolean;
+    isOnline?: boolean;
   }[];
-  recentUsers: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    /** Best-effort last login (lastLoginAt || session || lastActiveAt) */
-    lastLoginAt: string | null;
-    lastActiveAt: string | null;
-    loginCount: number;
-    daysSinceLogin: number | null;
-    isManagement: boolean;
-    /** How lastLoginAt was derived */
-    lastLoginSource: "login" | "session" | "activity" | "none";
-  }[];
-  /** Always listed: Craig, Rylee, Nicola, Clint, Bianca, … */
-  managementUsers: {
-    id: string | null;
-    name: string;
-    email: string;
-    role: string | null;
-    lastLoginAt: string | null;
-    lastActiveAt: string | null;
-    loginCount: number;
-    daysSinceLogin: number | null;
+  recentUsers: LoginUserRow[];
+  managementUsers: (LoginUserRow & {
     isManagement: true;
-    lastLoginSource: "login" | "session" | "activity" | "none";
     registered: boolean;
-  }[];
+  })[];
 };
