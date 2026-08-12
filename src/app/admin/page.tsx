@@ -124,6 +124,9 @@ export default async function AdminPage() {
         <Link href="/manage" className="btn-secondary">
           Full management stats →
         </Link>
+        <Link href="/manage/report" className="btn-secondary">
+          A4 report / PDF
+        </Link>
         <a href="/api/admin/export/users" className="btn-secondary">
           Export users CSV
         </a>

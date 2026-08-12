@@ -296,3 +296,55 @@ h3,
   background: #d6d3d1;
   border-radius: 999px;
 }
+
+/* ——— Management A4 landscape report (print / Save as PDF) ——— */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide app chrome leftovers */
+  .manage-report-toolbar,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Collapse layout chrome spacing */
+  #main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  .manage-report-root {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .manage-report-sheet {
+    width: 100% !important;
+    height: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+    overflow: hidden !important;
+  }
+
+  /* Prefer single page */
+  body {
+    overflow: hidden !important;
+  }
+}

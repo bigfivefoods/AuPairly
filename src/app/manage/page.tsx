@@ -336,6 +336,10 @@ export default async function ManagePage() {
           <Shield className="h-4 w-4" />
           Verification &amp; reports
         </Link>
+        <Link href="/manage/report" className="btn-secondary">
+          <Activity className="h-4 w-4" />
+          A4 report / PDF
+        </Link>
         <a href="/api/admin/export/users" className="btn-secondary">
           <Users className="h-4 w-4" />
           Export users CSV

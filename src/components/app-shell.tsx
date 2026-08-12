@@ -274,7 +274,7 @@ export function AppShell({
       }
     >
       {/* Full top navbar — primary destinations + account actions */}
-      <header className="sticky top-0 z-[100] border-b border-stone-200/80 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)]">
+      <header className="sticky top-0 z-[100] border-b border-stone-200/80 bg-[#faf8f5]/95 backdrop-blur-md pt-[env(safe-area-inset-top)] print:hidden">
         <div className="flex h-14 items-stretch sm:h-16">
           <div
             className={cn(
@@ -405,7 +405,7 @@ export function AppShell({
       <div className="flex min-h-0 min-w-0 flex-1">
         <aside
           className={cn(
-            "sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] hidden h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] shrink-0 flex-col overflow-hidden bg-gradient-to-b from-teal-800 via-teal-700 to-teal-900 text-white transition-[width] duration-200 ease-out sm:top-[calc(4rem+env(safe-area-inset-top,0px))] sm:h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] lg:flex"
+            "sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] hidden h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px))] shrink-0 flex-col overflow-hidden bg-gradient-to-b from-teal-800 via-teal-700 to-teal-900 text-white transition-[width] duration-200 ease-out sm:top-[calc(4rem+env(safe-area-inset-top,0px))] sm:h-[calc(100dvh-4rem-env(safe-area-inset-top,0px))] lg:flex print:hidden"
           )}
           style={{ width: sidebarW }}
           aria-label="Main navigation"
@@ -495,7 +495,7 @@ export function AppShell({
 
       {/* Mobile drawer — always full labels */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-[200] lg:hidden" role="dialog" aria-modal>
+        <div className="fixed inset-0 z-[200] lg:hidden print:hidden" role="dialog" aria-modal>
           <button
             type="button"
             className="absolute inset-0 bg-stone-900/50"
