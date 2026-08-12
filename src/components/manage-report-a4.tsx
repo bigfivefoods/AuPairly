@@ -5,6 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Download, Printer, ArrowLeft, FileText } from "lucide-react";
 import type { AnalyticsResult } from "@/lib/ops-analytics-types";
+import {
+  formatDuration,
+  type LoginMonitoringStats,
+} from "@/lib/login-monitor-types";
 import { BRAND } from "@/lib/brand";
 
 function zar(cents: number) {
@@ -103,10 +107,12 @@ function StackBars({
 
 export function ManageReportA4({
   data,
+  login,
   preparedBy,
   days,
 }: {
   data: AnalyticsResult;
+  login?: LoginMonitoringStats | null;
   preparedBy: string;
   days: number;
 }) {
@@ -241,7 +247,7 @@ export function ManageReportA4({
         </header>
 
         {/* KPI row */}
-        <section className="mb-2 grid shrink-0 grid-cols-8 gap-1.5">
+        <section className="mb-1.5 grid shrink-0 grid-cols-8 gap-1.5">
           {[
             { l: "Members", v: data.kpis.members, h: `+${data.kpis.membersInRange} new` },
             { l: "Sitters live", v: data.kpis.activeSitters, h: "Active listings" },
@@ -273,6 +279,76 @@ export function ManageReportA4({
             </div>
           ))}
         </section>
+
+        {/* Login monitoring strip */}
+        {login && (
+          <section className="mb-1.5 grid shrink-0 grid-cols-12 gap-1.5">
+            <div className="col-span-8 grid grid-cols-6 gap-1">
+              {[
+                {
+                  l: "Logins today",
+                  v: login.loginsToday,
+                  h: `${login.uniqueLoginsToday} unique`,
+                },
+                {
+                  l: "Logins 7d",
+                  v: login.loginsWeek,
+                  h: `${login.uniqueLoginsWeek} unique`,
+                },
+                { l: "Active now", v: login.activeNow, h: "≤15m heartbeat" },
+                {
+                  l: "Avg session",
+                  v: formatDuration(login.avgSessionSecWeek),
+                  h: `med ${formatDuration(login.medianSessionSecWeek)}`,
+                },
+                { l: "Idle ≥7d", v: login.inactive7d, h: "Re-engage pool" },
+                { l: "Idle ≥30d", v: login.inactive30d, h: "Win-back pool" },
+              ].map((k) => (
+                <div
+                  key={k.l}
+                  className="rounded-md border border-teal-100 bg-teal-50/40 px-1.5 py-1"
+                >
+                  <p className="text-[7.5px] font-semibold uppercase tracking-wide text-teal-800/70">
+                    {k.l}
+                  </p>
+                  <p className="text-[12px] font-bold tabular-nums text-stone-900">
+                    {k.v}
+                  </p>
+                  <p className="truncate text-[7.5px] text-stone-500">{k.h}</p>
+                </div>
+              ))}
+            </div>
+            <div className="col-span-4 rounded-md border border-stone-200 px-1.5 py-1">
+              <p className="mb-0.5 text-[8px] font-bold uppercase tracking-wide text-teal-800">
+                Last logins
+              </p>
+              <div className="space-y-0.5">
+                {login.recentUsers.slice(0, 4).map((u) => (
+                  <div
+                    key={u.id}
+                    className="flex items-center justify-between gap-1 text-[8px] leading-tight"
+                  >
+                    <span className="min-w-0 truncate font-medium text-stone-700">
+                      {u.name.split(" ")[0]} · {u.role === "AUPAIR" ? "S" : "H"}
+                    </span>
+                    <span className="shrink-0 tabular-nums text-stone-500">
+                      {u.lastLoginAt
+                        ? new Date(u.lastLoginAt).toLocaleDateString("en-ZA", {
+                            day: "numeric",
+                            month: "short",
+                          })
+                        : "never"}
+                      {u.daysSinceLogin != null ? ` · ${u.daysSinceLogin}d` : ""}
+                    </span>
+                  </div>
+                ))}
+                {login.recentUsers.length === 0 && (
+                  <p className="text-[8px] text-stone-400">No login data yet</p>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Main grid */}
         <div className="grid min-h-0 flex-1 grid-cols-12 gap-2">
@@ -454,7 +530,7 @@ export function ManageReportA4({
         <footer className="mt-1.5 flex shrink-0 items-center justify-between border-t border-stone-200 pt-1 text-[8px] text-stone-400">
           <span>
             Filters: suspended excluded · all roles/plans · {days}-day window · listing KPIs =
-            ACTIVE
+            ACTIVE · re-engage 3/7/14/30d idle
           </span>
           <span>
             {BRAND.name} management · page 1 of 1 · A4 landscape

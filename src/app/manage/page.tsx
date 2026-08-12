@@ -25,6 +25,8 @@ import { buildPageMetadata } from "@/lib/seo";
 import { isPrivyConfigured } from "@/lib/privy";
 import { isPaystackConfigured, paystackMode } from "@/lib/paystack";
 import { OpsSliceDice } from "@/components/ops-slice-dice";
+import { ManageLoginMonitor } from "@/components/manage-login-monitor";
+import { getLoginMonitoringStats } from "@/lib/login-sessions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPageMetadata({
@@ -323,6 +325,14 @@ export default async function ManagePage() {
     byPlan.map((p) => [p.plan || "FREE", p._count._all])
   ) as Record<string, number>;
 
+  let loginStats: Awaited<ReturnType<typeof getLoginMonitoringStats>> | null =
+    null;
+  try {
+    loginStats = await getLoginMonitoringStats({ recentLimit: 30 });
+  } catch (e) {
+    console.error("[manage] login stats", e);
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
@@ -355,6 +365,8 @@ export default async function ManagePage() {
       </div>
 
       <OpsSliceDice defaultOpen title="Management analytics — slice & dice" />
+
+      {loginStats ? <ManageLoginMonitor stats={loginStats} /> : null}
 
       {/* Signups hero */}
       <section className="mb-8">
