@@ -26,7 +26,9 @@ import { isPrivyConfigured } from "@/lib/privy";
 import { isPaystackConfigured, paystackMode } from "@/lib/paystack";
 import { OpsSliceDice } from "@/components/ops-slice-dice";
 import { ManageLoginMonitor } from "@/components/manage-login-monitor";
+import { ManageDensityTargets } from "@/components/manage-density-targets";
 import { getLoginMonitoringStats } from "@/lib/login-sessions";
+import { getDensityTargets } from "@/lib/city-density-ops";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPageMetadata({
@@ -333,6 +335,13 @@ export default async function ManagePage() {
     console.error("[manage] login stats", e);
   }
 
+  let density: Awaited<ReturnType<typeof getDensityTargets>> | null = null;
+  try {
+    density = await getDensityTargets(20);
+  } catch (e) {
+    console.error("[manage] density", e);
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
@@ -367,6 +376,14 @@ export default async function ManagePage() {
       <OpsSliceDice defaultOpen title="Management analytics — slice & dice" />
 
       {loginStats ? <ManageLoginMonitor stats={loginStats} /> : null}
+
+      {density ? (
+        <ManageDensityTargets
+          targets={density.targets}
+          metrosReady={density.metrosReady}
+          thinCount={density.thinCount}
+        />
+      ) : null}
 
       {/* Signups hero */}
       <section className="mb-8">

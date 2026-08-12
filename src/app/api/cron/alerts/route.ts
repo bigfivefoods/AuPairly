@@ -335,6 +335,57 @@ async function handle(req: Request) {
     console.error("[cron alerts] SLA", e);
   }
 
+  // Failed payment recovery emails (last 48h, not already notified)
+  let paymentRecovery = 0;
+  try {
+    const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const failed = await prisma.paymentTransaction.findMany({
+      where: {
+        status: "FAILED",
+        createdAt: { gte: since },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            emailPrefMessages: true,
+          },
+        },
+      },
+      take: 40,
+    });
+    const { sendPaymentFailedEmail } = await import("@/lib/email");
+    for (const tx of failed) {
+      if (!tx.user.email || tx.user.emailPrefMessages === "OFF") continue;
+      const already = await prisma.notification.findFirst({
+        where: {
+          userId: tx.userId,
+          title: "Payment incomplete",
+          createdAt: { gte: since },
+        },
+      });
+      if (already) continue;
+      await createNotification({
+        userId: tx.userId,
+        type: "BILLING",
+        title: "Payment incomplete",
+        body: `Your payment for ${tx.description} didn't complete. Retry on Pricing.`,
+        href: "/pricing",
+      }).catch(() => null);
+      void sendPaymentFailedEmail({
+        toEmail: tx.user.email,
+        toName: tx.user.name || "there",
+        description: tx.description,
+        amountLabel: `R${(tx.amountCents / 100).toFixed(0)}`,
+      }).catch(() => null);
+      paymentRecovery++;
+    }
+  } catch (e) {
+    console.error("[cron alerts] payment recovery", e);
+  }
+
   // Cron health — alert if sibling jobs stale >26h
   let cronHealthAlerts = 0;
   try {
@@ -419,6 +470,7 @@ async function handle(req: Request) {
     reviewEmails,
     ownerDigests,
     slaAlerts,
+    paymentRecovery,
     cronHealthAlerts,
     dailyDigests,
   };

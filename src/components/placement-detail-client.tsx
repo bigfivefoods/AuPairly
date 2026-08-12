@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Badge, Button, Card, Input, Label, Select, Textarea } from "@/components/ui";
 import { PLACEMENT_LABELS, PLACEMENT_STATUSES } from "@/lib/placement-constants";
@@ -431,12 +432,39 @@ export function PlacementDetailClient({ id }: { id: string }) {
         </Button>
       </Card>
 
+      {(p.status === "INTERESTED" || p.status === "INTERVIEW") && (
+        <Card className="border-teal-200 bg-teal-50/40">
+          <h3 className="font-display text-lg font-semibold text-teal-950">
+            Next: interview
+          </h3>
+          <p className="mt-2 text-sm text-teal-900/80">
+            Propose a Google Meet time from chat, then move this card to Interview / Trial /
+            Placed. Success fee is due when status is Placed.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => patch({ status: "INTERVIEW" })}
+            >
+              Mark interview stage
+            </Button>
+            <Link
+              href="/messages"
+              className="btn-secondary inline-flex items-center text-sm font-semibold"
+            >
+              Open messages
+            </Link>
+          </div>
+        </Card>
+      )}
+
       {(p.status === "PLACED" || p.status === "COMPLETED") && (
-        <Card>
+        <Card className={p.successFeePaidAt ? "" : "border-amber-300 bg-amber-50/40"}>
           <h3 className="font-display text-lg font-semibold">Placement success fee</h3>
-          <p className="mt-2 text-sm text-stone-500">
-            R{(p.successFeeCents / 100).toFixed(0)} when both sides confirm a placement — powers
-            the marketplace (Paystack).
+          <p className="mt-2 text-sm text-stone-600">
+            R{(p.successFeeCents / 100).toFixed(0)} when placement is confirmed — paid via
+            Paystack (host). Completes the marketplace success path.
           </p>
           {p.successFeePaidAt ? (
             <Badge variant="success" className="mt-4">
@@ -445,7 +473,7 @@ export function PlacementDetailClient({ id }: { id: string }) {
           ) : (
             <Button className="mt-4" disabled={busy} onClick={paySuccessFee}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-              Pay success fee
+              Pay success fee R{(p.successFeeCents / 100).toFixed(0)}
             </Button>
           )}
         </Card>
