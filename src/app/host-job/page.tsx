@@ -18,17 +18,17 @@ export default async function HostJobPage() {
       <PageHeader
         eyebrow="Hosts"
         title="Post a job in minutes"
-        description="Capture what the job entails, dates, live-in/out, pay, and visa support — then polish photos on your full listing."
+        description="City, job, dates, and pay — go live free. Thin cities get a founding host featured boost automatically."
       />
       <HostJobWizard />
       <Card className="mt-6 text-sm text-stone-500">
-        Need house swap instead? Enable{" "}
+        After you publish: message 3 sitters, then{" "}
+        <Link href="/invite" className="font-semibold text-teal-700 hover:underline">
+          invite locals
+        </Link>
+        . House swap? Enable it on{" "}
         <Link href="/profile/edit" className="font-semibold text-teal-700 hover:underline">
-          House swap
-        </Link>{" "}
-        on your listing, or open{" "}
-        <Link href="/house-swap" className="font-semibold text-teal-700 hover:underline">
-          /house-swap
+          your listing
         </Link>
         .
       </Card>

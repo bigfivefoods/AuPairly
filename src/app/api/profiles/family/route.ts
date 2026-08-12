@@ -293,6 +293,14 @@ export async function PUT(req: Request) {
         href: "/discover",
       }).catch(() => null)
     );
+    void import("@/lib/founding-boost").then(({ maybeGrantFoundingBoost }) =>
+      maybeGrantFoundingBoost({
+        userId: session.user!.id,
+        role: "PARENT",
+        city: profile.city,
+        profileId: profile.id,
+      })
+    );
   }
 
   return NextResponse.json({ profile });

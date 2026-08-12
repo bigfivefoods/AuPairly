@@ -25,9 +25,10 @@ export function InviteCard({
     () => `${site}/register?ref=${encodeURIComponent(refCode)}`,
     [site, refCode]
   );
-  const shareText = `${userName.split(" ")[0]} invited you to ${BRAND.name} — ${BRAND.taglineShort}. Join free:`;
+  const shareText = `${userName.split(" ")[0]} invited you to ${BRAND.name} — free care marketplace for family, home & pets. Join:`;
   const goal = 3;
   const progress = Math.min(goal, referralCount);
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${inviteUrl}`)}`;
 
   async function copy() {
     try {
@@ -47,7 +48,7 @@ export function InviteCard({
   return (
     <Card className="mb-8 border-2 border-teal-200 bg-gradient-to-r from-teal-50 to-white shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-        Grow your city · free · 3-day feature reward
+        Dual reward · you get 3-day feature · they get welcome boost
       </p>
       <h3 className="mt-1 font-display text-lg font-semibold text-stone-900">
         Invite 3 people near you
@@ -67,10 +68,10 @@ export function InviteCard({
         </div>
       </div>
       <p className="mt-2 text-sm text-stone-500">
-        AuPairly works when both hosts and sitters join. Share your link — more locals =
-        better matches. When someone joins with your link, your listing gets a{" "}
-        <strong className="font-semibold text-teal-800">3-day Featured boost</strong>{" "}
-        automatically.
+        Marketplaces win when both sides join. Share in school / parent WhatsApp groups.
+        Each signup with your link: you get a{" "}
+        <strong className="font-semibold text-teal-800">3-day Featured boost</strong>; they
+        get a welcome feature to list faster.
       </p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
         <p className="min-w-0 flex-1 break-all rounded-xl border border-teal-100 bg-white px-3 py-2 font-mono text-xs text-teal-800">
@@ -87,6 +88,14 @@ export function InviteCard({
             </>
           )}
         </Button>
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noreferrer"
+          className="btn-primary inline-flex shrink-0 items-center justify-center gap-1 !bg-emerald-600 hover:!bg-emerald-700"
+        >
+          WhatsApp
+        </a>
       </div>
       <div className="mt-4">
         <ShareButtons
