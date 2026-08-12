@@ -497,6 +497,7 @@ export default async function ManagePage() {
             <Flag ok={system.cron} label="CRON_SECRET" />
             <Flag ok={!system.autoVerify} label="AUTO_VERIFY off (prod safe)" warn={system.autoVerify} />
           </ul>
+          {/* Cron last-run + ghost towns injected below system card via extra sections */}
           {system.siteUrl && (
             <p className="mt-3 text-xs text-stone-500">
               Site URL: <span className="font-medium text-stone-700">{system.siteUrl}</span>
@@ -519,6 +520,8 @@ export default async function ManagePage() {
           </div>
         </Card>
       </section>
+
+      <OpsExtras />
 
       {/* Recent signups table */}
       <section className="mb-8">
@@ -703,6 +706,71 @@ function Row({ label, value }: { label: string; value: string | number }) {
       </dt>
       <dd className="mt-0.5 font-semibold text-stone-900">{value}</dd>
     </div>
+  );
+}
+
+async function OpsExtras() {
+  let ghost: Awaited<ReturnType<typeof import("@/lib/city-liquidity").getGhostTownCities>> =
+    [];
+  let crons: Awaited<ReturnType<typeof import("@/lib/cron-run").listCronRuns>> = [];
+  try {
+    const { getGhostTownCities } = await import("@/lib/city-liquidity");
+    const { listCronRuns } = await import("@/lib/cron-run");
+    [ghost, crons] = await Promise.all([getGhostTownCities(12), listCronRuns()]);
+  } catch {
+    /* schema may lag */
+  }
+
+  return (
+    <section className="mb-8 grid gap-4 lg:grid-cols-2">
+      <Card>
+        <h3 className="font-display text-base font-semibold">Ghost towns (recruit here)</h3>
+        <p className="mt-1 text-xs text-stone-500">
+          Thin supply and/or saved-search demand — prioritise invites and local outreach.
+        </p>
+        {ghost.length === 0 ? (
+          <p className="mt-3 text-sm text-stone-400">No thin cities detected yet.</p>
+        ) : (
+          <ul className="mt-3 max-h-64 space-y-1.5 overflow-y-auto text-sm">
+            {ghost.map((g) => (
+              <li
+                key={g.city}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 px-2.5 py-1.5"
+              >
+                <span className="font-medium text-stone-800">{g.city}</span>
+                <span className="text-xs text-stone-500">
+                  {g.sitters}s / {g.hosts}h
+                  {g.savedSearchHits > 0 ? ` · ${g.savedSearchHits} alerts` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      <Card>
+        <h3 className="font-display text-base font-semibold">Cron last runs</h3>
+        <p className="mt-1 text-xs text-stone-500">
+          Daily alerts, activation, etc. Empty until jobs run after deploy.
+        </p>
+        {crons.length === 0 ? (
+          <p className="mt-3 text-sm text-stone-400">No cron runs recorded yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-1.5 text-sm">
+            {crons.map((c) => (
+              <li
+                key={c.job}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-100 px-2.5 py-1.5"
+              >
+                <span className="font-medium text-stone-800">{c.job}</span>
+                <span className="text-xs text-stone-500">
+                  {c.ok ? "OK" : "FAIL"} · {new Date(c.lastRunAt).toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+    </section>
   );
 }
 

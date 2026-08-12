@@ -45,7 +45,7 @@ export default async function DashboardPage({
   const sp = await searchParams;
   const justLive = sp.live === "1";
 
-  const [aupair, family, verifications, conversations, refCount, docCount, meUser] =
+  const [aupair, family, verifications, conversations, refCount, docCount, meUser, referralCount] =
     await Promise.all([
       user.role === "AUPAIR"
         ? prisma.auPairProfile.findUnique({ where: { userId: user.id } })
@@ -72,6 +72,7 @@ export default async function DashboardPage({
           image: true,
         },
       }),
+      prisma.user.count({ where: { referredById: user.id } }),
     ]);
 
   const profile = aupair || family;
@@ -521,7 +522,11 @@ export default async function DashboardPage({
       </div>
 
       {/* Growth before payments matter: invite always high on hub */}
-      <InviteCard userId={user.id} userName={user.name} />
+      <InviteCard
+        userId={user.id}
+        userName={user.name}
+        referralCount={referralCount}
+      />
       <ReviewPromptCard />
 
       <div className="grid gap-6 lg:grid-cols-3">

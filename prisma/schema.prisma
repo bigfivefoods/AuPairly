@@ -151,6 +151,21 @@ model User {
   /// Admin moderation — blocks login/messaging when set
   suspendedAt         DateTime?
   suspendReason       String?
+
+  /// Email preference for transactional alerts: INSTANT | DAILY | OFF
+  emailPrefMessages   String   @default("INSTANT")
+  /// Opt-in WhatsApp-style phone alerts (uses phone field when true)
+  whatsappAlerts      Boolean  @default(false)
+}
+
+/// Last successful cron runs (ops health on /manage)
+model CronRun {
+  id        String   @id @default(cuid())
+  job       String   @unique // alerts | activation | match-digest | expire-plans
+  lastRunAt DateTime @default(now())
+  ok        Boolean  @default(true)
+  meta      String?  // optional JSON summary
+  updatedAt DateTime @updatedAt
 }
 
 model AuPairProfile {

@@ -110,7 +110,15 @@ export async function POST(
 
   const peer =
     conversation.userA.role === "AUPAIR" && conversation.userB.role === "AUPAIR";
-  if (!peer) {
+  const otherIdEarly =
+    conversation.userAId === session.user.id
+      ? conversation.userBId
+      : conversation.userAId;
+  const otherMessaged = await prisma.message.count({
+    where: { conversationId: id, senderId: otherIdEarly },
+  });
+  const replyFree = otherMessaged > 0;
+  if (!peer && !replyFree) {
     const limit = await checkAndConsume(session.user.id, "MESSAGE");
     if (!limit.ok) {
       // Best-effort upgrade nudge email (throttled via notification title)
@@ -205,7 +213,7 @@ export async function POST(
     data: { lastMessageAt: new Date() },
   });
 
-  // First-ever message: in-app safety tip (once)
+  // First-ever message: in-app safety tip + funnel (once)
   if (priorSent === 0) {
     void createNotification({
       userId: session.user.id,
@@ -214,6 +222,9 @@ export async function POST(
       body: "Great start. Keep chats on AuPairly until you trust them, and meet first in a public place.",
       href: "/safety",
     }).catch(() => null);
+    void import("@/lib/funnel").then(({ trackFunnel }) =>
+      trackFunnel("first_message", { conversationId: id })
+    );
   }
 
   const otherId =
@@ -260,7 +271,12 @@ export async function POST(
 
   const other = await prisma.user.findUnique({
     where: { id: otherId },
-    select: { id: true, name: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      emailPrefMessages: true,
+    },
   });
 
   if (other) {
@@ -271,13 +287,15 @@ export async function POST(
       body: messageBody.slice(0, 160),
       href: `/messages/${id}`,
     });
-    void sendNewMessageEmail({
-      toEmail: other.email,
-      toName: other.name,
-      fromName: session.user.name,
-      preview: messageBody,
-      conversationId: id,
-    }).catch((e) => console.error("[email] message", e));
+    if (other.emailPrefMessages !== "OFF") {
+      void sendNewMessageEmail({
+        toEmail: other.email,
+        toName: other.name,
+        fromName: session.user.name,
+        preview: messageBody,
+        conversationId: id,
+      }).catch((e) => console.error("[email] message", e));
+    }
   }
 
   return NextResponse.json({ message }, { status: 201 });

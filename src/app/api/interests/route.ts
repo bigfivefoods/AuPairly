@@ -75,13 +75,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Parents apply to au pairs; au pairs apply to parents
+    // Parents ↔ sitters; hosts may also interest other hosts (house swap)
     const fromRole = session.user.role;
-    if (fromRole === "PARENT" && toUser.role !== "AUPAIR") {
-      return NextResponse.json({ error: "Parents can only apply to au pairs" }, { status: 400 });
+    const hostToHost = fromRole === "PARENT" && toUser.role === "PARENT";
+    if (fromRole === "PARENT" && toUser.role !== "AUPAIR" && !hostToHost) {
+      return NextResponse.json(
+        { error: "Hosts can message sitters or other hosts (house swap)" },
+        { status: 400 }
+      );
     }
     if (fromRole === "AUPAIR" && toUser.role !== "PARENT") {
-      return NextResponse.json({ error: "Au pairs can only apply to families" }, { status: 400 });
+      return NextResponse.json({ error: "Sitters can only apply to host families" }, { status: 400 });
     }
 
     const limit = await checkAndConsume(session.user.id, "INTEREST");
@@ -133,6 +137,15 @@ export async function POST(req: Request) {
       message: body.message,
       interestId: interest.id,
     }).catch((e) => console.error("[email] interest", e));
+
+    if (hostToHost) {
+      void import("@/lib/funnel").then(({ trackFunnel }) =>
+        trackFunnel("house_swap_interest", {
+          toUserId: body.toUserId,
+          interestId: interest.id,
+        })
+      );
+    }
 
     return NextResponse.json({ interest }, { status: 201 });
   } catch (err) {

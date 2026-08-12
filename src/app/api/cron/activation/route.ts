@@ -14,6 +14,7 @@ import {
   sendCompleteProfileEmail,
 } from "@/lib/email";
 import { computeCompleteness } from "@/lib/completeness";
+import { recordCronRun } from "@/lib/cron-run";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -248,11 +249,10 @@ async function handle(req: Request) {
   const day1 = await handleDay1();
   const day3 = await handleDay3CompleteProfile();
 
-  return NextResponse.json({
-    ok: true,
-    day1,
-    day3,
-  });
+  const summary = { ok: true, day1, day3 };
+  void recordCronRun("activation", { ok: true, meta: summary as unknown as Record<string, unknown> });
+
+  return NextResponse.json(summary);
 }
 
 export async function GET(req: Request) {

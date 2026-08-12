@@ -9,9 +9,12 @@ import { Button, Card } from "@/components/ui";
 export function InviteCard({
   userId,
   userName,
+  referralCount = 0,
 }: {
   userId: string;
   userName: string;
+  /** How many people already joined with this invite */
+  referralCount?: number;
 }) {
   const [copied, setCopied] = useState(false);
   const site = (
@@ -23,12 +26,19 @@ export function InviteCard({
     [site, refCode]
   );
   const shareText = `${userName.split(" ")[0]} invited you to ${BRAND.name} — ${BRAND.taglineShort}. Join free:`;
+  const goal = 3;
+  const progress = Math.min(goal, referralCount);
 
   async function copy() {
     try {
       await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      void fetch("/api/funnel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: "invite_copy" }),
+      }).catch(() => null);
     } catch {
       /* ignore */
     }
@@ -42,7 +52,21 @@ export function InviteCard({
       <h3 className="mt-1 font-display text-lg font-semibold text-stone-900">
         Invite 3 people near you
       </h3>
-      <p className="mt-1 text-sm text-stone-500">
+      <div className="mt-2">
+        <div className="flex items-center justify-between text-xs font-semibold text-teal-900">
+          <span>
+            {progress} of {goal} joined with your link
+          </span>
+          <span>{referralCount} total referrals</span>
+        </div>
+        <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-teal-100">
+          <div
+            className="h-full rounded-full bg-teal-600 transition-all"
+            style={{ width: `${(progress / goal) * 100}%` }}
+          />
+        </div>
+      </div>
+      <p className="mt-2 text-sm text-stone-500">
         AuPairly works when both hosts and sitters join. Share your link — more locals =
         better matches. When someone joins with your link, your listing gets a{" "}
         <strong className="font-semibold text-teal-800">3-day Featured boost</strong>{" "}

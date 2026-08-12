@@ -195,6 +195,20 @@ export async function PUT(req: Request) {
         })
       )
       .catch((e) => console.error("[waitlist-notify aupair]", e));
+    void import("@/lib/city-liquidity")
+      .then(({ notifyCityOfNewListing }) =>
+        notifyCityOfNewListing({
+          city: profile.city!,
+          country: profile.country,
+          rolePublished: "AUPAIR",
+          publisherUserId: session.user!.id,
+          publisherName: session.user!.name || "A sitter",
+        })
+      )
+      .catch((e) => console.error("[city-liquidity aupair]", e));
+    void import("@/lib/funnel").then(({ trackFunnel }) =>
+      trackFunnel("publish_listing", { role: "AUPAIR", city: profile.city })
+    );
   }
 
   return NextResponse.json({ profile });

@@ -71,6 +71,12 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         match: ["/profile"],
       },
       {
+        href: "/host-job",
+        label: "Post a job",
+        match: ["/host-job"],
+        roles: ["PARENT"],
+      },
+      {
         href: "/availability",
         label: "Availability",
         match: ["/availability"],

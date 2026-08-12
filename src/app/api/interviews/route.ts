@@ -42,6 +42,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Auto Meet-style link if none provided (host can replace with real Meet later)
+  const meetingUrl =
+    (body.meetingUrl as string)?.trim() ||
+    `https://meet.google.com/new`;
+
   const proposal = await prisma.interviewProposal.create({
     data: {
       conversationId,
@@ -49,7 +54,7 @@ export async function POST(req: Request) {
       proposedAt,
       durationMin,
       note: body.note || null,
-      meetingUrl: body.meetingUrl || null,
+      meetingUrl,
       status: "PENDING",
     },
   });
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
     when: proposedAt,
     durationMin,
     note: body.note,
-    meetingUrl: body.meetingUrl,
+    meetingUrl,
   });
 
   await prisma.message.create({

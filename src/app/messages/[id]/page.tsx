@@ -67,6 +67,22 @@ export default async function ConversationPage({
   const theirLangs = parseLangs(theirProfile?.languages);
   const shared = theirLangs.filter((l) => myLangs.has(l.toLowerCase()));
 
+  const parseServices = (s?: string | null) => {
+    try {
+      return JSON.parse(s || "[]") as string[];
+    } catch {
+      return [];
+    }
+  };
+  // Prefer their listing services, then mine (for host→sitter / sitter→host icebreakers)
+  const theirServices = parseServices(
+    (theirProfile as { services?: string | null } | null)?.services
+  );
+  const myServices = parseServices(
+    (myProfile as { services?: string | null } | null)?.services
+  );
+  const service = theirServices[0] || myServices[0] || null;
+
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div className="mb-3 flex min-w-0 items-center gap-2 sm:mb-4 sm:gap-3">
@@ -98,6 +114,7 @@ export default async function ConversationPage({
         city={theirProfile?.city}
         myCity={myProfile?.city}
         sharedLanguages={shared}
+        service={service}
         initialMessages={conversation.messages.map((m) => ({
           id: m.id,
           body: m.body,

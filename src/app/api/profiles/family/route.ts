@@ -238,6 +238,23 @@ export async function PUT(req: Request) {
         })
       )
       .catch((e) => console.error("[waitlist-notify family]", e));
+    void import("@/lib/city-liquidity")
+      .then(({ notifyCityOfNewListing }) =>
+        notifyCityOfNewListing({
+          city: profile.city!,
+          country: profile.country,
+          rolePublished: "PARENT",
+          publisherUserId: session.user!.id,
+          publisherName: session.user!.name || "A host",
+        })
+      )
+      .catch((e) => console.error("[city-liquidity family]", e));
+    void import("@/lib/funnel").then(({ trackFunnel }) =>
+      trackFunnel("publish_listing", {
+        role: "PARENT",
+        city: profile.city,
+      })
+    );
   }
 
   return NextResponse.json({ profile });

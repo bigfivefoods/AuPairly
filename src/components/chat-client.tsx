@@ -27,6 +27,7 @@ export function ChatClient({
   city,
   myCity,
   sharedLanguages,
+  service,
 }: {
   conversationId: string;
   currentUserId: string;
@@ -38,6 +39,8 @@ export function ChatClient({
   /** Your profile city (for sitters introducing themselves) */
   myCity?: string | null;
   sharedLanguages?: string[];
+  /** Primary service focus for tailored icebreakers */
+  service?: string | null;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
@@ -58,6 +61,7 @@ export function ChatClient({
     city,
     myCity,
     sharedLanguages,
+    service,
   });
 
   useEffect(() => {

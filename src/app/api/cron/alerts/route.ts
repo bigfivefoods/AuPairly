@@ -308,7 +308,34 @@ async function handle(req: Request) {
     console.error("[cron alerts] owner digest block", e);
   }
 
-  return NextResponse.json({
+  // Queue SLA — escalate old verifications / reviews to management
+  let slaAlerts = 0;
+  try {
+    const stale = new Date(Date.now() - 36 * 60 * 60 * 1000);
+    const [staleV, staleR] = await Promise.all([
+      prisma.verification.count({
+        where: { status: "PENDING", createdAt: { lte: stale } },
+      }),
+      prisma.review.count({
+        where: { moderationStatus: "PENDING", createdAt: { lte: stale } },
+      }),
+    ]);
+    if (staleV > 0 || staleR > 0) {
+      const { notifyManagement } = await import("@/lib/notify-management");
+      await notifyManagement({
+        subject: `Queue SLA: ${staleV} verifications · ${staleR} reviews`,
+        title: "Queues need attention (36h+)",
+        body: `${staleV} verification(s) and ${staleR} review(s) older than 36 hours are still pending.`,
+        href: "/admin",
+        ctaLabel: "Clear queues",
+      });
+      slaAlerts++;
+    }
+  } catch (e) {
+    console.error("[cron alerts] SLA", e);
+  }
+
+  const summary = {
     ok: true,
     searchAlerts,
     searchEmails,
@@ -317,7 +344,14 @@ async function handle(req: Request) {
     reviewNudges,
     reviewEmails,
     ownerDigests,
-  });
+    slaAlerts,
+  };
+
+  void import("@/lib/cron-run").then(({ recordCronRun }) =>
+    recordCronRun("alerts", { ok: true, meta: summary })
+  );
+
+  return NextResponse.json(summary);
 }
 
 export async function GET(req: Request) {

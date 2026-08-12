@@ -109,6 +109,7 @@ export default async function AuPairDetailPage({
           avgResponseMinutes: true,
           safetyScore: true,
           videoIntroUrl: true,
+          placementVerified: true,
         },
       },
     },
@@ -150,7 +151,7 @@ export default async function AuPairDetailPage({
 
   const isPeerViewer = session?.user?.role === "AUPAIR" && !isOwn;
 
-  const [reviews, conversation, myReview, myInterest, myPeerConnect] =
+  const [reviews, conversation, myReview, myInterest, myPeerConnect, refCount] =
     await Promise.all([
       prisma.review.findMany({
         where: { targetId: profile.userId },
@@ -207,6 +208,9 @@ export default async function AuPairDetailPage({
             },
           })
         : null,
+      prisma.referenceRequest.count({
+        where: { subjectId: profile.userId, status: "SUBMITTED" },
+      }),
     ]);
 
   const canReview = Boolean(
@@ -307,6 +311,9 @@ export default async function AuPairDetailPage({
                       safetyScore={profile.user.safetyScore}
                       rating={profile.rating}
                       reviewCount={profile.reviewCount}
+                      hasVideo={Boolean(profile.user.videoIntroUrl)}
+                      placementVerified={Boolean(profile.user.placementVerified)}
+                      hasReferences={refCount > 0 || profile.reviewCount > 0}
                     />
                     {profile.workRights && (
                       <p className="mt-1 text-xs text-stone-500">

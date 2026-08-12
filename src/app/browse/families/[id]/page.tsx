@@ -26,6 +26,7 @@ import { BlockUserButton } from "@/components/block-user-button";
 import { TrustStrip } from "@/components/trust-strip";
 import { JsonLd } from "@/components/json-ld";
 import { formatLocation, parseJsonArray } from "@/lib/utils";
+import { responseTimeLabel } from "@/lib/completeness";
 import { ScheduleDisplay } from "@/components/schedule-display";
 import { format } from "date-fns";
 import { isReviewPublic } from "@/lib/reviews";
@@ -92,7 +93,19 @@ export default async function FamilyDetailPage({
 
   const profile = await prisma.familyProfile.findUnique({
     where: { id },
-    include: { user: { select: { id: true, name: true, image: true } } },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          avgResponseMinutes: true,
+          safetyScore: true,
+          videoIntroUrl: true,
+          placementVerified: true,
+        },
+      },
+    },
   });
 
   if (!profile || (profile.status !== "ACTIVE" && profile.userId !== session?.user?.id)) {
@@ -129,6 +142,7 @@ export default async function FamilyDetailPage({
   const photos = parseJsonArray(profile.photos);
   const isOwn = session?.user?.id === profile.userId;
   const displayName = profile.familyName || profile.user.name;
+  const replyLabel = responseTimeLabel(profile.user.avgResponseMinutes);
 
   const [reviews, conversation, myReview, myInterest] = await Promise.all([
     prisma.review.findMany({
@@ -210,6 +224,20 @@ export default async function FamilyDetailPage({
                       {profile.isVerified && <VerifiedBadge />}
                     </div>
                     <p className="mt-1 text-stone-500">{profile.headline}</p>
+                    <TrustStrip
+                      className="mt-2"
+                      isVerified={profile.isVerified}
+                      responseLabel={replyLabel}
+                      safetyScore={profile.user.safetyScore}
+                      rating={profile.rating}
+                      reviewCount={profile.reviewCount}
+                      hasVideo={Boolean(profile.user.videoIntroUrl)}
+                      placementVerified={Boolean(profile.user.placementVerified)}
+                      isUrgent={Boolean(
+                        (profile as { urgentNeed?: boolean | null }).urgentNeed
+                      )}
+                      hasReferences={profile.reviewCount > 0}
+                    />
                   </div>
                 </div>
                 {profile.rating > 0 && (

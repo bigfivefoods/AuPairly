@@ -157,6 +157,12 @@ export async function POST(req: Request) {
   const targetType = target.role === "AUPAIR" ? "AUPAIR" : "FAMILY";
   const targetProfileId = target.aupairProfile?.id || target.familyProfile?.id || null;
 
+  const existing = await prisma.shortlistItem.findUnique({
+    where: {
+      userId_targetUserId: { userId: session.user.id, targetUserId },
+    },
+  });
+
   const item = await prisma.shortlistItem.upsert({
     where: {
       userId_targetUserId: { userId: session.user.id, targetUserId },
@@ -172,6 +178,30 @@ export async function POST(req: Request) {
       notes: body.notes !== undefined ? body.notes : undefined,
     },
   });
+
+  // First-time shortlist: safety tip email + funnel
+  if (!existing) {
+    void import("@/lib/funnel").then(({ trackFunnel }) =>
+      trackFunnel("shortlist", { targetUserId })
+    );
+    const me = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { email: true, name: true, emailPrefMessages: true },
+    });
+    if (me?.email && me.emailPrefMessages !== "OFF") {
+      const site = (
+        process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"
+      ).replace(/\/$/, "");
+      const first = (me.name || "there").split(" ")[0];
+      const { sendEmail } = await import("@/lib/email");
+      void sendEmail({
+        to: me.email,
+        subject: "Shortlisted — safety tips before you share numbers",
+        text: `Hi ${first},\n\nYou've shortlisted ${target.name}. Phone numbers can unlock at this stage.\n\nStay safe:\n• Meet first in a public place\n• Never send money or bank details off-platform\n• Keep early logistics on AuPairly when possible\n\nSafety: ${site}/safety\n`,
+        html: `<p>Hi ${first},</p><p>You've shortlisted <strong>${target.name}</strong>. Contact details may unlock now.</p><ul><li>Meet first in a public place</li><li>Never send money or bank details off-platform</li><li>Keep early logistics on AuPairly when possible</li></ul><p><a href="${site}/safety">Safety tips</a></p>`,
+      }).catch(() => null);
+    }
+  }
 
   return NextResponse.json({ ok: true, item });
 }

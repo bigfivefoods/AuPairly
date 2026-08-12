@@ -9,9 +9,12 @@ export const metadata = { title: "Invite friends · grow your city" };
 
 export default async function InvitePage() {
   const user = await requireUser();
+  const { prisma } = await import("@/lib/prisma");
   let top: Awaited<ReturnType<typeof topCitiesByDensity>> = [];
+  let referralCount = 0;
   try {
     top = await topCitiesByDensity(8);
+    referralCount = await prisma.user.count({ where: { referredById: user.id } });
   } catch {
     top = [];
   }
@@ -24,7 +27,11 @@ export default async function InvitePage() {
         description="AuPairly works when both hosts and sitters join the same city. Share your link — when someone registers with it, your listing gets a free 3-day Featured boost."
       />
 
-      <InviteCard userId={user.id} userName={user.name} />
+      <InviteCard
+        userId={user.id}
+        userName={user.name}
+        referralCount={referralCount}
+      />
 
       <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <h2 className="font-display text-lg font-semibold text-stone-900">
