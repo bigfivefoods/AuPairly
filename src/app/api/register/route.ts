@@ -160,6 +160,10 @@ export async function POST(req: Request) {
       role: user.role,
     }).catch((e) => console.error("[email] welcome", e));
 
+    void import("@/lib/funnel").then(({ trackFunnel }) =>
+      trackFunnel("signup", { userId: user.id, role: user.role })
+    );
+
     // Instant management alerts (Craig, Rylee, + MANAGEMENT_EMAILS)
     try {
       const { getManagementEmails } = await import("@/lib/management");

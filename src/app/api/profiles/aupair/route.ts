@@ -26,6 +26,35 @@ export async function PUT(req: Request) {
 
   const body = await req.json();
 
+  // Completeness gate before publishing ACTIVE
+  if (body.status === "ACTIVE") {
+    const { publishGateForUser } = await import("@/lib/publish-gate");
+    const gate = await publishGateForUser(session.user.id, "AUPAIR", {
+      headline: body.headline,
+      bio: body.bio,
+      city: body.city,
+      country: body.country,
+      languages: Array.isArray(body.languages)
+        ? JSON.stringify(body.languages)
+        : body.languages,
+      services: Array.isArray(body.services)
+        ? JSON.stringify(body.services)
+        : body.services,
+      status: "ACTIVE",
+    });
+    if (!gate.ok) {
+      return NextResponse.json(
+        {
+          error: gate.reason,
+          publishBlocked: true,
+          blockers: gate.blockers,
+          percent: gate.percent,
+        },
+        { status: 400 }
+      );
+    }
+  }
+
   const profile = await prisma.auPairProfile.upsert({
     where: { userId: session.user.id },
     create: {
@@ -207,7 +236,21 @@ export async function PUT(req: Request) {
       )
       .catch((e) => console.error("[city-liquidity aupair]", e));
     void import("@/lib/funnel").then(({ trackFunnel }) =>
-      trackFunnel("publish_listing", { role: "AUPAIR", city: profile.city })
+      trackFunnel("publish_listing", {
+        role: "AUPAIR",
+        city: profile.city,
+        userId: session.user!.id,
+      })
+    );
+    // Post-publish coach: message 3 people
+    void import("@/lib/notifications").then(({ createNotification }) =>
+      createNotification({
+        userId: session.user!.id,
+        type: "SYSTEM",
+        title: "Listing live — next: message 3 hosts",
+        body: "Profiles that message within 48 hours get more replies. Open Discover or browse hosts in your city.",
+        href: "/discover",
+      }).catch(() => null)
     );
   }
 

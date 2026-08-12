@@ -335,6 +335,80 @@ async function handle(req: Request) {
     console.error("[cron alerts] SLA", e);
   }
 
+  // Cron health — alert if sibling jobs stale >26h
+  let cronHealthAlerts = 0;
+  try {
+    const { listCronRuns } = await import("@/lib/cron-run");
+    const runs = await listCronRuns();
+    const cutoff = Date.now() - 26 * 60 * 60 * 1000;
+    const expected = ["activation", "match-digest", "expire-plans"];
+    const staleJobs = expected.filter((job) => {
+      const r = runs.find((x) => x.job === job);
+      if (!r) return false; // never ran yet — skip until first success
+      return new Date(r.lastRunAt).getTime() < cutoff || r.ok === false;
+    });
+    if (staleJobs.length) {
+      const { notifyManagement } = await import("@/lib/notify-management");
+      await notifyManagement({
+        subject: `Cron health: ${staleJobs.join(", ")} stale`,
+        title: "Cron job(s) need attention",
+        body: `These jobs are missing or failed in the last 26h: ${staleJobs.join(", ")}. Check Vercel Cron + CRON_SECRET.`,
+        href: "/manage",
+        ctaLabel: "Open management",
+      });
+      cronHealthAlerts++;
+    }
+  } catch (e) {
+    console.error("[cron alerts] cron health", e);
+  }
+
+  // Daily digest for members with emailPrefMessages === DAILY
+  let dailyDigests = 0;
+  try {
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const dailyUsers = await prisma.user.findMany({
+      where: {
+        emailPrefMessages: "DAILY",
+        suspendedAt: null,
+        role: { in: ["AUPAIR", "PARENT"] },
+      },
+      select: { id: true, email: true, name: true },
+      take: 150,
+    });
+    const { sendEmail } = await import("@/lib/email");
+    const site = (
+      process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"
+    ).replace(/\/$/, "");
+    for (const u of dailyUsers) {
+      if (!u.email) continue;
+      const [msgs, interests] = await Promise.all([
+        prisma.message.count({
+          where: {
+            senderId: { not: u.id },
+            createdAt: { gte: dayAgo },
+            conversation: {
+              OR: [{ userAId: u.id }, { userBId: u.id }],
+            },
+          },
+        }),
+        prisma.interest.count({
+          where: { toUserId: u.id, createdAt: { gte: dayAgo }, status: "PENDING" },
+        }),
+      ]);
+      if (msgs === 0 && interests === 0) continue;
+      const first = (u.name || "there").split(" ")[0];
+      void sendEmail({
+        to: u.email,
+        subject: `Your AuPairly daily digest`,
+        text: `Hi ${first},\n\nIn the last day:\n• ${msgs} new message(s)\n• ${interests} new interest(s)\n\nOpen: ${site}/messages\n\nChange email frequency: ${site}/settings/notifications\n`,
+        html: `<p>Hi ${first},</p><p>In the last day:</p><ul><li><strong>${msgs}</strong> new message(s)</li><li><strong>${interests}</strong> new interest(s)</li></ul><p><a href="${site}/messages">Open messages</a> · <a href="${site}/settings/notifications">Email prefs</a></p>`,
+      }).catch(() => null);
+      dailyDigests++;
+    }
+  } catch (e) {
+    console.error("[cron alerts] daily digest", e);
+  }
+
   const summary = {
     ok: true,
     searchAlerts,
@@ -345,6 +419,8 @@ async function handle(req: Request) {
     reviewEmails,
     ownerDigests,
     slaAlerts,
+    cronHealthAlerts,
+    dailyDigests,
   };
 
   void import("@/lib/cron-run").then(({ recordCronRun }) =>
