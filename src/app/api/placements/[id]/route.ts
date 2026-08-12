@@ -133,7 +133,7 @@ export async function PATCH(
     data,
   });
 
-  // Schedule check-in placeholders when placed
+  // Schedule check-in placeholders when placed + success-fee nudge
   if (body.status === "PLACED") {
     for (const dayOffset of [7, 30]) {
       await prisma.placementCheckIn.upsert({
@@ -142,6 +142,47 @@ export async function PATCH(
         update: {},
       });
     }
+    // Success fee is typically paid by the host when placement is confirmed
+    if (!existing.successFeePaidAt) {
+      await createNotification({
+        userId: placement.parentUserId,
+        type: "BILLING",
+        title: "Placement success fee due",
+        body: `Status is Placed. Pay the success fee (R${(placement.successFeeCents / 100).toFixed(0)}) to complete marketplace success tracking.`,
+        href: `/placements/${id}`,
+      }).catch(() => null);
+      const parent = await prisma.user.findUnique({
+        where: { id: placement.parentUserId },
+        select: { email: true, name: true, emailPrefMessages: true },
+      });
+      if (parent?.email && parent.emailPrefMessages !== "OFF") {
+        const site = (
+          process.env.NEXT_PUBLIC_SITE_URL || "https://www.aupairly.me"
+        ).replace(/\/$/, "");
+        const { sendEmail } = await import("@/lib/email");
+        const first = (parent.name || "there").split(" ")[0];
+        const fee = (placement.successFeeCents / 100).toFixed(0);
+        void sendEmail({
+          to: parent.email,
+          subject: `Placement success fee — R${fee}`,
+          text: `Hi ${first},\n\nYour placement is marked Placed. Please pay the success fee (R${fee}) on AuPairly.\n\n${site}/placements/${id}\n`,
+          html: `<p>Hi ${first},</p><p>Your placement is <strong>Placed</strong>. Pay the success fee (<strong>R${fee}</strong>) to complete the marketplace path.</p><p><a href="${site}/placements/${id}">Open placement &amp; pay</a></p>`,
+        }).catch(() => null);
+      }
+    }
+  }
+
+  if (body.status === "INTERVIEW") {
+    await createNotification({
+      userId:
+        session.user.id === placement.parentUserId
+          ? placement.aupairUserId
+          : placement.parentUserId,
+      type: "MATCH",
+      title: "Interview stage",
+      body: "Propose a Meet time in chat if you haven't already.",
+      href: `/placements/${id}`,
+    }).catch(() => null);
   }
 
   const otherId =
@@ -221,11 +262,21 @@ export async function POST(
     });
   }
 
+  const { paystackLiveRequiredError } = await import("@/lib/paystack");
+  const liveBlock = paystackLiveRequiredError();
+  if (liveBlock) {
+    return NextResponse.json(
+      { error: liveBlock, paystackTestBlocked: true },
+      { status: 503 }
+    );
+  }
+
   try {
     const site = getSiteUrl();
     const email = session.user.email;
     if (!email) return NextResponse.json({ error: "Email required" }, { status: 400 });
 
+    // Prefer host (parent) as payer when they initiate; otherwise current user
     const reference = makeReference("success");
     const init = await initializeTransaction({
       email,

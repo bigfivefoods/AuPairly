@@ -556,6 +556,28 @@ export async function sendDay1ActivationEmail(opts: {
   });
 }
 
+/** Failed payment recovery — resume checkout */
+export async function sendPaymentFailedEmail(opts: {
+  toEmail: string;
+  toName: string;
+  description: string;
+  amountLabel?: string;
+}) {
+  const first = opts.toName.split(" ")[0] || "there";
+  const href = `${site()}/pricing`;
+  const amt = opts.amountLabel ? ` (${opts.amountLabel})` : "";
+  return sendEmail({
+    to: opts.toEmail,
+    subject: "Payment didn't go through — try again on AuPairly",
+    text: `Hi ${first},\n\nYour payment for ${opts.description}${amt} didn't complete.\n\nYou can retry securely here:\n${href}\n\n— AuPairly`,
+    html: wrapHtml(
+      `Payment incomplete`,
+      `<p style="line-height:1.6;color:#44403c">Your payment for <strong>${escapeHtml(opts.description)}</strong>${amt ? ` <strong>${escapeHtml(amt)}</strong>` : ""} didn't complete. No charge was finalised.</p>
+       <p style="margin-top:20px">${ctaButton(href, "Retry payment")}</p>`
+    ),
+  });
+}
+
 /** Soft nudge when free message limit is hit (optional outbound) */
 export async function sendUpgradeNudgeEmail(opts: {
   toEmail: string;

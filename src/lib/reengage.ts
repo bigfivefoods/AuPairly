@@ -1,5 +1,5 @@
 /**
- * Re-engagement rules based on last login / inactivity.
+ * Re-engagement rules based on last login / inactivity + profile stage.
  * Called from daily cron.
  */
 
@@ -14,31 +14,34 @@ const site = () =>
     "https://www.aupairly.me"
   ).replace(/\/$/, "");
 
-/** Day buckets: first matching rule wins (most severe first when scanning). */
 export const REENGAGE_RULES = [
   {
     day: 30,
     subject: "Still looking for the right match on AuPairly?",
     title: "We saved your spot",
-    body: "It's been a month — new sitters and hosts join every week. Log in to see who's near you.",
+    bodyBase:
+      "It's been a month — new sitters and hosts join every week. Log in to see who's near you.",
   },
   {
     day: 14,
     subject: "New people joined AuPairly near you",
     title: "Come back — new matches",
-    body: "Two weeks away is a long time in a marketplace. Open Discover to see fresh listings.",
+    bodyBase:
+      "Two weeks away is a long time in a marketplace. Open Discover to see fresh listings.",
   },
   {
     day: 7,
     subject: "Your AuPairly matches are waiting",
     title: "It's been a week",
-    body: "Log in to reply to messages and shortlist people before they go elsewhere.",
+    bodyBase:
+      "Log in to reply to messages and shortlist people before they go elsewhere.",
   },
   {
     day: 3,
     subject: "We miss you on AuPairly",
     title: "Quick check-in",
-    body: "It's been a few days. A short login helps you stay visible and catch new interests.",
+    bodyBase:
+      "It's been a few days. A short login helps you stay visible and catch new interests.",
   },
 ] as const;
 
@@ -47,12 +50,38 @@ function daysSince(d: Date | null | undefined, fallback: Date): number {
   return Math.floor((Date.now() - base.getTime()) / 86400000);
 }
 
+async function cityNewListings(city: string | null | undefined, days = 7) {
+  if (!city?.trim()) return 0;
+  const since = new Date(Date.now() - days * 86400000);
+  const [s, h] = await Promise.all([
+    prisma.auPairProfile.count({
+      where: {
+        status: "ACTIVE",
+        city: { contains: city.trim(), mode: "insensitive" },
+        createdAt: { gte: since },
+      },
+    }),
+    prisma.familyProfile.count({
+      where: {
+        status: "ACTIVE",
+        city: { contains: city.trim(), mode: "insensitive" },
+        createdAt: { gte: since },
+      },
+    }),
+  ]);
+  return s + h;
+}
+
 /**
  * Send re-engagement for members inactive for 3 / 7 / 14 / 30 days.
- * Avoids re-sending the same day-bucket; steps up to the next bucket later.
+ * - Skips users who published AND messaged in the last 7 days (goal met)
+ * - Segments incomplete vs published profiles
+ * - Personalizes with new listing count in their city
  */
 export async function runReengageRules(opts?: { take?: number }) {
   const take = opts?.take ?? 120;
+  const weekAgo = new Date(Date.now() - 7 * 86400000);
+
   const users = await prisma.user.findMany({
     where: {
       role: { in: ["AUPAIR", "PARENT"] },
@@ -79,23 +108,45 @@ export async function runReengageRules(opts?: { take?: number }) {
 
   let sent = 0;
   let skipped = 0;
+  let skippedActive = 0;
   const byRule: Record<number, number> = { 3: 0, 7: 0, 14: 0, 30: 0 };
+  const bySegment: Record<string, number> = {
+    incomplete: 0,
+    published: 0,
+  };
 
   for (const u of users) {
     if (sent >= take) break;
 
+    const profile = u.aupairProfile || u.familyProfile;
+    const published = profile?.status === "ACTIVE";
+    const city = profile?.city || null;
+
+    // Goal-based skip: published + messaged recently → don't nag for login alone
+    if (published) {
+      const recentMsg = await prisma.message.count({
+        where: {
+          senderId: u.id,
+          createdAt: { gte: weekAgo },
+        },
+      });
+      if (recentMsg > 0) {
+        skippedActive++;
+        continue;
+      }
+    }
+
     const last = u.lastLoginAt || u.lastActiveAt || null;
     const idle = daysSince(last, u.createdAt);
-    // Pick highest rule threshold they meet that we haven't already sent
     const rule = REENGAGE_RULES.find(
-      (r) => idle >= r.day && (u.lastReengageDay == null || u.lastReengageDay < r.day)
+      (r) =>
+        idle >= r.day && (u.lastReengageDay == null || u.lastReengageDay < r.day)
     );
     if (!rule) {
       skipped++;
       continue;
     }
 
-    // Throttle: at most one reengage email per 2 days
     if (
       u.lastReengageAt &&
       Date.now() - u.lastReengageAt.getTime() < 2 * 86400000
@@ -105,25 +156,47 @@ export async function runReengageRules(opts?: { take?: number }) {
     }
 
     const first = (u.name || "there").split(" ")[0];
-    const city =
-      u.aupairProfile?.city || u.familyProfile?.city || "your area";
-    const href = "/discover";
+    const cityLabel = city || "your area";
+    const newCount = await cityNewListings(city, 7);
+
+    let body: string = rule.bodyBase;
+    let href = "/discover";
+    let subject: string = rule.subject;
+
+    if (!published) {
+      body =
+        "Your listing still isn't live. Finish photo, city, and bio, then publish — profiles that go active get more matches.";
+      href = "/profile/edit";
+      subject =
+        rule.day >= 7
+          ? "Finish your AuPairly listing (2 minutes)"
+          : "Almost there — publish your AuPairly listing";
+      bySegment.incomplete++;
+    } else {
+      bySegment.published++;
+      if (newCount > 0) {
+        body = `${newCount} new listing${newCount === 1 ? "" : "s"} appeared near ${cityLabel} this week. ${rule.bodyBase}`;
+      } else {
+        body = `${rule.bodyBase} Invite 2 people in ${cityLabel} to grow local matches.`;
+      }
+    }
+
     const url = `${site()}${href}`;
 
     await createNotification({
       userId: u.id,
       type: "SYSTEM",
       title: rule.title,
-      body: rule.body,
+      body,
       href,
     }).catch(() => null);
 
     if (u.email && u.emailPrefMessages !== "OFF") {
       void sendEmail({
         to: u.email,
-        subject: rule.subject,
-        text: `Hi ${first},\n\n${rule.body}\n\nCity focus: ${city}\n\nLog in: ${url}\n\nChange email prefs: ${site()}/settings/notifications\n`,
-        html: `<p>Hi ${first},</p><p>${rule.body}</p><p style="margin:16px 0"><a href="${url}" style="display:inline-block;background:#0d9488;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">Open AuPairly</a></p><p style="font-size:12px;color:#78716c">You're getting this because you haven't logged in for about ${rule.day} days. <a href="${site()}/settings/notifications">Email prefs</a></p>`,
+        subject,
+        text: `Hi ${first},\n\n${body}\n\nCity: ${cityLabel}${newCount ? ` · ${newCount} new nearby` : ""}\n\n${url}\n\nEmail prefs: ${site()}/settings/notifications\n`,
+        html: `<p>Hi ${first},</p><p>${body}</p><p style="font-size:13px;color:#78716c">City: <strong>${cityLabel}</strong>${newCount ? ` · ${newCount} new nearby this week` : ""}</p><p style="margin:16px 0"><a href="${url}" style="display:inline-block;background:#0d9488;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">${published ? "Open Discover" : "Finish listing"}</a></p><p style="font-size:12px;color:#78716c">Idle ~${rule.day} days. <a href="${site()}/settings/notifications">Email prefs</a></p>`,
       }).catch(() => null);
     }
 
@@ -139,5 +212,12 @@ export async function runReengageRules(opts?: { take?: number }) {
     byRule[rule.day] = (byRule[rule.day] || 0) + 1;
   }
 
-  return { sent, skipped, byRule, scanned: users.length };
+  return {
+    sent,
+    skipped,
+    skippedActive,
+    byRule,
+    bySegment,
+    scanned: users.length,
+  };
 }

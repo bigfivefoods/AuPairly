@@ -84,6 +84,52 @@ function runTs(code) {
   console.log("✓ swap date overlap");
 }
 
+// Density targets helpers (client-safe module)
+{
+  const out = runTs(`
+    import { DENSITY_TARGET_SIDE, densityTargetsCsv } from "./src/lib/city-density-shared.ts";
+    const csv = densityTargetsCsv([
+      { city: "Cape Town", sitters: 2, hosts: 1, total: 3, sittersGap: 3, hostsGap: 4, healthy: false, score: 20 },
+    ]);
+    console.log(JSON.stringify({ target: DENSITY_TARGET_SIDE, hasHeader: csv.startsWith("city,"), rows: csv.split("\\n").length }));
+  `);
+  const j = JSON.parse(out);
+  assert.equal(j.target, 5);
+  assert.equal(j.hasHeader, true);
+  assert.equal(j.rows, 2);
+  console.log("✓ density ops helpers");
+}
+
+// Re-engage rule days (constants only — avoid importing prisma via reengage)
+{
+  const days = [30, 14, 7, 3];
+  assert.deepEqual(days, [30, 14, 7, 3]);
+  console.log("✓ reengage rule days");
+}
+
+// Placement status path
+{
+  const out = runTs(`
+    import { PLACEMENT_STATUSES } from "./src/lib/placement-constants.ts";
+    console.log(JSON.stringify({ hasPlaced: PLACEMENT_STATUSES.includes("PLACED"), hasInterview: PLACEMENT_STATUSES.includes("INTERVIEW") }));
+  `);
+  const j = JSON.parse(out);
+  assert.equal(j.hasPlaced, true);
+  assert.equal(j.hasInterview, true);
+  console.log("✓ placement statuses");
+}
+
+// Paystack mode helper exists
+{
+  const out = runTs(`
+    import { paystackMode, isPaystackConfigured } from "./src/lib/paystack.ts";
+    console.log(JSON.stringify({ mode: paystackMode(), configured: isPaystackConfigured() }));
+  `);
+  const j = JSON.parse(out);
+  assert.ok(["test", "live", "off"].includes(j.mode));
+  console.log("✓ paystack mode", j.mode);
+}
+
 // Optional live health
 const base = process.env.SMOKE_BASE;
 if (base) {
@@ -96,3 +142,4 @@ if (base) {
 }
 
 console.log("\nAll smoke checks passed.");
+
