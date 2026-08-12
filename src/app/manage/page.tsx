@@ -375,7 +375,7 @@ export default async function ManagePage() {
 
       <OpsSliceDice defaultOpen title="Management analytics — slice & dice" />
 
-      {loginStats ? <ManageLoginMonitor stats={loginStats} /> : null}
+      {loginStats ? <ManageLoginMonitor initial={loginStats} /> : null}
 
       {density ? (
         <ManageDensityTargets

@@ -1,4 +1,8 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Loader2, RefreshCw } from "lucide-react";
 import {
   formatDuration,
   type LoginMonitoringStats,
@@ -28,7 +32,52 @@ const REENGAGE_RULES = [
   },
 ] as const;
 
-export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
+function sourceLabel(s?: string) {
+  if (s === "login") return "password login";
+  if (s === "session") return "session";
+  if (s === "activity") return "site activity";
+  return "";
+}
+
+export function ManageLoginMonitor({
+  initial,
+}: {
+  initial: LoginMonitoringStats;
+}) {
+  const [stats, setStats] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [auto, setAuto] = useState(true);
+
+  const refresh = useCallback(async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/login-stats", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Refresh failed");
+        return;
+      }
+      setStats(data as LoginMonitoringStats);
+    } catch {
+      setError("Network error refreshing stats");
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!auto) return;
+    const t = setInterval(() => {
+      void refresh();
+    }, 30_000);
+    return () => clearInterval(t);
+  }, [auto, refresh]);
+
   return (
     <section className="mb-8">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
@@ -37,35 +86,72 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
             Login &amp; session monitoring
           </h2>
           <p className="text-xs text-stone-500">
-            Who logged in, how long they stayed, and who to re-engage. Rules send
-            email + in-app notices at 3 / 7 / 14 / 30 days idle.
+            Live presence (tab open → heartbeat every ~55s). Sessions close after
+            2h idle. Re-engage emails at 3 / 7 / 14 / 30 days since last seen.
+          </p>
+          <p className="mt-0.5 text-[11px] text-stone-400">
+            Snapshot:{" "}
+            {stats.generatedAt
+              ? new Date(stats.generatedAt).toLocaleString()
+              : "—"}
+            {auto ? " · auto-refresh 30s" : ""}
           </p>
         </div>
-        <Link
-          href="/manage/report"
-          className="text-xs font-semibold text-teal-700 hover:underline"
-        >
-          Include on A4 report →
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-stone-600">
+            <input
+              type="checkbox"
+              checked={auto}
+              onChange={(e) => setAuto(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-stone-300 text-teal-600"
+            />
+            Live refresh
+          </label>
+          <button
+            type="button"
+            onClick={() => refresh()}
+            disabled={busy}
+            className="btn-secondary !py-1.5 !px-3 text-xs"
+          >
+            {busy ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            Refresh now
+          </button>
+          <Link
+            href="/manage/report"
+            className="text-xs font-semibold text-teal-700 hover:underline"
+          >
+            A4 report →
+          </Link>
+        </div>
       </div>
+
+      {error && (
+        <p className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </p>
+      )}
 
       <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         {[
           {
-            l: "Logins today",
+            l: "Sessions today",
             v: stats.loginsToday,
-            h: `${stats.uniqueLoginsToday} unique`,
+            h: `${stats.uniqueLoginsToday} unique people`,
           },
           {
-            l: "Logins 7d",
+            l: "Sessions 7d",
             v: stats.loginsWeek,
             h: `${stats.uniqueLoginsWeek} unique`,
           },
-          { l: "Logins 30d", v: stats.loginsMonth, h: "Sessions started" },
+          { l: "Sessions 30d", v: stats.loginsMonth, h: "Started in period" },
           {
             l: "Active now",
             v: stats.activeNow,
-            h: "Open session · seen ≤15m",
+            h: "Heartbeat ≤3 min",
           },
           {
             l: "Avg session (7d)",
@@ -73,9 +159,9 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
             h: `Median ${formatDuration(stats.medianSessionSecWeek)}`,
           },
           {
-            l: "Never logged in",
+            l: "No presence ever",
             v: stats.neverLoggedIn,
-            h: "Hosts + sitters",
+            h: "No login / activity",
           },
         ].map((k) => (
           <div
@@ -115,7 +201,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
               {k.v}
             </p>
             <p className="text-[11px] text-stone-500">
-              Re-engage rule day {k.day}
+              Re-engage day {k.day} (since last seen)
             </p>
           </div>
         ))}
@@ -123,50 +209,68 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
 
       <Card className="mb-4 !p-4">
         <h3 className="text-sm font-semibold text-stone-900">
-          Notification rules (automatic)
+          How accuracy works
+        </h3>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-stone-600">
+          <li>
+            <strong>Password login</strong> starts a session and increments login
+            count.
+          </li>
+          <li>
+            <strong>Live heartbeat</strong> every ~55s while an app tab is open
+            (updates last seen + duration).
+          </li>
+          <li>
+            <strong>Active now</strong> = open session with heartbeat in the last
+            3 minutes.
+          </li>
+          <li>
+            <strong>Last seen</strong> uses the newest of: login time, session
+            activity, or other site activity (messages, etc.).
+          </li>
+          <li>
+            Sessions with no heartbeat for <strong>2 hours</strong> auto-close.
+          </li>
+        </ul>
+        <h3 className="mt-3 text-sm font-semibold text-stone-900">
+          Re-engage rules
         </h3>
         <ul className="mt-2 space-y-1.5 text-xs text-stone-600">
-          {REENGAGE_RULES.slice()
-            .reverse()
-            .map((r) => (
-              <li key={r.day} className="flex gap-2">
-                <span className="shrink-0 rounded-full bg-teal-100 px-2 py-0.5 font-semibold text-teal-900">
-                  {r.day}d idle
-                </span>
-                <span>
-                  <strong className="text-stone-800">{r.title}</strong> —{" "}
-                  {r.body}
-                </span>
-              </li>
-            ))}
+          {REENGAGE_RULES.map((r) => (
+            <li key={r.day} className="flex gap-2">
+              <span className="shrink-0 rounded-full bg-teal-100 px-2 py-0.5 font-semibold text-teal-900">
+                {r.day}d idle
+              </span>
+              <span>
+                <strong className="text-stone-800">{r.title}</strong> — {r.body}
+              </span>
+            </li>
+          ))}
         </ul>
-        <p className="mt-2 text-[11px] text-stone-400">
-          Cron: daily <code className="rounded bg-stone-100 px-1">/api/cron/reengage</code>{" "}
-          · respects email prefs OFF · max one step-up every 2 days per member
-        </p>
       </Card>
 
-      {/* Management team always visible */}
+      {/* Management team */}
       <Card className="mb-4 !p-0 overflow-hidden border-teal-200">
         <div className="border-b border-teal-100 bg-teal-50/50 px-4 py-2.5">
           <h3 className="text-sm font-semibold text-teal-950">
-            Management team logins
+            Management team (live)
           </h3>
           <p className="text-[11px] text-teal-900/70">
-            Craig, Rylee, Nicola, Clint, Bianca, and other allowlisted ops emails.
-            Last login uses login record, then session, then last activity on site.
+            Always includes allowlisted ops: Craig, Rylee, Nicola, Clint, Bianca,
+            etc.
           </p>
         </div>
-        <div className="max-h-64 overflow-auto">
-          <table className="w-full min-w-[32rem] text-left text-xs">
+        <div className="max-h-72 overflow-auto">
+          <table className="w-full min-w-[36rem] text-left text-xs">
             <thead className="sticky top-0 bg-stone-50 text-[10px] uppercase tracking-wide text-stone-400">
               <tr>
                 <th className="px-3 py-2 font-semibold">Name</th>
                 <th className="px-3 py-2 font-semibold">Email</th>
-                <th className="px-3 py-2 font-semibold">Last login / seen</th>
-                <th className="px-3 py-2 font-semibold">Idle</th>
+                <th className="px-3 py-2 font-semibold">Last seen</th>
+                <th className="px-3 py-2 font-semibold">Online</th>
+                <th className="px-3 py-2 font-semibold">Session now</th>
                 <th className="px-3 py-2 font-semibold"># logins</th>
-                <th className="px-3 py-2 font-semibold">Status</th>
+                <th className="px-3 py-2 font-semibold">Account</th>
               </tr>
             </thead>
             <tbody>
@@ -180,11 +284,12 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                     {u.lastLoginAt ? (
                       <>
                         {new Date(u.lastLoginAt).toLocaleString()}
-                        {u.lastLoginSource && u.lastLoginSource !== "login" && (
-                          <span className="ml-1 text-[10px] text-stone-400">
-                            ({u.lastLoginSource})
-                          </span>
-                        )}
+                        {u.lastLoginSource &&
+                          u.lastLoginSource !== "login" && (
+                            <span className="ml-1 text-[10px] text-stone-400">
+                              ({sourceLabel(u.lastLoginSource)})
+                            </span>
+                          )}
                       </>
                     ) : (
                       <span className="text-stone-400">
@@ -193,19 +298,18 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                     )}
                   </td>
                   <td className="px-3 py-2">
-                    {u.daysSinceLogin == null ? (
-                      <span className="text-stone-400">—</span>
-                    ) : (
-                      <span
-                        className={
-                          u.daysSinceLogin >= 7
-                            ? "font-semibold text-amber-800"
-                            : "text-stone-700"
-                        }
-                      >
-                        {u.daysSinceLogin}d
+                    {u.isOnline ? (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
+                        Online
                       </span>
+                    ) : (
+                      <span className="text-stone-400">—</span>
                     )}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums font-semibold">
+                    {u.openSessionDurationSec != null
+                      ? formatDuration(u.openSessionDurationSec)
+                      : "—"}
                   </td>
                   <td className="px-3 py-2 tabular-nums font-semibold">
                     {u.loginCount}
@@ -213,7 +317,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                   <td className="px-3 py-2">
                     {u.registered ? (
                       <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                        On platform
+                        Registered
                       </span>
                     ) : (
                       <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
@@ -232,7 +336,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
         <Card className="!p-0 overflow-hidden">
           <div className="border-b border-stone-100 px-4 py-2.5">
             <h3 className="text-sm font-semibold text-stone-900">
-              Recent sessions
+              Recent sessions (by last seen)
             </h3>
           </div>
           <div className="max-h-80 overflow-auto">
@@ -241,6 +345,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                 <tr>
                   <th className="px-3 py-2 font-semibold">Member</th>
                   <th className="px-3 py-2 font-semibold">Started</th>
+                  <th className="px-3 py-2 font-semibold">Last seen</th>
                   <th className="px-3 py-2 font-semibold">Duration</th>
                   <th className="px-3 py-2 font-semibold">Status</th>
                 </tr>
@@ -248,9 +353,12 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
               <tbody>
                 {stats.recentSessions.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-6 text-center text-stone-400">
-                      No sessions recorded yet — appear after the next full login
-                      (password sign-in).
+                    <td
+                      colSpan={5}
+                      className="px-3 py-6 text-center text-stone-400"
+                    >
+                      No sessions yet. Open any logged-in page to start a live
+                      heartbeat, or password sign-in once.
                     </td>
                   </tr>
                 ) : (
@@ -265,13 +373,20 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                       <td className="px-3 py-2 text-stone-600">
                         {new Date(s.startedAt).toLocaleString()}
                       </td>
+                      <td className="px-3 py-2 text-stone-600">
+                        {new Date(s.lastSeenAt).toLocaleString()}
+                      </td>
                       <td className="px-3 py-2 font-semibold tabular-nums text-stone-800">
                         {s.durationLabel}
                       </td>
                       <td className="px-3 py-2">
-                        {s.open ? (
+                        {s.isOnline ? (
                           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                            Open
+                            Online
+                          </span>
+                        ) : s.open ? (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                            Open (idle)
                           </span>
                         ) : (
                           <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-600">
@@ -290,10 +405,11 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
         <Card className="!p-0 overflow-hidden">
           <div className="border-b border-stone-100 px-4 py-2.5">
             <h3 className="text-sm font-semibold text-stone-900">
-              Last login by member
+              Last seen by member
             </h3>
             <p className="text-[11px] text-stone-500">
-              Uses login time, or last site activity if login tracking was added later.
+              Newest of password login, session heartbeat, or other site
+              activity.
             </p>
           </div>
           <div className="max-h-80 overflow-auto">
@@ -301,7 +417,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
               <thead className="sticky top-0 bg-stone-50 text-[10px] uppercase tracking-wide text-stone-400">
                 <tr>
                   <th className="px-3 py-2 font-semibold">Member</th>
-                  <th className="px-3 py-2 font-semibold">Last login</th>
+                  <th className="px-3 py-2 font-semibold">Last seen</th>
                   <th className="px-3 py-2 font-semibold">Idle</th>
                   <th className="px-3 py-2 font-semibold"># logins</th>
                 </tr>
@@ -309,7 +425,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
               <tbody>
                 {stats.recentUsers.map((u) => (
                   <tr
-                    key={u.id}
+                    key={u.id || u.email}
                     className={`border-t border-stone-50 ${
                       u.isManagement ? "bg-teal-50/40" : ""
                     }`}
@@ -317,6 +433,11 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                     <td className="px-3 py-2">
                       <p className="font-medium text-stone-800">
                         {u.name}
+                        {u.isOnline && (
+                          <span className="ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-900">
+                            online
+                          </span>
+                        )}
                         {u.isManagement && (
                           <span className="ml-1 rounded-full bg-teal-100 px-1.5 py-0.5 text-[9px] font-semibold text-teal-900">
                             ops
@@ -334,7 +455,7 @@ export function ManageLoginMonitor({ stats }: { stats: LoginMonitoringStats }) {
                           {u.lastLoginSource &&
                             u.lastLoginSource !== "login" && (
                               <span className="ml-1 text-[10px] text-stone-400">
-                                via {u.lastLoginSource}
+                                ({sourceLabel(u.lastLoginSource)})
                               </span>
                             )}
                         </>

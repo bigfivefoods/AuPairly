@@ -6,6 +6,7 @@ import { SiteNavbar } from "@/components/site-navbar";
 import { FooterI18n } from "@/components/chrome-i18n";
 import { MobileNav } from "@/components/mobile-nav";
 import { AppShell } from "@/components/app-shell";
+import { SessionHeartbeat } from "@/components/session-heartbeat";
 import { isAuthPath } from "@/lib/app-nav";
 
 type ShellUser = {
@@ -30,6 +31,7 @@ export function AppChromeClient({
   if (user && !isAuthPath(path)) {
     return (
       <AppShell user={user} signOutAction={signOutAction}>
+        <SessionHeartbeat enabled />
         <main
           id="main"
           className="min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom))] md:pb-0 print:pb-0"

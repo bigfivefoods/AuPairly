@@ -68,7 +68,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Login monitoring: open session + lastLoginAt / loginCount
         try {
           const { startLoginSession } = await import("@/lib/login-sessions");
-          const sessionId = await startLoginSession({ userId: user.id });
+          const sessionId = await startLoginSession({
+            userId: user.id,
+            isPasswordLogin: true,
+          });
           return {
             id: user.id,
             email: user.email,
