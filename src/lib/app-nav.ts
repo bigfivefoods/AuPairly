@@ -77,6 +77,12 @@ export const APP_NAV_GROUPS: AppNavGroup[] = [
         roles: ["PARENT"],
       },
       {
+        href: "/sitter-start",
+        label: "Quick list",
+        match: ["/sitter-start"],
+        roles: ["AUPAIR"],
+      },
+      {
         href: "/availability",
         label: "Availability",
         match: ["/availability"],

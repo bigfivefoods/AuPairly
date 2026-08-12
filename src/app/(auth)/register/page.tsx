@@ -8,6 +8,7 @@ import { useLoginWithEmail, usePrivy } from "@privy-io/react-auth";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { Home, HandHeart, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { CityMatchTeaser } from "@/components/city-match-teaser";
 
 const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
@@ -18,6 +19,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") === "PARENT" ? "PARENT" : "AUPAIR";
   const refCode = searchParams.get("ref")?.trim() || "";
+  const cityParam = searchParams.get("city")?.trim() || "";
 
   const [step, setStep] = useState<Step>("email");
   const [role, setRole] = useState<"AUPAIR" | "PARENT">(initialRole);
@@ -221,15 +223,28 @@ function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-lg">
+    <div className="flex w-full max-w-lg flex-col gap-4">
+      {step === "email" && (
+        <CityMatchTeaser
+          variant="register"
+          defaultRole={role}
+          defaultCity={cityParam}
+        />
+      )}
+    <Card className="w-full">
       <div className="mb-8 text-center">
         <h1 className="font-display text-3xl font-semibold text-stone-900">Join AuPairly</h1>
         <p className="mt-2 text-stone-500">
-          Trusted care for your family, loved ones, home &amp; pets.
+          Free to list · no big agency fee up front · care for family, home &amp; pets.
         </p>
         {refCode && (
           <p className="mt-2 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
-            You were invited — welcome!
+            You were invited — welcome gift included!
+          </p>
+        )}
+        {cityParam && (
+          <p className="mt-2 text-xs font-medium text-teal-800">
+            Joining for {cityParam}
           </p>
         )}
       </div>
@@ -490,6 +505,7 @@ function RegisterForm() {
         </Link>
       </p>
     </Card>
+    </div>
   );
 }
 

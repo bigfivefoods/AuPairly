@@ -252,6 +252,15 @@ export async function PUT(req: Request) {
         href: "/discover",
       }).catch(() => null)
     );
+    // Founding boost in thin cities
+    void import("@/lib/founding-boost").then(({ maybeGrantFoundingBoost }) =>
+      maybeGrantFoundingBoost({
+        userId: session.user!.id,
+        role: "AUPAIR",
+        city: profile.city,
+        profileId: profile.id,
+      })
+    );
   }
 
   return NextResponse.json({ profile });

@@ -11,6 +11,8 @@ export function TrustStrip({
   hasVideo,
   hasReferences,
   placementVerified,
+  isFeatured,
+  isFounding,
   className,
 }: {
   isVerified?: boolean;
@@ -22,10 +24,21 @@ export function TrustStrip({
   hasVideo?: boolean;
   hasReferences?: boolean;
   placementVerified?: boolean;
+  isFeatured?: boolean;
+  /** Thin-city founding boost */
+  isFounding?: boolean;
   className?: string;
 }) {
   const chips: { key: string; label: string; icon: React.ReactNode; className: string }[] = [];
 
+  if (isFounding || isFeatured) {
+    chips.push({
+      key: "f",
+      label: isFounding ? "Founding member" : "Featured",
+      icon: <Award className="h-3 w-3" />,
+      className: "bg-amber-50 text-amber-900",
+    });
+  }
   if (isVerified) {
     chips.push({
       key: "v",

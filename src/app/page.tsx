@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { HomeHeroI18n } from "@/components/home-hero-i18n";
 import { HomeBodyI18n } from "@/components/home-body-i18n";
 import { HomepageReviews } from "@/components/homepage-reviews";
+import { HomeCityStrip } from "@/components/home-city-strip";
 import { JsonLd } from "@/components/json-ld";
 import { BRAND } from "@/lib/brand";
+import { topCitiesByDensity } from "@/lib/city-density";
 import {
   buildPageMetadata,
   faqJsonLd,
@@ -79,14 +81,18 @@ export default async function HomePage() {
     fromName: string;
     createdAt: string;
   }[] = [];
+  let topCities: { city: string; sitters: number; hosts: number; total: number }[] =
+    [];
 
   try {
-    [featuredAupairs, featuredFamilies, stats, reviews] = await Promise.all([
-      getFeaturedAupairs(),
-      getFeaturedFamilies(),
-      getStats(),
-      getPublicReviews(),
-    ]);
+    [featuredAupairs, featuredFamilies, stats, reviews, topCities] =
+      await Promise.all([
+        getFeaturedAupairs(),
+        getFeaturedFamilies(),
+        getStats(),
+        getPublicReviews(),
+        topCitiesByDensity(6),
+      ]);
   } catch {
     // DB may be empty before seed
   }
@@ -108,6 +114,7 @@ export default async function HomePage() {
           verified: stats.verified,
         }}
       />
+      <HomeCityStrip cities={topCities} />
       <HomeBodyI18n
         featuredAupairs={featuredAupairs}
         featuredFamilies={featuredFamilies}
