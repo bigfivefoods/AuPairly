@@ -6,12 +6,15 @@
 
 /**
  * Hard-coded ops team (always included).
- * Rylee Kendall (sitter) also receives management console access + ops emails:
- * signups, daily digest, verifications, reviews, reports, support, payments.
+ * Management console access + ops emails (signups, daily digest, verifications,
+ * reviews, reports, support, payments) for every address below.
+ * Must register / sign in with the exact email.
  */
 const HARDCODED_MANAGEMENT_EMAILS = [
   "craig@bigfivegroup.africa",
   "ryleerkendall@icloud.com",
+  "nicola@kencrete.co.za",
+  "clint@kencrete.co.za",
 ] as const;
 
 const OWNER_EMAILS = new Set(
