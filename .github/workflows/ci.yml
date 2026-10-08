@@ -23,6 +23,8 @@ jobs:
           # generate does not need a live DB; placeholder satisfies config load
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
           DIRECT_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      - name: Next.js route types
+        run: npx next typegen
       - name: Typecheck
         run: npx tsc --noEmit
       - name: Unit tests
